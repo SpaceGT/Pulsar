@@ -6,13 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace avaness.PluginLoader.Compiler
 {
     public class RoslynCompiler
     {
         private readonly List<Source> source = new List<Source>();
+        private readonly PublicizedAssemblies publicizedAssemblies = new PublicizedAssemblies();
         private readonly List<MetadataReference> customReferences = new List<MetadataReference>();
         private bool debugBuild;
 
@@ -28,19 +28,27 @@ namespace avaness.PluginLoader.Compiler
             {
                 s.CopyTo(mem);
                 source.Add(new Source(mem, name, debugBuild));
+
+                SourceText sourceText = SourceText.From(mem);
+                publicizedAssemblies.InspectSource(sourceText);
             }
         }
 
         public byte[] Compile(string assemblyName, out byte[] symbols)
         {
             symbols = null;
+            
+            var references = RoslynReferences.AllReferences
+                .Select(kv => publicizedAssemblies.PublicizeReferenceIfRequired(assemblyName, kv.Key, kv.Value))
+                .Concat(customReferences)
+                .ToHashSet();
 
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
                 syntaxTrees: source.Select(x => x.Tree),
-                references: RoslynReferences.EnumerateAllReferences().Concat(customReferences),
+                references: references,
                 options: new CSharpCompilationOptions(
-                    OutputKind.DynamicallyLinkedLibrary, 
+                    OutputKind.DynamicallyLinkedLibrary,
                     optimizationLevel: debugBuild ? OptimizationLevel.Debug : OptimizationLevel.Release,
                     allowUnsafe: true));
 
@@ -59,7 +67,7 @@ namespace avaness.PluginLoader.Compiler
                 {
                     result = compilation.Emit(ms);
                 }
-                 
+
                 if (!result.Success)
                 {
                     // handle exceptions
@@ -78,12 +86,12 @@ namespace avaness.PluginLoader.Compiler
                 }
                 else
                 {
-                    if(debugBuild)
+                    if (debugBuild)
                     {
                         pdb.Seek(0, SeekOrigin.Begin);
                         symbols = pdb.ToArray();
                     }
-                    
+
                     ms.Seek(0, SeekOrigin.Begin);
                     return ms.ToArray();
                 }
@@ -93,7 +101,7 @@ namespace avaness.PluginLoader.Compiler
 
         public void TryAddDependency(string dll)
         {
-            if(Path.HasExtension(dll)
+            if (Path.HasExtension(dll)
                 && Path.GetExtension(dll).Equals(".dll", StringComparison.OrdinalIgnoreCase)
                 && File.Exists(dll))
             {

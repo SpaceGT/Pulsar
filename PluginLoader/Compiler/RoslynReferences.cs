@@ -11,12 +11,12 @@ namespace avaness.PluginLoader.Compiler
 {
     public static class RoslynReferences
     {
-        private static Dictionary<string, MetadataReference> allReferences = new Dictionary<string, MetadataReference>();
+        internal static readonly Dictionary<string, MetadataReference> AllReferences = new Dictionary<string, MetadataReference>();
         private static readonly HashSet<string> referenceBlacklist = new HashSet<string>(new[] { "System.ValueTuple" });
 
         public static void GenerateAssemblyList()
         {
-            if (allReferences.Count > 0)
+            if (AllReferences.Count > 0)
                 return;
 
             AssemblyName harmonyInfo = typeof(HarmonyLib.Harmony).Assembly.GetName();
@@ -47,11 +47,13 @@ namespace avaness.PluginLoader.Compiler
                     AddAssemblyReference(a);
                     sb.AppendLine(a.FullName);
                 }
-                foreach(Assembly a in GetOtherReferences())
+
+                foreach (Assembly a in GetOtherReferences())
                 {
                     AddAssemblyReference(a);
                     sb.AppendLine(a.FullName);
                 }
+
                 sb.AppendLine(line);
                 while (loadedAssemblies.Count > 0)
                 {
@@ -74,6 +76,7 @@ namespace avaness.PluginLoader.Compiler
                         }
                     }
                 }
+
                 sb.AppendLine(line);
             }
             catch (Exception e)
@@ -96,7 +99,7 @@ namespace avaness.PluginLoader.Compiler
 
         private static bool ContainsReference(AssemblyName name)
         {
-            return allReferences.ContainsKey(name.Name);
+            return AllReferences.ContainsKey(name.Name);
         }
 
         private static bool TryLoadAssembly(AssemblyName name, out Assembly aRef)
@@ -116,13 +119,8 @@ namespace avaness.PluginLoader.Compiler
         private static void AddAssemblyReference(Assembly a)
         {
             string name = a.GetName().Name;
-            if (!allReferences.ContainsKey(name))
-                allReferences.Add(name, MetadataReference.CreateFromFile(a.Location));
-        }
-
-        public static IEnumerable<MetadataReference> EnumerateAllReferences()
-        {
-            return allReferences.Values;
+            if (!AllReferences.ContainsKey(name))
+                AllReferences.Add(name, MetadataReference.CreateFromFile(a.Location));
         }
 
         private static bool IsValidReference(Assembly a)
@@ -135,12 +133,12 @@ namespace avaness.PluginLoader.Compiler
             try
             {
                 AssemblyName aName = new AssemblyName(name);
-                if (!allReferences.ContainsKey(aName.Name))
+                if (!AllReferences.ContainsKey(aName.Name))
                 {
                     Assembly a = Assembly.Load(aName);
                     LogFile.WriteLine("Reference added at runtime: " + a.FullName);
                     MetadataReference aRef = MetadataReference.CreateFromFile(a.Location);
-                    allReferences[a.GetName().Name] = aRef;
+                    AllReferences[a.GetName().Name] = aRef;
                 }
             }
             catch (IOException)
@@ -151,7 +149,7 @@ namespace avaness.PluginLoader.Compiler
 
         public static bool Contains(string id)
         {
-            return allReferences.ContainsKey(id);
+            return AllReferences.ContainsKey(id);
         }
     }
 }
