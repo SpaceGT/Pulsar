@@ -1,28 +1,52 @@
 @echo off
-Rem Run this script with the full file path as argument
+setlocal enabledelayedexpansion
 
-if [%1] == [] goto eof
+REM Check if the required parameters are passed
+REM (3rd param will be blank if there are not enough)
+if "%~2" == "" (
+    echo ERROR: Missing required parameters
+    exit /b 1
+)
 
-set se_folder=%~dp0..\Bin64
-set counter=1
+REM Extract parameters and remove quotes
+set SOURCE=%~1
+set BIN64=%~2
 
-Rem Wait for the file to be ready
-:waitfile
-2>nul (
- >>%se_folder%\%~nx1 (call )
-) && (goto copyfile) || (echo File is in use.)
-set /a counter=counter+1
-echo Trying attempt #%counter%
-ping -n 6 127.0.0.1 >nul
-goto waitfile
+REM Remove trailing backslash if applicable
+if "%SOURCE:~-1%"=="\" set SOURCE=%SOURCE:~0,-1%
+if "%BIN64:~-1%"=="\" set BIN64=%BIN64:~0,-1%
 
-Rem Copy the file to the target location
-:copyfile
-echo Copying DLLs
-copy /y /b PluginLoader.dll "%se_folder%\"
-copy /y /b 0Harmony.dll.dll "%se_folder%\"
-copy /y /b Newtonsoft.Json.dll "%se_folder%\"
-copy /y /b NuGet.*.dll "%se_folder%\"
+echo Deploy location is "%BIN64%"
 
-echo DONE deploying
-:eof
+REM Copy the plugin into the plugin directory
+echo Copying "PluginLoader.dll"
+
+for /l %%i in (1, 1, 10) do (
+    copy /y /b "%SOURCE%\PluginLoader.dll" "%BIN64%\" >NUL 2>&1
+
+    if !ERRORLEVEL! NEQ 0 (
+        REM "timeout" requires input redirection which is not supported,
+        REM so we use ping as a way to delay the script between retries.
+        ping -n 2 127.0.0.1 >NUL 2>&1
+    ) else (
+        goto BREAK_LOOP
+    )
+)
+
+REM This part will only be reached if the loop has been exhausted
+REM Any success would skip to the BREAK_LOOP label below
+echo ERROR: Could not copy "%NAME%".
+exit /b 1
+
+:BREAK_LOOP
+
+echo Copying "0Harmony.dll"
+copy /y /b "%SOURCE%\0Harmony.dll" "%BIN64%\" >NUL 2>&1
+
+echo Copying "Newtonsoft.Json.dll"
+copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%BIN64%\" >NUL 2>&1
+
+echo Copying NuGet Packages
+copy /y /b "%SOURCE%\NuGet.*.dll" "%BIN64%\" >NUL 2>&1
+
+exit /b 0
