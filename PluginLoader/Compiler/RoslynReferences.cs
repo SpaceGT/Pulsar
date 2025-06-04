@@ -14,15 +14,12 @@ namespace avaness.PluginLoader.Compiler
         internal static readonly Dictionary<string, MetadataReference> AllReferences = new Dictionary<string, MetadataReference>();
         private static readonly HashSet<string> referenceBlacklist = new HashSet<string>(new[] { "System.ValueTuple" });
 
-        public static void GenerateAssemblyList()
+        public static void GenerateAssemblyList(Stack<Assembly> loadedAssemblies)
         {
             if (AllReferences.Count > 0)
                 return;
 
             AssemblyName harmonyInfo = typeof(HarmonyLib.Harmony).Assembly.GetName();
-
-            Stack<Assembly> loadedAssemblies = new Stack<Assembly>(AppDomain.CurrentDomain.GetAssemblies().Where(IsValidReference));
-
             StringBuilder sb = new StringBuilder();
 
             sb.AppendLine();

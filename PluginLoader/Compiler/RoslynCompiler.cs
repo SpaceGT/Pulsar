@@ -43,9 +43,11 @@ namespace avaness.PluginLoader.Compiler
                 .Concat(customReferences)
                 .ToHashSet();
 
+            var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
+
             CSharpCompilation compilation = CSharpCompilation.Create(
                 assemblyName,
-                syntaxTrees: source.Select(x => x.Tree),
+                syntaxTrees: source.Select(x => x.Tree.WithRootAndOptions(x.Tree.GetRoot(), options)),
                 references: references,
                 options: new CSharpCompilationOptions(
                     OutputKind.DynamicallyLinkedLibrary,

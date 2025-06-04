@@ -74,7 +74,7 @@ namespace avaness.PluginLoader
             GitHub.Init();
 
             Splash.SetText("Finding references...");
-            RoslynReferences.GenerateAssemblyList();
+            CompilerProxy.GenerateAssemblyList();
 
             AppDomain.CurrentDomain.FirstChanceException += OnException;
 

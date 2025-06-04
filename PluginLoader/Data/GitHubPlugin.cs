@@ -192,7 +192,7 @@ namespace avaness.PluginLoader.Data
 
         public byte[] CompileFromSource(string commit, string assemblyName, Action<float> callback = null)
         {
-            RoslynCompiler compiler = new RoslynCompiler();
+            CompilerProxy compiler = new CompilerProxy();
             using (Stream s = GitHub.DownloadRepo(Id, commit))
             using (ZipArchive zip = new ZipArchive(s))
             {
@@ -214,7 +214,7 @@ namespace avaness.PluginLoader.Data
             return compiler.Compile(assemblyName, out _);
         }
 
-        private void CompileFromSource(RoslynCompiler compiler, ZipArchiveEntry entry)
+        private void CompileFromSource(CompilerProxy compiler, ZipArchiveEntry entry)
         {
             string path = RemoveRoot(entry.FullName);
             if (NuGetReferences != null && path == NuGetReferences.PackagesConfigNormalized)
@@ -247,13 +247,13 @@ namespace avaness.PluginLoader.Data
             }
         }
 
-        private void InstallPackages(IEnumerable<NuGetPackage> packages, RoslynCompiler compiler)
+        private void InstallPackages(IEnumerable<NuGetPackage> packages, CompilerProxy compiler)
         {
             foreach (NuGetPackage package in packages)
                 InstallPackage(package, compiler);
         }
 
-        private void InstallPackage(NuGetPackage package, RoslynCompiler compiler)
+        private void InstallPackage(NuGetPackage package, CompilerProxy compiler)
         {
             foreach(NuGetPackage.Item file in package.LibFiles)
             {

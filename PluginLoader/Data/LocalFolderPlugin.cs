@@ -54,7 +54,7 @@ namespace avaness.PluginLoader.Data
         {
             if (Directory.Exists(Id))
             {
-                RoslynCompiler compiler = new RoslynCompiler(FolderSettings.DebugBuild);
+                CompilerProxy compiler = new CompilerProxy(FolderSettings.DebugBuild);
                 bool hasFile = false;
 
                 if (github.NuGetReferences != null && github.NuGetReferences.HasPackages)
@@ -94,7 +94,7 @@ namespace avaness.PluginLoader.Data
             throw new DirectoryNotFoundException("Unable to find directory '" + Id + "'");
         }
 
-        private void InstallDependencies(RoslynCompiler compiler)
+        private void InstallDependencies(CompilerProxy compiler)
         {
             NuGetPackageList packageList = github.NuGetReferences;
             NuGetClient nuget = new NuGetClient();
@@ -129,7 +129,7 @@ namespace avaness.PluginLoader.Data
             resolver.AddSourceFolder(binDir);
         }
 
-        private void InstallPackage(NuGetPackage package, RoslynCompiler compiler, string binDir)
+        private void InstallPackage(NuGetPackage package, CompilerProxy compiler, string binDir)
         {
             foreach (NuGetPackage.Item file in package.LibFiles)
             {
