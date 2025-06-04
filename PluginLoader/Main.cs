@@ -47,6 +47,9 @@ namespace avaness.PluginLoader
 
         public Main()
         {
+            // Remember to setup AssemblyResolve in the calling process if dependencies
+            // are being loaded from a subdir (like the one used by the deploy script)
+
             Stopwatch sw = Stopwatch.StartNew();
 
             Splash = new SplashScreen();
