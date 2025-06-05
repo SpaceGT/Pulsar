@@ -1,10 +1,17 @@
-[![Discord](https://img.shields.io/discord/816445932693487678)](https://discord.gg/VJGjzdgnjf)
-
-# PluginLoader
-A tool to load plugins for Space Engineers automatically.
+# Pulsar
+A plugin and mod loader for Space Engineers.<br>
+This is a fork of the discontinued [PluginLoader](https://github.com/sepluginloader/PluginLoader).<br>
 
 ## Installation
-To install Plugin Loader, install the special [game launcher](https://github.com/sepluginloader/SpaceEngineersLauncher). It will download and keep Plugin Loader up to date automatically.
+An [installer](https://github.com/StarCpt/Pulsar-Installer) exists which can do all the work for you.<br>
+For manual installation you need a [launcher](https://github.com/StarCpt/SpaceEngineersLauncher) capable of loading plugins.<br>
+If you are building from source, the deploy script will copy all files to their required location.<br>
+Otherwise, copy Pulsar to `Bin64/Plugins/loader.dll` and all dependencies to `Bin64/Plugins/Libraries`<br>
 
-## Plugin List
-The plugin list can only be found in game, but the data is retreived from the [PluginHub repository](https://github.com/sepluginloader/PluginHub).
+## Plugins
+Pulsar officially endorses the [PluginHub](https://github.com/StarCpt/PluginHub) for high-quality vetted plugins.<br>
+Further sources may be added in-game but make sure you fully understand the risks.<br>
+
+## Contact
+We have an active [Discord](https://discord.gg/kjKEMaQhvB) for updates and developer information.<br>
+GitHub contributions and bug reports are also welcomed!<br>
