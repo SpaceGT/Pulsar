@@ -6,37 +6,36 @@ using System.Text;
 using VRage;
 using VRageMath;
 using avaness.PluginLoader.Config;
+using avaness.PluginLoader.GUI.GuiControls;
 
 namespace avaness.PluginLoader.GUI
 {
     public class MainPluginMenu : PluginScreen
     {
-        private List<PluginData> plugins;
+        private PluginList pluginList;
+        private List<PluginData> plugins => pluginList.OrderBy(x => x.FriendlyName).ToList();
         private PluginConfig config;
+        private SourcesConfig sources;
         private HashSet<string> enabledPlugins;
         private MyGuiControlCheckbox consentBox;
         private MyGuiControlParent pluginsPanel;
         private MyGuiControlParent modsPanel;
         private bool requiresRestart = false;
 
-        public MainPluginMenu(IEnumerable<PluginData> plugins, PluginConfig config) : base(size: new Vector2(1, 0.9f))
+        public MainPluginMenu(PluginList pluginList, PluginConfig config, SourcesConfig sources) : base(size: new Vector2(1, 0.9f))
         {
-            this.plugins = plugins.OrderBy(x => x.FriendlyName).ToList();
+            this.pluginList = pluginList;
             this.config = config;
+            this.sources = sources;
             this.enabledPlugins = new HashSet<string>(config.EnabledPlugins.Select(x => x.Id));
         }
 
         public static void Open()
         {
-            MainPluginMenu menu = new MainPluginMenu(Main.Instance.List, Main.Instance.Config);
-            if (Main.Instance.List.HasError)
-            {
-                MyGuiSandbox.AddScreen(MyGuiSandbox.CreateMessageBox(buttonType: MyMessageBoxButtonsType.OK, messageText: new StringBuilder("An error occurred while downloading the plugin list.\nPlease send your game log to the developers of Plugin Loader."), messageCaption: MyTexts.Get(MyCommonTexts.MessageBoxCaptionError), callback: (x) => MyGuiSandbox.AddScreen(menu)));
-            }
-            else
-            {
-                MyGuiSandbox.AddScreen(menu);
-            }
+            MainPluginMenu menu = new MainPluginMenu(Main.Instance.List, Main.Instance.Config, Main.Instance.Sources);
+            Main.Instance.List.UpdateRemoteList();
+            Main.Instance.List.UpdateLocalList();
+            MyGuiSandbox.AddScreen(menu);
         }
 
         public override string GetFriendlyName()
@@ -135,17 +134,13 @@ namespace avaness.PluginLoader.GUI
                 };
             }
 
-
             list.ItemDoubleClicked += OnListItemDoubleClicked;
-
         }
 
         private void OpenAddPluginMenu(bool mods)
         {
             AddPluginMenu screen = new AddPluginMenu(plugins, mods, enabledPlugins);
             screen.OnRestartRequired += OnRestartRequired;
-            screen.OnPluginAdded += OnPluginAdded;
-            screen.OnPluginRemoved += OnPluginRemoved;
             screen.Closed += Screen_Closed;
             MyGuiSandbox.AddScreen(screen);
         }
@@ -153,26 +148,6 @@ namespace avaness.PluginLoader.GUI
         private void OnRestartRequired()
         {
             requiresRestart = true;
-        }
-
-        private void OnPluginAdded(PluginData plugin)
-        {
-            Main.Instance.List.Add(plugin);
-            if (config.LoadPluginData(plugin))
-                config.Save();
-            plugins.Add(plugin);
-            enabledPlugins.Add(plugin.Id);
-        }
-
-        private void OnPluginRemoved(PluginData plugin)
-        {
-            Main.Instance.List.Remove(plugin.Id);
-            if (config.RemovePluginData(plugin.Id))
-                config.Save();
-            enabledPlugins.Remove(plugin.Id);
-            int index = plugins.FindIndex(x => x.Id == plugin.Id);
-            if (index >= 0)
-                plugins.RemoveAt(index);
         }
 
         private void Screen_Closed(MyGuiScreenBase source, bool isUnloading)
@@ -219,7 +194,6 @@ namespace avaness.PluginLoader.GUI
         {
             PluginDetailMenu screen = new PluginDetailMenu(plugin, enabledPlugins);
             screen.OnRestartRequired += OnRestartRequired;
-            screen.OnPluginRemoved += OnPluginRemoved;
             screen.Closed += Screen_Closed;
             MyGuiSandbox.AddScreen(screen);
         }
@@ -303,7 +277,7 @@ namespace avaness.PluginLoader.GUI
 
             layout.Add(new MyGuiControlButton(text: new StringBuilder("Profiles"), toolTip: "Load or edit profiles", onButtonClick: OnProfilesClick), MyAlignH.Center);
             AdvanceLayout(ref layout);
-            layout.Add(new MyGuiControlButton(text: new StringBuilder("Plugin Hub"), toolTip: "Open the Plugin Hub", onButtonClick: OnPluginHubClick), MyAlignH.Center);
+            layout.Add(new MyGuiControlButton(text: new StringBuilder("Sources"), toolTip: "Add or remove plugin sources", onButtonClick: OnSourcesClick), MyAlignH.Center);
             AdvanceLayout(ref layout);
 
             consentBox = new MyGuiControlCheckbox(toolTip: "Consent to use your data for usage tracking", isChecked: PlayerConsent.ConsentGiven);
@@ -313,6 +287,11 @@ namespace avaness.PluginLoader.GUI
             MyGuiControlLabel lblConsent = new MyGuiControlLabel(text: "Track Usage");
             PositionToRight(consentBox, lblConsent, spacing: 0);
             parent.Controls.Add(lblConsent);
+
+            // FIXME: Rework the statistics server for arbitrary sources
+            // Analytics have been disabled for now
+            consentBox.Visible = false;
+            lblConsent.Visible = false;
         }
 
         private void OnConsentChanged()
@@ -336,9 +315,26 @@ namespace avaness.PluginLoader.GUI
             }
         }
 
-        private void OnPluginHubClick(MyGuiControlButton btn)
+        private void OnSourcesClick(MyGuiControlButton btn)
         {
-            MyGuiSandbox.OpenUrl("https://github.com/" + Network.GitHub.listRepoName, UrlOpenMode.SteamOrExternalWithConfirm);
+            if (sources.ShowWarning)
+            {
+                SourcesWarning warning = new SourcesWarning(sources, (state) =>
+                {
+                    if (state == true)
+                        OpenSourcesMenu();
+                });
+                MyGuiSandbox.AddScreen(warning);
+            }
+            else
+                OpenSourcesMenu();
+        }
+
+        private void OpenSourcesMenu()
+        {
+            SourcesMenu screen = new SourcesMenu(sources);
+            screen.Closed += Screen_Closed;
+            MyGuiSandbox.AddScreen(screen);
         }
 
         private void OnProfilesClick(MyGuiControlButton btn)
@@ -488,9 +484,13 @@ namespace avaness.PluginLoader.GUI
         private void Save()
         {
             foreach (PluginData plugin in config.EnabledPlugins.Where(x => !enabledPlugins.Contains(x.Id)).ToArray())
-                config.SetEnabled(plugin, false);
+                if (pluginList.Contains(plugin.Id))
+                    config.SetEnabled(plugin, false);
+            
             foreach (string id in enabledPlugins)
-                config.SetEnabled(id, true);
+                if (pluginList.Contains(id))
+                    config.SetEnabled(id, true);
+            
             config.Save();
         }
 

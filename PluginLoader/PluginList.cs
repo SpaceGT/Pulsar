@@ -1,51 +1,78 @@
-﻿using avaness.PluginLoader.Data;
+﻿using avaness.PluginLoader.Config;
+using avaness.PluginLoader.Data;
+using avaness.PluginLoader.Network;
+using ProtoBuf;
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using System.Xml.Serialization;
-using ProtoBuf;
-using System.Linq;
-using avaness.PluginLoader.Network;
 using System.IO.Compression;
-using avaness.PluginLoader.Config;
+using System.Linq;
+using System.Xml.Serialization;
 
 namespace avaness.PluginLoader
 {
     public class PluginList : IEnumerable<PluginData>
     {
-        private Dictionary<string, PluginData> plugins = new Dictionary<string, PluginData>();
+        private Dictionary<string, Dictionary<string, PluginData>> remoteHubPlugins = new();
+        private Dictionary<string, Dictionary<string, PluginData>> localHubPlugins = new();
+        private Dictionary<string, PluginData> modPlugins = new();
+        private Dictionary<string, PluginData> purePlugins = new();
+        private Dictionary<string, PluginData> localPlugins = new();
+
+        private Dictionary<string, PluginData> plugins =>
+            purePlugins
+                .Concat(modPlugins)
+                .Concat(localPlugins)
+                .Concat(localHubPlugins.Values.SelectMany(h => h))
+                .Concat(remoteHubPlugins.Values.SelectMany(h => h))
+                .GroupBy(kv => kv.Key)
+                .ToDictionary(g => g.Key, g => g.First().Value);
 
         public int Count => plugins.Count;
-
-        public bool HasError { get; private set; }
 
         public PluginData this[string key]
         {
             get => plugins[key];
-            set => plugins[key] = value;
         }
 
-        public bool Contains(string id) => plugins.ContainsKey(id);
-        public bool TryGetPlugin(string id, out PluginData pluginData) => plugins.TryGetValue(id, out pluginData);
+        private SourcesConfig SourcesConfig;
+        private PluginConfig PluginConfig;
+        private string SourceDir;
+        private string PluginSourceDir => Path.Combine(SourceDir, "Plugins");
+        private string HubSourceDir => Path.Combine(SourceDir, "Hubs");
+        private string LocalPluginDir;
 
-        public PluginList(string mainDirectory, PluginConfig config)
+        public bool Contains(string id) => plugins.ContainsKey(id);
+
+        public bool TryGetPlugin(string id, out PluginData pluginData) =>
+            plugins.TryGetValue(id, out pluginData);
+
+        public PluginList(string mainDirectory, PluginConfig config, SourcesConfig sources)
         {
+            LocalPluginDir = Path.Combine(mainDirectory, "Local");
+            SourceDir = Path.Combine(mainDirectory, "Sources");
+            SourcesConfig = sources;
+            PluginConfig = config;
+
+            EnsureDirectories();
+
             var lbl = Main.Instance.Splash;
 
             lbl.SetText("Downloading plugin list...");
-            DownloadList(mainDirectory, config);
+            InitRemoteList();
 
-            if(plugins.Count == 0)
+            if (plugins.Count == 0)
             {
-                LogFile.Warn("No plugins in the plugin list. Plugin list will contain local plugins only.");
-                HasError = true;
+                LogFile.Warn(
+                    "No plugins in the plugin list. Plugin list will contain local plugins only."
+                );
             }
 
             UpdateWorkshopItems(config);
-
-            FindLocalPlugins(config, mainDirectory);
+            FindLocalPlugins();
             LogFile.WriteLine($"Found {plugins.Count} plugins");
+
             FindPluginGroups();
             FindModDependencies();
         }
@@ -55,24 +82,18 @@ namespace avaness.PluginLoader
         /// </summary>
         public void SubscribeToItem(string id)
         {
-            if(plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
+            if (plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
                 SteamAPI.SubscribeToItem(steam.WorkshopId);
-        }
-
-        public bool Remove(string id)
-        {
-            return plugins.Remove(id);
-        }
-
-        public void Add(PluginData data)
-        {
-            plugins[data.Id] = data;
         }
 
         private void FindPluginGroups()
         {
             int groups = 0;
-            foreach (var group in plugins.Values.Where(x => !string.IsNullOrWhiteSpace(x.GroupId)).GroupBy(x => x.GroupId))
+            foreach (
+                var group in plugins
+                    .Values.Where(x => !string.IsNullOrWhiteSpace(x.GroupId))
+                    .GroupBy(x => x.GroupId)
+            )
             {
                 groups++;
                 foreach (PluginData data in group)
@@ -84,7 +105,7 @@ namespace avaness.PluginLoader
 
         private void FindModDependencies()
         {
-            foreach(PluginData data in plugins.Values)
+            foreach (PluginData data in modPlugins.Values)
             {
                 if (data is ModPlugin mod)
                     FindModDependencies(mod);
@@ -110,7 +131,11 @@ namespace avaness.PluginLoader
 
                 foreach (ulong id in temp.DependencyIds)
                 {
-                    if (!dependencies.ContainsKey(id) && plugins.TryGetValue(id.ToString(), out PluginData data) && data is ModPlugin dependency)
+                    if (
+                        !dependencies.ContainsKey(id)
+                        && plugins.TryGetValue(id.ToString(), out PluginData data)
+                        && data is ModPlugin dependency
+                    )
                     {
                         toProcess.Push(dependency);
                         dependencies[id] = dependency;
@@ -122,39 +147,400 @@ namespace avaness.PluginLoader
             mod.Dependencies = dependencies.Values.ToArray();
         }
 
-        private void DownloadList(string mainDirectory, PluginConfig config)
+        private void InitRemoteHub(RemoteHubConfig source)
         {
-            string whitelist = Path.Combine(mainDirectory, "whitelist.bin");
+            if (!remoteHubPlugins.ContainsKey(source.Repo))
+                remoteHubPlugins.Add(source.Repo, []);
 
             PluginData[] list;
-            string currentHash = config.ListHash;
-            string newHash;
-            if (!TryDownloadWhitelistHash(out newHash))
+            string hubFile = Path.Combine(HubSourceDir, source.Repo.Replace('/', '-') + ".bin");
+
+            if (
+                source.LastCheck is not null
+                    && DateTime.UtcNow - source.LastCheck
+                        <= TimeSpan.FromHours(SourcesConfig.MaxSourceAge)
+                || !GitHub.GetRepoHash(source.Repo, source.Branch, out string currentHash)
+            )
             {
-                // No connection to plugin hub, read from cache
-                if (!TryReadWhitelistFile(whitelist, out list))
-                    return;
-            }
-            else if(currentHash == null || currentHash != newHash)
-            {
-                // Plugin list changed, try downloading new version first
-                if (!TryDownloadWhitelistFile(whitelist, newHash, config, out list) 
-                    && !TryReadWhitelistFile(whitelist, out list))
+                if (!TryReadHubFile(hubFile, out list))
                     return;
             }
             else
             {
-                // Plugin list did not change, try reading the current version first
-                if (!TryReadWhitelistFile(whitelist, out list) 
-                    && !TryDownloadWhitelistFile(whitelist, newHash, config, out list))
+                source.LastCheck = DateTime.UtcNow;
+
+                if (source.Hash is null || currentHash != source.Hash)
+                {
+                    // Plugin list changed, try downloading new version first
+                    if (
+                        !TryDownloadHubFile(source.Repo, source.Branch, hubFile, out list)
+                        && !TryReadHubFile(hubFile, out list)
+                    )
+                        return;
+                }
+                else
+                {
+                    // Plugin list did not change, try reading the current version first
+                    if (
+                        !TryReadHubFile(hubFile, out list)
+                        && !TryDownloadHubFile(source.Repo, source.Branch, hubFile, out list)
+                    )
+                        return;
+                }
+
+                source.Hash = currentHash;
+            }
+
+            AddHubPluginData(ref remoteHubPlugins, list, source.Repo, source.Name);
+        }
+
+        private void AddHubPluginData(
+            ref Dictionary<string, Dictionary<string, PluginData>> dict,
+            PluginData[] list,
+            string sourceKey,
+            string sourceLabel
+        )
+        {
+            if (list is null)
+                return;
+
+            var plugins = new Dictionary<string, PluginData>();
+            foreach (PluginData data in list)
+            {
+                data.Source = sourceLabel;
+                plugins[data.Id] = data;
+            }
+            dict[sourceKey] = plugins;
+        }
+
+        private void InitRemotePlugin(RemotePluginConfig source)
+        {
+            PluginData pluginData;
+            string pluginFile = Path.Combine(
+                PluginSourceDir,
+                source.Repo.Replace('/', '-') + ".bin"
+            );
+
+            if (
+                source.LastCheck is not null
+                && DateTime.UtcNow - source.LastCheck
+                    <= TimeSpan.FromHours(SourcesConfig.MaxSourceAge)
+            )
+            {
+                if (!TryReadPluginFile(pluginFile, out pluginData))
+                    return;
+            }
+            else
+            {
+                source.LastCheck = DateTime.UtcNow;
+
+                // Plugin list changed, try downloading new version first
+                if (
+                    !TryDownloadPluginFile(
+                        source.Repo,
+                        source.Branch,
+                        source.File,
+                        pluginFile,
+                        out pluginData
+                    ) && !TryReadPluginFile(pluginFile, out pluginData)
+                )
                     return;
             }
 
-            if(list != null)
-                plugins = list.ToDictionary(x => x.Id);
+            pluginData.Source = "GitHub";
+            purePlugins[pluginData.Id] = pluginData;
         }
 
-        private bool TryReadWhitelistFile(string file, out PluginData[] list)
+        private void AddLocalPlugin(LocalPluginConfig source)
+        {
+            if (Directory.Exists(source.Folder))
+            {
+                LocalFolderPlugin local = new LocalFolderPlugin(source.Folder)
+                {
+                    Source = "Development Folder",
+                };
+
+                if (File.Exists(source.File))
+                {
+                    local.DeserializeFile(source.File);
+                    if (PluginConfig.LoadPluginData(local))
+                        PluginConfig.Save();
+                }
+
+                localPlugins[source.Folder] = local;
+            }
+        }
+
+        private void UpdateRemoteHub(RemoteHubConfig source)
+        {
+            PluginData[] list;
+            string hubFile = Path.Combine(HubSourceDir, source.Repo.Replace('/', '-') + ".bin");
+            GitHub.GetRepoHash(source.Repo, source.Branch, out string currentHash);
+            source.LastCheck = DateTime.UtcNow;
+
+            if (source.Hash is not null && currentHash == source.Hash)
+                return;
+
+            if (!TryDownloadHubFile(source.Repo, source.Branch, hubFile, out list))
+                return;
+
+            source.Hash = currentHash;
+
+            AddHubPluginData(ref remoteHubPlugins, list, source.Repo, source.Name);
+        }
+
+        private void UpdateRemotePlugin(RemotePluginConfig source)
+        {
+            string pluginFile = Path.Combine(
+                PluginSourceDir,
+                source.Repo.Replace('/', '-') + ".bin"
+            );
+
+            source.LastCheck = DateTime.UtcNow;
+
+            if (
+                !TryDownloadPluginFile(
+                    source.Repo,
+                    source.Branch,
+                    source.File,
+                    pluginFile,
+                    out PluginData pluginData
+                )
+            )
+                return;
+
+            if (pluginData != null)
+            {
+                pluginData.Source = "GitHub";
+                purePlugins[pluginData.Id] = pluginData;
+            }
+        }
+
+        private void AddMod(ModConfig source)
+        {
+            // TODO: Support fetching mod metadata from Steam
+
+            ModPlugin modPlugin = new ModPlugin
+            {
+                Id = source.ID.ToString(),
+                FriendlyName = source.Name,
+                Author = "Unknown",
+                Source = "Mod",
+            };
+
+            modPlugins[modPlugin.Id] = modPlugin;
+        }
+
+        private void EnsureDirectories()
+        {
+            foreach (var dir in new[] { SourceDir, HubSourceDir, PluginSourceDir, LocalPluginDir })
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
+        }
+
+        private void InitRemoteList()
+        {
+            foreach (RemoteHubConfig source in SourcesConfig.RemoteHubSources)
+                if (source.Enabled)
+                    InitRemoteHub(source);
+
+            foreach (RemotePluginConfig source in SourcesConfig.RemotePluginSources)
+                if (source.Enabled)
+                    InitRemotePlugin(source);
+
+            foreach (ModConfig source in SourcesConfig.ModSources)
+                if (source.Enabled)
+                    AddMod(source);
+        }
+
+        public void UpdateRemoteList(bool force = false)
+        {
+            foreach (
+                RemoteHubConfig source in new List<RemoteHubConfig>(SourcesConfig.RemoteHubSources)
+            )
+            {
+                if (source.Enabled)
+                {
+                    if (!remoteHubPlugins.ContainsKey(source.Repo))
+                        InitRemoteHub(source);
+                    else if (
+                        force
+                        || source.LastCheck is null
+                        || DateTime.UtcNow - source.LastCheck
+                            > TimeSpan.FromHours(SourcesConfig.MaxSourceAge)
+                    )
+                        UpdateRemoteHub(source);
+                }
+                else
+                    remoteHubPlugins.Remove(source.Repo);
+            }
+            foreach (string source in new List<string>(remoteHubPlugins.Keys))
+                if (!SourcesConfig.RemoteHubSources.Any(x => x.Repo == source))
+                    remoteHubPlugins.Remove(source);
+
+            foreach (
+                RemotePluginConfig source in new List<RemotePluginConfig>(
+                    SourcesConfig.RemotePluginSources
+                )
+            )
+            {
+                if (source.Enabled)
+                {
+                    if (!purePlugins.ContainsKey(source.Repo))
+                        InitRemotePlugin(source);
+                    else if (
+                        force
+                        || source.LastCheck is null
+                        || DateTime.UtcNow - source.LastCheck
+                            > TimeSpan.FromHours(SourcesConfig.MaxSourceAge)
+                    )
+                        UpdateRemotePlugin(source);
+                }
+                else
+                    purePlugins.Remove(source.Repo);
+            }
+            foreach (string source in new List<string>(purePlugins.Keys))
+                if (!SourcesConfig.RemotePluginSources.Any(x => x.Repo == source))
+                    purePlugins.Remove(source);
+
+            foreach (ModConfig source in new List<ModConfig>(SourcesConfig.ModSources))
+                if (source.Enabled)
+                    AddMod(source);
+                else
+                    modPlugins.Remove(source.ID.ToString());
+            foreach (string source in new List<string>(modPlugins.Keys))
+                if (!SourcesConfig.ModSources.Any(x => x.ID.ToString() == source))
+                    modPlugins.Remove(source);
+        }
+
+        public void UpdateLocalList()
+        {
+            foreach (
+                LocalHubConfig source in new List<LocalHubConfig>(SourcesConfig.LocalHubSources)
+            )
+                if (source.Enabled && Directory.Exists(source.Folder))
+                    UpdateLocalHub(source);
+                else
+                    localHubPlugins.Remove(source.Folder);
+
+            foreach (string source in new List<string>(localHubPlugins.Keys))
+            {
+                if (SourcesConfig.LocalHubSources.Any(x => x.Folder == source))
+                    continue;
+
+                localHubPlugins.Remove(source);
+            }
+
+            foreach (
+                LocalPluginConfig source in new List<LocalPluginConfig>(
+                    SourcesConfig.LocalPluginSources
+                )
+            )
+                if (source.Enabled)
+                    AddLocalPlugin(source);
+                else
+                {
+                    if (PluginConfig.IsEnabled(source.Folder))
+                        PluginConfig.SetEnabled(source.Folder, false);
+
+                    if (PluginConfig.RemovePluginData(source.Folder))
+                        PluginConfig.Save();
+
+                    localPlugins.Remove(source.Folder);
+                }
+
+            foreach (
+                string dll in Directory.EnumerateFiles(
+                    LocalPluginDir,
+                    "*.dll",
+                    SearchOption.AllDirectories
+                )
+            )
+            {
+                LocalPlugin local = new LocalPlugin(dll) { Source = "Local" };
+                string name = local.FriendlyName;
+                if (!name.StartsWith("0Harmony") && !name.StartsWith("Microsoft"))
+                    localPlugins[local.Id] = local;
+            }
+
+            foreach (PluginData source in new List<PluginData>(localPlugins.Values))
+            {
+                if (
+                    source is LocalPlugin
+                    && Directory
+                        .EnumerateFiles(LocalPluginDir, "*.dll", SearchOption.AllDirectories)
+                        .Any(x => x == source.Id)
+                )
+                    continue;
+
+                if (
+                    source is LocalFolderPlugin
+                    && SourcesConfig.LocalPluginSources.Any(x => x.Folder == source.Id)
+                )
+                    continue;
+
+                localPlugins.Remove(source.Id);
+            }
+        }
+
+        private void UpdateLocalHub(LocalHubConfig source)
+        {
+            string hash = Tools.Tools.GetFolderHash(source.Folder, "*.xml");
+
+            if (
+                source.Hash is not null
+                && source.Hash == hash
+                && localHubPlugins.ContainsKey(source.Folder)
+            )
+                return;
+
+            source.Hash = hash;
+
+            PluginData[] list = null;
+            Dictionary<string, PluginData> newPlugins = new Dictionary<string, PluginData>();
+
+            try
+            {
+                XmlSerializer xml = new XmlSerializer(typeof(PluginData));
+                foreach (
+                    string filePath in Directory.EnumerateFiles(
+                        source.Folder,
+                        "*.xml",
+                        SearchOption.AllDirectories
+                    )
+                )
+                {
+                    using (FileStream fs = File.OpenRead(filePath))
+                    using (StreamReader entryReader = new StreamReader(fs))
+                    {
+                        try
+                        {
+                            PluginData data = (PluginData)xml.Deserialize(entryReader);
+                            newPlugins[data.Id] = data;
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            LogFile.Error(
+                                "An error occurred while reading "
+                                    + filePath
+                                    + ": "
+                                    + (e.InnerException ?? e)
+                            );
+                        }
+                    }
+                }
+
+                list = newPlugins.Values.ToArray();
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while parsing whitelist: " + e);
+            }
+
+            AddHubPluginData(ref localHubPlugins, list, source.Folder, source.Name);
+        }
+
+        private bool TryReadHubFile(string file, out PluginData[] list)
         {
             list = null;
 
@@ -197,14 +583,19 @@ namespace avaness.PluginLoader
             return false;
         }
 
-        private bool TryDownloadWhitelistFile(string file, string hash, PluginConfig config, out PluginData[] list)
+        private bool TryDownloadHubFile(
+            string repoName,
+            string branch,
+            string file,
+            out PluginData[] list
+        )
         {
             list = null;
             Dictionary<string, PluginData> newPlugins = new Dictionary<string, PluginData>();
 
             try
             {
-                using (Stream zipFileStream = GitHub.DownloadRepo(GitHub.listRepoName, GitHub.listRepoCommit))
+                using (Stream zipFileStream = GitHub.DownloadRepo(repoName, branch))
                 using (ZipArchive zipFile = new ZipArchive(zipFileStream))
                 {
                     XmlSerializer xml = new XmlSerializer(typeof(PluginData));
@@ -223,14 +614,19 @@ namespace avaness.PluginLoader
                             }
                             catch (InvalidOperationException e)
                             {
-                                LogFile.Error("An error occurred while reading " + entry.FullName + ": " + (e.InnerException ?? e));
+                                LogFile.Error(
+                                    "An error occurred while reading "
+                                        + entry.FullName
+                                        + ": "
+                                        + (e.InnerException ?? e)
+                                );
                             }
                         }
                     }
                 }
 
                 list = newPlugins.Values.ToArray();
-                return TrySaveWhitelist(file, list, hash, config);
+                return TrySaveFile(file, list);
             }
             catch (Exception e)
             {
@@ -240,7 +636,12 @@ namespace avaness.PluginLoader
             return false;
         }
 
-        private bool TrySaveWhitelist(string file, PluginData[] list, string hash, PluginConfig config)
+        private bool TrySaveFile(string file, PluginData data)
+        {
+            return TrySaveFile(file, [data]);
+        }
+
+        private bool TrySaveFile(string file, PluginData[] list)
         {
             try
             {
@@ -254,8 +655,7 @@ namespace avaness.PluginLoader
                     }
                 }
 
-                config.ListHash = hash;
-                config.Save();
+                SourcesConfig.Save();
 
                 LogFile.WriteLine("Whitelist updated");
                 return true;
@@ -272,57 +672,181 @@ namespace avaness.PluginLoader
             }
         }
 
-        private bool TryDownloadWhitelistHash(out string hash)
+        private bool TryReadPluginFile(string file, out PluginData data)
         {
-            hash = null;
+            data = null;
+
+            if (File.Exists(file) && new FileInfo(file).Length > 0)
+            {
+                LogFile.WriteLine("Reading whitelist from cache");
+                try
+                {
+                    using (Stream binFile = File.OpenRead(file))
+                    {
+                        data = Serializer.Deserialize<PluginData[]>(binFile).First();
+                    }
+
+                    return true;
+                }
+                catch (Exception e)
+                {
+                    LogFile.Error("Error while reading whitelist: " + e);
+                }
+            }
+            else
+            {
+                LogFile.WriteLine("No whitelist cache exists");
+            }
+
+            return false;
+        }
+
+        private bool TryDownloadPluginFile(
+            string repoName,
+            string branch,
+            string infoFile,
+            string saveFile,
+            out PluginData data
+        )
+        {
+            XmlSerializer xml = new XmlSerializer(typeof(PluginData));
+            data = null;
+
             try
             {
-                using (Stream hashStream = GitHub.DownloadFile(GitHub.listRepoName, GitHub.listRepoCommit, GitHub.listRepoHash))
-                using (StreamReader hashStreamReader = new StreamReader(hashStream))
+                using (Stream dataStream = GitHub.DownloadFile(repoName, branch, infoFile))
+                using (StreamReader dataStreamReader = new StreamReader(dataStream))
                 {
-                    hash = hashStreamReader.ReadToEnd().Trim();
+                    try
+                    {
+                        data = (PluginData)xml.Deserialize(dataStreamReader);
+                    }
+                    catch (InvalidOperationException e)
+                    {
+                        LogFile.Error(
+                            "An error occurred while reading "
+                                + branch
+                                + "/"
+                                + infoFile
+                                + ": "
+                                + (e.InnerException ?? e)
+                        );
+
+                        return false;
+                    }
                 }
-                return true;
+
+                return TrySaveFile(saveFile, data);
             }
             catch (Exception e)
             {
-                LogFile.Error("Error while downloading whitelist hash: " + e);
+                LogFile.Error("Error while downloading plugin data: " + e);
                 return false;
             }
         }
 
-        private void FindLocalPlugins(PluginConfig config, string mainDirectory)
+        private void FindLocalPlugins()
         {
-            foreach (string dll in Directory.EnumerateFiles(mainDirectory, "*.dll", SearchOption.AllDirectories))
+            foreach (
+                string dll in Directory.EnumerateFiles(
+                    LocalPluginDir,
+                    "*.dll",
+                    SearchOption.AllDirectories
+                )
+            )
             {
-                if(!dll.Contains(Path.DirectorySeparatorChar + "GitHub" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
-                {
-                    LocalPlugin local = new LocalPlugin(dll);
-                    string name = local.FriendlyName;
-                    if (!name.StartsWith("0Harmony") && !name.StartsWith("Microsoft"))
-                        plugins[local.Id] = local;
-                }
+                LocalPlugin local = new LocalPlugin(dll) { Source = "Local" };
+                string name = local.FriendlyName;
+                if (!name.StartsWith("0Harmony") && !name.StartsWith("Microsoft"))
+                    localPlugins[local.Id] = local;
             }
 
-            foreach (string folder in config.LocalFolderPlugins)
+            foreach (LocalPluginConfig source in SourcesConfig.LocalPluginSources)
+                AddLocalPlugin(source);
+
+            foreach (LocalHubConfig source in SourcesConfig.LocalHubSources)
+                AddLocalHub(source);
+        }
+
+        private void AddLocalHub(LocalHubConfig source)
+        {
+            if (Directory.Exists(source.Folder))
             {
-                if (Directory.Exists(folder))
-                {
-                    LocalFolderPlugin local = new LocalFolderPlugin(folder);
-                    plugins[local.Id] = local;
-                }
+                string hash = Tools.Tools.GetFolderHash(source.Folder, "*.xml");
+
+                if (
+                    source.Hash is not null
+                    && source.Hash == hash
+                    && localHubPlugins.ContainsKey(source.Folder)
+                )
+                    return;
+
+                source.Hash = hash;
+
+                TryLoadLocalHub(source.Folder, out PluginData[] list);
+
+                AddHubPluginData(ref localHubPlugins, list, source.Folder, source.Name);
             }
+        }
+
+        private bool TryLoadLocalHub(string folder, out PluginData[] list)
+        {
+            list = null;
+            Dictionary<string, PluginData> newPlugins = new Dictionary<string, PluginData>();
+
+            try
+            {
+                XmlSerializer xml = new XmlSerializer(typeof(PluginData));
+                foreach (
+                    string filePath in Directory.EnumerateFiles(
+                        folder,
+                        "*.xml",
+                        SearchOption.AllDirectories
+                    )
+                )
+                {
+                    using (FileStream fs = File.OpenRead(filePath))
+                    using (StreamReader entryReader = new StreamReader(fs))
+                    {
+                        try
+                        {
+                            PluginData data = (PluginData)xml.Deserialize(entryReader);
+                            newPlugins[data.Id] = data;
+                        }
+                        catch (InvalidOperationException e)
+                        {
+                            LogFile.Error(
+                                "An error occurred while reading "
+                                    + filePath
+                                    + ": "
+                                    + (e.InnerException ?? e)
+                            );
+                        }
+                    }
+                }
+
+                list = newPlugins.Values.ToArray();
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while parsing whitelist: " + e);
+            }
+
+            return false;
         }
 
         private void UpdateWorkshopItems(PluginConfig config)
         {
-            List<ISteamItem> steamPlugins = new List<ISteamItem>(plugins.Values.Select(x => x as ISteamItem).Where(x => x != null));
+            List<ISteamItem> steamPlugins = new List<ISteamItem>(
+                plugins.Values.Select(x => x as ISteamItem).Where(x => x != null)
+            );
 
             Main.Instance.Splash.SetText($"Updating workshop items...");
 
-            SteamAPI.Update(steamPlugins.Where(x => config.IsEnabled(x.Id)).Select(x => x.WorkshopId));
+            SteamAPI.Update(
+                steamPlugins.Where(x => config.IsEnabled(x.Id)).Select(x => x.WorkshopId)
+            );
         }
-
 
         public IEnumerator<PluginData> GetEnumerator()
         {

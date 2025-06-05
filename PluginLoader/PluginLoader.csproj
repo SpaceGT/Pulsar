@@ -131,8 +131,14 @@
     <Compile Include="Compiler\RoslynReferences.cs" />
     <Compile Include="Config\GitHubPluginConfig.cs" />
     <Compile Include="Config\LocalFolderConfig.cs" />
+    <Compile Include="Config\Sources\LocalHubConfig.cs" />
+    <Compile Include="Config\Sources\LocalPluginConfig.cs" />
+    <Compile Include="Config\Sources\RemoteHubConfig.cs" />
+    <Compile Include="Config\Sources\ModConfig.cs" />
     <Compile Include="Config\PluginConfig.cs" />
     <Compile Include="Config\PluginDataConfig.cs" />
+    <Compile Include="Config\Sources\RemotePluginConfig.cs" />
+    <Compile Include="Config\SourcesConfig.cs" />
     <Compile Include="Data\GitHubPlugin.AssetFile.cs" />
     <Compile Include="Data\GitHubPlugin.CacheManifest.cs" />
     <Compile Include="Data\ObsoletePlugin.cs" />
@@ -143,17 +149,23 @@
     <Compile Include="Data\PluginStatus.cs" />
     <Compile Include="Data\ModPlugin.cs" />
     <Compile Include="GUI\AddPluginMenu.cs" />
+    <Compile Include="GUI\AddRemoteHub.cs" />
     <Compile Include="GUI\ConfigurePlugin.cs" />
+    <Compile Include="GUI\AddMod.cs" />
     <Compile Include="GUI\GuiControls\ParentButton.cs" />
     <Compile Include="GUI\MainPluginMenu.cs" />
     <Compile Include="GUI\PluginDetailMenu.cs" />
     <Compile Include="GUI\PlayerConsent.cs" />
     <Compile Include="GUI\PluginScreen.cs" />
     <Compile Include="GUI\ProfilesMenu.cs" />
+    <Compile Include="GUI\SourcesMenu.cs" />
+    <Compile Include="GUI\AddRemotePlugin.cs" />
+    <Compile Include="GUI\SourcesWarning.cs" />
     <Compile Include="GUI\TextInputDialog.cs" />
     <Compile Include="GUI\SplashScreen.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="GUI\ViewSourceMenu.cs" />
     <Compile Include="Network\GitHub.cs" />
     <Compile Include="LoaderTools.cs" />
     <Compile Include="Network\NuGetClient.cs" />

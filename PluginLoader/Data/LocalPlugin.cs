@@ -8,7 +8,6 @@ namespace avaness.PluginLoader.Data
 {
     public class LocalPlugin : PluginData
     {
-        public override string Source => MyTexts.GetString(MyCommonTexts.Local);
         public override bool IsLocal => true;
         public override bool IsCompiled => false;
 
@@ -46,7 +45,6 @@ namespace avaness.PluginLoader.Data
                 resolver = new AssemblyResolver();
                 resolver.AddSourceFolder(Path.GetDirectoryName(Id));
                 resolver.AddAllowedAssemblyFile(Id);
-                resolver.AssemblyResolved += AssemblyResolved;
                 Assembly a = Assembly.LoadFile(Id);
                 Version = a.GetName().Version;
                 return a;
@@ -64,13 +62,6 @@ namespace avaness.PluginLoader.Data
             string file = Path.GetFullPath(Id);
             if (File.Exists(file))
                 Process.Start("explorer.exe", $"/select, \"{file}\"");
-        }
-
-        private void AssemblyResolved(string assemblyPath)
-        {
-            Main main = Main.Instance;
-            if (!main.Config.IsEnabled(assemblyPath))
-                main.List.Remove(assemblyPath);
         }
 
         public override void GetDescriptionText(MyGuiControlMultilineText textbox)

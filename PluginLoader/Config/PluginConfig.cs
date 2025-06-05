@@ -32,20 +32,6 @@ namespace avaness.PluginLoader.Config
         private readonly Dictionary<string, PluginData> enabledPlugins = new Dictionary<string, PluginData>();
 
         [XmlArray]
-        [XmlArrayItem("Id")]
-        public string[] LocalFolderPlugins
-        {
-            get { return pluginFolders.ToArray(); }
-            set
-            {
-                pluginFolders.Clear();
-                foreach (string folder in value)
-                    pluginFolders.Add(folder);
-            }
-        }
-        private readonly HashSet<string> pluginFolders = new HashSet<string>();
-
-        [XmlArray]
         [XmlArrayItem("Profile")]
         public Profile[] Profiles
         {
@@ -74,8 +60,6 @@ namespace avaness.PluginLoader.Config
             }
         }
         private readonly Dictionary<string, PluginDataConfig> pluginSettings = new Dictionary<string, PluginDataConfig>();
-
-        public string ListHash { get; set; }
 
         public int GameVersion { get; set; }
         [XmlIgnore]
@@ -298,16 +282,6 @@ namespace avaness.PluginLoader.Config
         public void SavePluginData(GitHubPluginConfig settings)
         {
             pluginSettings[settings.Id] = settings;
-        }
-
-        public void AddDevelopmentFolder(string folder)
-        {
-            pluginFolders.Add(folder);
-        }
-
-        public void RemoveDevelopmentFolder(string folder)
-        {
-            pluginFolders.Remove(folder);
         }
     }
 }

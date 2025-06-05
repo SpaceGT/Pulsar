@@ -30,16 +30,6 @@ namespace avaness.PluginLoader.GUI
         private MyGuiControlParent pluginListGrid;
         private string filter;
 
-        /// <summary>
-        /// Called when a development folder plugin is added
-        /// </summary>
-        public event Action<PluginData> OnPluginAdded;
-
-        /// <summary>
-        /// Called when a development folder plugin is removed
-        /// </summary>
-        public event Action<PluginData> OnPluginRemoved;
-
         public event Action OnRestartRequired;
 
         enum SortingMethod { Name, Usage, Rating }
@@ -223,64 +213,9 @@ namespace avaness.PluginLoader.GUI
 
                 if (i < plugins.Length)
                     CreatePluginListItem(plugins[i], itemPanel);
-                else if (i < numPlugins - 1)
-                    CreatePluginListButton(itemPanel, "Add local file", "Add a dll to the " + Path.Combine("Bin64", "Plugins", "Local") + " folder\nand restart the game", OnAddLocalFileClick);
-                else
-                    CreatePluginListButton(itemPanel, "Add development folder", null, OnAddDevelopmentFolderClick);
 
                 panel.Controls.Add(itemPanel);
             }
-        }
-
-        private void OnAddDevelopmentFolderClick(ParentButton btn)
-        {
-            btn.PlayClickSound();
-            LocalFolderPlugin.CreateNew((plugin) =>
-            {
-                PluginConfig config = Main.Instance.Config;
-                config.AddDevelopmentFolder(plugin.Id);
-                config.Save();
-                OnPluginAdded?.Invoke(plugin);
-                plugins.Add(plugin);
-                RefreshPluginList();
-            });
-        }
-
-        private void OnAddLocalFileClick(ParentButton btn)
-        {
-            try
-            {
-                string localPlugins = Path.Combine(LoaderTools.PluginsDir, "Local");
-                Directory.CreateDirectory(localPlugins);
-                Process.Start("explorer.exe", $"\"{localPlugins}\"");
-                btn.PlayClickSound();
-            }
-            catch (Exception e)
-            {
-                LogFile.Error("Error while opening local plugins folder: " + e);
-            }
-        }
-
-        private void CreatePluginListButton(MyGuiControlParent panel, string text, string subtext, Action<ParentButton> onClick)
-        {
-            float padding = GuiSpacing;
-
-            ParentButton contentArea = new ParentButton(size: panel.Size - padding);
-            MyGuiControlLabel mainText = new MyGuiControlLabel(text: text, textScale: 1.1f);
-            if(string.IsNullOrWhiteSpace(subtext))
-            {
-                mainText.OriginAlign = MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_CENTER;
-            }
-            else
-            {
-                mainText.OriginAlign = MyGuiDrawAlignEnum.HORISONTAL_CENTER_AND_VERTICAL_BOTTOM;
-                MyGuiControlLabel subText = new MyGuiControlLabel(text: subtext);
-                PositionBelow(mainText, subText);
-                contentArea.Controls.Add(subText);
-            }
-            contentArea.Controls.Add(mainText);
-            contentArea.OnButtonClicked += onClick;
-            panel.Controls.Add(contentArea);
         }
 
         private void CreatePluginListItem(PluginData plugin, MyGuiControlParent panel)
@@ -398,7 +333,6 @@ namespace avaness.PluginLoader.GUI
 
         private void DetailMenu_OnPluginRemoved(PluginData plugin)
         {
-            OnPluginRemoved?.Invoke(plugin);
             int index = plugins.FindIndex(x => x.Id == plugin.Id);
             if (index >= 0)
                 plugins.RemoveAt(index);

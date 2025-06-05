@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json.Linq;
+using System;
 using System.IO;
 using System.Net;
 
@@ -6,11 +7,7 @@ namespace avaness.PluginLoader.Network
 {
     public static class GitHub
     {
-
-        public const string listRepoName = "sepluginloader/PluginHub";
-        public const string listRepoCommit = "main";
-        public const string listRepoHash = "plugins.sha1";
-
+        private const string hashUrl = "https://api.github.com/repos/{0}/commits/{1}";
         private const string repoZipUrl = "https://github.com/{0}/archive/{1}.zip";
         private const string rawUrl = "https://raw.githubusercontent.com/{0}/{1}/";
 
@@ -30,6 +27,7 @@ namespace avaness.PluginLoader.Network
         public static Stream GetStream(Uri uri)
         {
             HttpWebRequest request = WebRequest.CreateHttp(uri);
+            request.UserAgent = "avaness.PluginLoader";
             request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
             Config.PluginConfig config = Main.Instance.Config;
             request.Timeout = config.NetworkTimeout;
@@ -52,19 +50,43 @@ namespace avaness.PluginLoader.Network
             throw new InvalidOperationException("No IPv4 address");
         }
 
-        public static Stream DownloadRepo(string name, string commit)
+        public static Stream DownloadRepo(string name, string branch)
         {
-            Uri uri = new Uri(string.Format(repoZipUrl, name, commit), UriKind.Absolute);
+            Uri uri = new Uri(string.Format(repoZipUrl, name, branch), UriKind.Absolute);
             LogFile.WriteLine("Downloading " + uri);
             return GetStream(uri);
         }
 
-        public static Stream DownloadFile(string name, string commit, string path)
+        public static Stream DownloadFile(string name, string branch, string path)
         {
-            Uri uri = new Uri(string.Format(rawUrl, name, commit) + path.TrimStart('/'), UriKind.Absolute);
+            Uri uri = new Uri(string.Format(rawUrl, name, branch) + path.TrimStart('/'), UriKind.Absolute);
             LogFile.WriteLine("Downloading " + uri);
             return GetStream(uri);
         }
 
+        public static bool GetRepoHash(string name, string branch, out string hash)
+        {
+            hash = null;
+
+            try
+            {
+                Uri uri = new Uri(string.Format(hashUrl, name, branch), UriKind.Absolute);
+                LogFile.WriteLine("Downloading " + uri);
+                using Stream stream = GetStream(uri);
+                using (StreamReader reader = new StreamReader(stream))
+                {
+                    string text = reader.ReadToEnd();
+                    var json = JObject.Parse(text);
+                    hash = json["sha"].ToString();
+                }
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while downloading whitelist hash: " + e);
+                return false;
+            }
+
+            return true;
+        }
     }
 }

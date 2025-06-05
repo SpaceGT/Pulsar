@@ -19,6 +19,7 @@ using avaness.PluginLoader.Config;
 using VRage.Utils;
 using System.Text;
 using VRage;
+using Sandbox.Engine.Utils;
 
 namespace avaness.PluginLoader
 {
@@ -30,6 +31,7 @@ namespace avaness.PluginLoader
 
         public PluginList List { get; }
         public PluginConfig Config { get; }
+        public SourcesConfig Sources { get; }
         public SplashScreen Splash { get; }
         public PluginStats Stats {get; private set; }
 
@@ -79,8 +81,9 @@ namespace avaness.PluginLoader
             Splash.SetText("Starting...");
             Config = PluginConfig.Load(pluginsDir);
             Config.CheckGameVersion();
-            List = new PluginList(pluginsDir, Config);
-            
+            Sources = SourcesConfig.Load(pluginsDir);
+            List = new PluginList(pluginsDir, Config, Sources);
+
             Splash.SetText("Starting...");
             Config.Init(List, DebugCompileAll);
 

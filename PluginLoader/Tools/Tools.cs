@@ -1,8 +1,12 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Steamworks;
+using VRage;
 
 namespace avaness.PluginLoader.Tools
 {
@@ -46,6 +50,74 @@ namespace avaness.PluginLoader.Tools
                 query.Append($"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}");
             }
             return query.ToString();
+        }
+
+        public static string GetFolderHash(string folderPath, string glob = "*")
+        {
+            if (!Directory.Exists(folderPath))
+                throw new DirectoryNotFoundException($"Folder not found: {folderPath}");
+
+            List<string> files =
+            [
+                .. Directory
+                    .GetFiles(folderPath, glob, SearchOption.AllDirectories)
+                    .OrderBy(Path.GetFileName),
+            ];
+            StringBuilder timestamps = new StringBuilder("");
+
+            foreach (string path in files)
+            {
+                DateTime accessTimeUtc = File.GetLastWriteTimeUtc(path);
+                timestamps.Append(accessTimeUtc.Ticks.ToString());
+            }
+
+            using (var md5 = MD5.Create())
+            {
+                byte[] inputBytes = new UTF8Encoding().GetBytes(timestamps.ToString());
+                byte[] hashBytes = md5.ComputeHash(inputBytes);
+
+                string hash = BitConverter.ToString(hashBytes);
+                return hash.Replace("-", "").ToLowerInvariant();
+            }
+        }
+
+        public static string GetClipboard()
+        {
+            string cliptext = string.Empty;
+
+            Thread thread = new Thread(
+                new ThreadStart(() => cliptext = MyVRage.Platform.System.Clipboard)
+            );
+            thread.SetApartmentState(ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+
+            return cliptext;
+        }
+
+        public static string DateToString(DateTime? lastCheck)
+        {
+            if (lastCheck is null)
+                return "Never";
+
+            TimeSpan time = DateTime.UtcNow - lastCheck.Value;
+
+            if (time.TotalMinutes < 5)
+                return "Just Now";
+
+            if (time.TotalHours < 1)
+                return $"{time.Minutes} minutes ago";
+
+            if (time.TotalHours == 1)
+                return $"{time.Hours} hour ago";
+
+            if (time.TotalDays < 3)
+                return $"{time.Hours} hours ago";
+
+            if (time.TotalDays == 3)
+                return $"{time.Days} day ago";
+
+            return $"{time.Days} days ago";
         }
     }
 }

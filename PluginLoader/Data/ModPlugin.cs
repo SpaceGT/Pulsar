@@ -12,7 +12,6 @@ namespace avaness.PluginLoader.Data
     [ProtoContract]
     public class ModPlugin : PluginData, ISteamItem
     {
-        public override string Source => "Mod";
         public override bool IsLocal => false;
         public override bool IsCompiled => false;
 

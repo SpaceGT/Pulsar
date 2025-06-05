@@ -20,7 +20,6 @@ namespace avaness.PluginLoader.Data
         const string XmlDataType = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
         const int GitTimeout = 10000;
 
-        public override string Source => "Development Folder";
         public override bool IsLocal => true;
         public override bool IsCompiled => true;
         private string[] sourceDirectories;
@@ -44,7 +43,6 @@ namespace avaness.PluginLoader.Data
             if (config is LocalFolderConfig folderConfig && folderConfig.DataFile != null && File.Exists(folderConfig.DataFile))
             {
                 FolderSettings = folderConfig;
-                DeserializeFile(folderConfig.DataFile);
                 return false;
             }
 
@@ -248,7 +246,7 @@ namespace avaness.PluginLoader.Data
         }
 
         // Deserializes a data file
-        private void DeserializeFile(string file)
+        public void DeserializeFile(string file)
         {
             if (!File.Exists(file))
                 return;
@@ -282,7 +280,7 @@ namespace avaness.PluginLoader.Data
             }
         }
 
-        public static void CreateNew(Action<LocalFolderPlugin> onComplete)
+        public static void PromptFolder(Action<string> onComplete)
         {
             LoaderTools.OpenFolderDialog("Open the root of your project", (folder) =>
             {
@@ -292,11 +290,9 @@ namespace avaness.PluginLoader.Data
                     return;
                 }
 
-                LocalFolderPlugin plugin = new LocalFolderPlugin(folder);
                 LoaderTools.OpenFileDialog("Open the xml data file", folder, XmlDataType, (file) => 
                 {
-                    plugin.DeserializeFile(file);
-                    onComplete(plugin);
+                    onComplete(file);
                 });
             });
         }
@@ -306,7 +302,6 @@ namespace avaness.PluginLoader.Data
             MyGuiControlButton btnRemove = new MyGuiControlButton(text: new StringBuilder("Remove"), onButtonClick: (btn) =>
             {
                 PluginConfig config = Main.Instance.Config;
-                config.RemoveDevelopmentFolder(Id);
                 config.Save();
                 screen.CloseScreen();
                 screen.InvokeOnPluginRemoved(this);
@@ -319,11 +314,11 @@ namespace avaness.PluginLoader.Data
             {
                 LoadNewDataFile(() =>
                 {
-                    Main.Instance.Config.Save();
                     screen.CloseScreen();
                 });
             });
             screen.PositionToRight(btnRemove, btnLoadFile);
+            btnLoadFile.Enabled = string.IsNullOrEmpty(FolderSettings.DataFile) || !File.Exists(FolderSettings.DataFile);
             screen.Controls.Add(btnLoadFile);
 
             MyGuiControlCombobox releaseDropdown = new MyGuiControlCombobox();

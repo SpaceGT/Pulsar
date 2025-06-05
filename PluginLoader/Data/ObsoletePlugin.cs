@@ -4,7 +4,7 @@ namespace avaness.PluginLoader.Data
 {
     internal class ObsoletePlugin : PluginData
     {
-        public override string Source => "Obsolete";
+        public new string Source => "Obsolete";
         public override bool IsLocal => false;
         public override bool IsCompiled => false;
 

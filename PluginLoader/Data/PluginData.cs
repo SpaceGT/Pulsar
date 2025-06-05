@@ -11,6 +11,7 @@ using System.Windows.Forms;
 using System.Xml.Serialization;
 using VRage.Utils;
 using avaness.PluginLoader.Config;
+using Sandbox.Game.World;
 
 namespace avaness.PluginLoader.Data
 {
@@ -22,7 +23,7 @@ namespace avaness.PluginLoader.Data
     [ProtoInclude(104, typeof(ModPlugin))]
     public abstract class PluginData : IEquatable<PluginData>
     {
-        public abstract string Source { get; }
+        public string Source;
         public abstract bool IsLocal { get; }
         public abstract bool IsCompiled { get; }
 
