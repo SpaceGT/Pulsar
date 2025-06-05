@@ -91,6 +91,10 @@ namespace avaness.PluginLoader
             UpdatePlayerStats();
             PlayerConsent.OnConsentChanged += OnConsentChanged;
 
+            bool devTools = Environment.GetCommandLineArgs()?.Any(x => x != null && x.Equals("-f12menu", StringComparison.InvariantCultureIgnoreCase)) == true;
+            if (devTools)
+                MyFakes.ENABLE_F12_MENU = true;
+
             Splash.SetText("Patching...");
             LogFile.WriteLine("Patching");
 
