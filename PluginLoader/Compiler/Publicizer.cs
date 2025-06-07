@@ -90,9 +90,9 @@ namespace avaness.PluginLoader.Compiler
             return shouldPublicize;
         }
 
-        private static bool TryPublicizeMethod(MethodDefinition method)
+        private static bool TryPublicizeMethod(MethodDefinition method, bool force = false)
         {
-            if (IsCompilerGenerated(method) || method.IsVirtual)
+            if (!force && (IsCompilerGenerated(method) || method.IsVirtual))
             {
                 return false;
             }
@@ -120,12 +120,12 @@ namespace avaness.PluginLoader.Compiler
 
             if (property.GetMethod is MethodDefinition getter)
             {
-                TryPublicizeMethod(getter);
+                TryPublicizeMethod(getter, force: true);
             }
 
             if (property.SetMethod is MethodDefinition setter)
             {
-                TryPublicizeMethod(setter);
+                TryPublicizeMethod(setter, force: true);
             }
 
             return true;
