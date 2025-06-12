@@ -287,11 +287,6 @@ namespace avaness.PluginLoader.GUI
             MyGuiControlLabel lblConsent = new MyGuiControlLabel(text: "Track Usage");
             PositionToRight(consentBox, lblConsent, spacing: 0);
             parent.Controls.Add(lblConsent);
-
-            // FIXME: Rework the statistics server for arbitrary sources
-            // Analytics have been disabled for now
-            consentBox.Visible = false;
-            lblConsent.Visible = false;
         }
 
         private void OnConsentChanged()

@@ -39,7 +39,7 @@ namespace avaness.PluginLoader.GUI
 
         public static bool ConsentRequested => !string.IsNullOrEmpty(Main.Instance.Config.DataHandlingConsentDate);
 
-        public static bool ConsentGiven => Main.Instance.Config.DataHandlingConsent && false;
+        public static bool ConsentGiven => Main.Instance.Config.DataHandlingConsent;
 
         private static void GetConfirmation(MyGuiScreenMessageBox.ResultEnum result, Action continuation)
         {
