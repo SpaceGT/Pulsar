@@ -22,6 +22,8 @@ namespace avaness.PluginLoader.GUI
         private MyGuiControlParent modsPanel;
         private bool requiresRestart = false;
 
+        public const string SourcesArg = "-sources";
+
         public MainPluginMenu(PluginList pluginList, PluginConfig config, SourcesConfig sources) : base(size: new Vector2(1, 0.9f))
         {
             this.pluginList = pluginList;
@@ -277,8 +279,12 @@ namespace avaness.PluginLoader.GUI
 
             layout.Add(new MyGuiControlButton(text: new StringBuilder("Profiles"), toolTip: "Load or edit profiles", onButtonClick: OnProfilesClick), MyAlignH.Center);
             AdvanceLayout(ref layout);
-            layout.Add(new MyGuiControlButton(text: new StringBuilder("Sources"), toolTip: "Add or remove plugin sources", onButtonClick: OnSourcesClick), MyAlignH.Center);
-            AdvanceLayout(ref layout);
+
+            if (Tools.Tools.HasCommandArg(SourcesArg))
+            {
+                layout.Add(new MyGuiControlButton(text: new StringBuilder("Sources"), toolTip: "Add or remove plugin sources", onButtonClick: OnSourcesClick), MyAlignH.Center);
+                AdvanceLayout(ref layout);
+            }
 
             consentBox = new MyGuiControlCheckbox(toolTip: "Consent to use your data for usage tracking", isChecked: PlayerConsent.ConsentGiven);
             consentBox.IsCheckedChanged += OnConsentBoxChanged;

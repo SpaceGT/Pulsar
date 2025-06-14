@@ -119,5 +119,14 @@ namespace avaness.PluginLoader.Tools
 
             return $"{time.Days} days ago";
         }
+
+        public static bool HasCommandArg(string argument)
+        {
+            foreach (string arg in Environment.GetCommandLineArgs())
+                if (arg.Equals(argument, StringComparison.InvariantCultureIgnoreCase))
+                    return true;
+
+            return false;
+        }
     }
 }

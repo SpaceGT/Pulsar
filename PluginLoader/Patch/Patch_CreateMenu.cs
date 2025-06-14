@@ -49,7 +49,7 @@ namespace avaness.PluginLoader.Patch
             };
             __instance.Controls.Add(openBtn);
 
-            if (___m_continueButton != null && ___m_continueButton.Visible && !usedAutoRejoin && Environment.GetCommandLineArgs().Contains(LoaderTools.AutoRejoinArg))
+            if (___m_continueButton != null && ___m_continueButton.Visible && !usedAutoRejoin && Tools.Tools.HasCommandArg(LoaderTools.ContinueArg))
             {
                 ___m_continueButton.PressButton();
                 usedAutoRejoin = true;

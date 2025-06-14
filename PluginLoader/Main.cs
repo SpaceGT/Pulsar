@@ -26,6 +26,7 @@ namespace avaness.PluginLoader
     public class Main : IHandleInputPlugin
     {
         const string HarmonyVersion = "2.3.6.0";
+        const string F12MenuArg = "-f12menu";
 
         public static Main Instance;
 
@@ -67,10 +68,6 @@ namespace avaness.PluginLoader
             LogFile.Init(pluginsDir);
             LogFile.WriteLine("Starting - v" + Assembly.GetExecutingAssembly().GetName().Version.ToString(3));
 
-            DebugCompileAll = Environment.GetCommandLineArgs()?.Any(x => x != null && x.Equals("-testcompileall", StringComparison.InvariantCultureIgnoreCase)) == true;
-            if (DebugCompileAll)
-                LogFile.WriteLine("COMPILING ALL PLUGINS");
-
             GitHub.Init();
 
             Splash.SetText("Finding references...");
@@ -94,8 +91,7 @@ namespace avaness.PluginLoader
             UpdatePlayerStats();
             PlayerConsent.OnConsentChanged += OnConsentChanged;
 
-            bool devTools = Environment.GetCommandLineArgs()?.Any(x => x != null && x.Equals("-f12menu", StringComparison.InvariantCultureIgnoreCase)) == true;
-            if (devTools)
+            if ((Tools.Tools.HasCommandArg(F12MenuArg)))
                 MyFakes.ENABLE_F12_MENU = true;
 
             Splash.SetText("Patching...");

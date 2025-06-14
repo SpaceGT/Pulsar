@@ -29,7 +29,7 @@ namespace avaness.PluginLoader
     {
         public static string PluginsDir => Path.GetFullPath(Path.Combine(MyFileSystem.ExePath, "Plugins"));
 
-        public const string AutoRejoinArg = "-auto_join_world";
+        public const string ContinueArg = "-continue";
 
         public static DialogResult ShowMessageBox(string msg, MessageBoxButtons buttons = MessageBoxButtons.OK, MessageBoxIcon icon = MessageBoxIcon.None, MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1)
         {
@@ -156,9 +156,9 @@ namespace avaness.PluginLoader
         {
             // Regular app case 
             StringBuilder sb = new StringBuilder();
-            IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1).Where(x => x != AutoRejoinArg);
+            IEnumerable<string> args = Environment.GetCommandLineArgs().Skip(1).Where(x => x != ContinueArg);
             if(autoRejoin)
-                args = args.Append(AutoRejoinArg);
+                args = args.Append(ContinueArg);
             foreach (string arg in args)
             {
                 if (sb.Length > 0)
