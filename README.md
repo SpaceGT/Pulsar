@@ -13,5 +13,5 @@ Pulsar officially endorses the [PluginHub](https://github.com/StarCpt/PluginHub)
 Further sources may be added in-game but make sure you fully understand the risks.<br>
 
 ## Contact
-We have an active [Discord](https://discord.gg/kjKEMaQhvB) for updates and developer information.<br>
+We have an active [Discord](https://discord.gg/z8ZczP2YZY) for updates and developer information.<br>
 GitHub contributions and bug reports are also welcomed!<br>
