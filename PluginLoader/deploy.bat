@@ -33,7 +33,7 @@ if not exist "%DEPENDENCY_DIR%" (
 )
 
 REM Copy loader into main directory
-echo Copying "PluginLoader.dll to Bin64\Plugins"
+echo Copying "PluginLoader.dll to Bin64\Plugins\loader.dll"
 
 for /l %%i in (1, 1, 10) do (
     copy /y /b "%SOURCE%\PluginLoader.dll" "%PLUGIN_DIR%\loader.dll" >NUL 2>&1

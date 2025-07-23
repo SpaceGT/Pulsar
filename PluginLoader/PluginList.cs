@@ -155,6 +155,9 @@ namespace avaness.PluginLoader
             PluginData[] list;
             string hubFile = Path.Combine(HubSourceDir, source.Repo.Replace('/', '-') + ".bin");
 
+            if (!File.Exists(hubFile))
+                source.LastCheck = null;
+
             if (
                 source.LastCheck is not null
                     && DateTime.UtcNow - source.LastCheck
