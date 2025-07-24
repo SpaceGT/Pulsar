@@ -2,5 +2,7 @@
   <PropertyGroup>
     <!-- Folder containing SpaceEngineers.exe -->
     <Bin64>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)\Bin64</Bin64>
+    <!-- Folder containing SpaceEngineers2.exe -->
+    <Game2>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1133870@InstallLocation)\Game2</Game2>
   </PropertyGroup>
 </Project>
