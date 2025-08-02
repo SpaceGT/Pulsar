@@ -133,7 +133,6 @@
     <Compile Include="Patch\Patch_ComponentRegistered.cs" />
     <Compile Include="Patch\Patch_CreateLoadingText.cs" />
     <Compile Include="Patch\Patch_CreateMenu.cs" />
-    <Compile Include="Patch\Patch_DisableConfig.cs" />
     <Compile Include="Patch\Patch_ExitThreadSafe.cs" />
     <Compile Include="Patch\Patch_IngameShortcuts.cs" />
     <Compile Include="Patch\Patch_MyDefinitionManager.cs" />

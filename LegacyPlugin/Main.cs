@@ -71,9 +71,8 @@ namespace Pulsar.Legacy.Plugin
 
         public void DisablePlugins()
         {
-            config.Disable();
+            LogFile.WriteLine("Skipping plugin instantiation");
             plugins.Clear();
-            LogFile.WriteLine("Disabled all plugins");
         }
 
         public void InstantiatePlugins()
@@ -96,6 +95,11 @@ namespace Pulsar.Legacy.Plugin
 
         public void Init(object gameInstance)
         {
+            if (ConfigManager.Instance.SafeMode)
+                DisablePlugins();
+            else
+                InstantiatePlugins();
+
             LogFile.WriteLine($"Initializing {plugins.Count} plugins");
             SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 

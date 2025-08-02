@@ -296,5 +296,10 @@ namespace Pulsar.Shared
 
             return null;
         }
+
+        [DllImport("user32.dll")]
+        private static extern short GetAsyncKeyState(int vKey);
+
+        public static bool EscapePressed() => (GetAsyncKeyState(0x1B) & 0x8000) != 0;
     }
 }

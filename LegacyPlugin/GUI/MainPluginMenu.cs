@@ -447,7 +447,11 @@ namespace Pulsar.Legacy.Plugin.GUI
 
                 if (!mods)
                 {
-                    row.AddCell(new MyGuiControlTable.Cell(plugin.StatusString, toolTip: tip));
+                    string statusString = ConfigManager.Instance.SafeMode
+                        ? "Disabled"
+                        : plugin.StatusString;
+
+                    row.AddCell(new MyGuiControlTable.Cell(statusString, toolTip: tip));
                     row.AddCell(
                         new MyGuiControlTable.Cell(
                             plugin.Version?.ToString() ?? "N/A",

@@ -14,6 +14,7 @@ namespace Pulsar.Shared.Config
         public PluginConfig Config { get; }
         public SourcesConfig Sources { get; }
         public PluginStats Stats { get; private set; }
+        public bool SafeMode { get; set; }
         public bool HasLocal { get; set; }
         public IDependency Dependencies { get; private set; }
         public bool DebugCompileAll { get; }
@@ -26,6 +27,7 @@ namespace Pulsar.Shared.Config
         )
         {
             Instance = this;
+            SafeMode = false;
 
             Dependencies = dependencies;
             LogFile.Init(pulsarDir);

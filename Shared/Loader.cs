@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Compiler;
 using Pulsar.Shared.Config;
@@ -27,6 +28,21 @@ namespace Pulsar.Shared
         {
             config = ConfigManager.Instance.Config;
             splash = SplashManager.Instance;
+
+            if (Tools.EscapePressed())
+            {
+                DialogResult result = Tools.ShowMessageBox(
+                    "Escape pressed. Start the game with all plugins disabled?",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question
+                );
+
+                if (result == DialogResult.Yes)
+                {
+                    LogFile.Warn("Safe mode active. No plugins will be loaded!");
+                    ConfigManager.Instance.SafeMode = true;
+                }
+            }
 
             GitHub.Init();
 

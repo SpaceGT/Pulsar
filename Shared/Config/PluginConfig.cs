@@ -168,11 +168,6 @@ namespace Pulsar.Shared.Config
             Save();
         }
 
-        public void Disable()
-        {
-            enabledPlugins.Clear();
-        }
-
         public void Save()
         {
             try
