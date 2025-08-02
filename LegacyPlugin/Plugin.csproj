@@ -131,6 +131,7 @@
     <Compile Include="GUI\ViewSourceMenu.cs" />
     <Compile Include="LoaderTools.cs" />
     <Compile Include="Patch\Patch_ComponentRegistered.cs" />
+    <Compile Include="Patch\Patch_CreateLoadingText.cs" />
     <Compile Include="Patch\Patch_CreateMenu.cs" />
     <Compile Include="Patch\Patch_DisableConfig.cs" />
     <Compile Include="Patch\Patch_ExitThreadSafe.cs" />
