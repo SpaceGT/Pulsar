@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
@@ -250,7 +251,7 @@ namespace Pulsar.Shared
                 buttons,
                 icon,
                 defaultButton,
-                System.Windows.Forms.MessageBoxOptions.DefaultDesktopOnly
+                MessageBoxOptions.DefaultDesktopOnly
             );
         }
 
@@ -259,6 +260,41 @@ namespace Pulsar.Shared
             FileInfo fileInfo1 = new(file1);
             FileInfo fileInfo2 = new(file2);
             return fileInfo1.Length == fileInfo2.Length && GetFileHash(file1) == GetFileHash(file2);
+        }
+
+        public static string FriendlyPlatformName()
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return "Windows";
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                return GetLinuxDistroName() ?? "Linux";
+            }
+
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+                return "MacOS";
+
+            return null;
+        }
+
+        private static string GetLinuxDistroName()
+        {
+            const string path = @"Z:\etc\os-release";
+
+            if (!File.Exists(path))
+                return null;
+
+            foreach (string line in File.ReadAllLines(path))
+            {
+                if (line.StartsWith("NAME="))
+                {
+                    var value = line.Split('=')[1].Trim('"');
+                    return value;
+                }
+            }
+
+            return null;
         }
     }
 }

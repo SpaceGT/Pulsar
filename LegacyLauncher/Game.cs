@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using Pulsar.Shared;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
@@ -50,6 +51,26 @@ namespace Pulsar.Legacy.Launcher
 
             if (Tools.HasCommandArg("-f12menu"))
                 MyFakes.ENABLE_F12_MENU = true;
+        }
+
+        public static void CorrectExitText()
+        {
+            string message;
+            string platform = Tools.FriendlyPlatformName();
+
+            if (platform == null)
+                message = "Exit Game";
+            else
+                message = MyCommonTexts
+                    .ScreenMenuButtonExitToWindows.ToString()
+                    .Replace("Windows", platform);
+
+            FieldInfo exitTextField = typeof(MyCommonTexts).GetField(
+                "ScreenMenuButtonExitToWindows",
+                BindingFlags.Static | BindingFlags.Public
+            );
+
+            exitTextField.SetValue(null, MyStringId.GetOrCompute(message));
         }
 
         public static float GetLoadProgress()

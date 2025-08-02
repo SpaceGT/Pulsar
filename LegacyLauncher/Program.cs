@@ -36,6 +36,7 @@ namespace Pulsar.Legacy.Launcher
             );
 
             Game.SetupMyFakes();
+            Game.CorrectExitText();
 
             if (!Tools.HasCommandArg("-nosplash"))
                 SplashManager.Instance = new SplashManager();
