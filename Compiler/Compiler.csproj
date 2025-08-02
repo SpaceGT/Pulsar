@@ -47,7 +47,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="PublicizedAssemblies.cs" />
     <Compile Include="Publicizer.cs" />
-    <Compile Include="ReferenceHelper.cs" />
     <Compile Include="RoslynCompiler.cs" />
     <Compile Include="RoslynReferences.cs" />
   </ItemGroup>

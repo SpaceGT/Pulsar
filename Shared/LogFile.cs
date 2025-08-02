@@ -2,13 +2,21 @@
 using NLog;
 using NLog.Config;
 using NLog.Layouts;
-using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared
 {
+    public interface IGameLog
+    {
+        bool Open();
+        bool Exists();
+        void Write(string line);
+    }
+
     public static class LogFile
     {
-        private const string fileName = "puslar.log";
+        public static IGameLog GameLog = null;
+
+        private const string fileName = "pulsar.log";
         private static Logger logger;
         private static LogFactory logFactory;
 
@@ -50,15 +58,14 @@ namespace Pulsar.Shared
 
         public static void WriteLine(string text, LogLevel level = null, bool gameLog = false)
         {
-            var writeGameLog = ConfigManager.Instance.Dependencies.WriteGameLog;
-
             try
             {
                 if (level == null)
                     level = LogLevel.Info;
+
                 logger?.Log(level, text);
                 if (gameLog)
-                    writeGameLog($"[Pulsar] [{level.Name}] {text}");
+                    GameLog.Write($"[Pulsar] [{level.Name}] {text}");
             }
             catch
             {

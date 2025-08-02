@@ -65,11 +65,9 @@
     <Compile Include="Config\Sources\ModConfig.cs" />
     <Compile Include="Config\Sources\RemoteHubConfig.cs" />
     <Compile Include="Config\Sources\RemotePluginConfig.cs" />
-    <Compile Include="Data\IDependency.cs" />
     <Compile Include="Data\GitHubPlugin.AssetFile.cs" />
     <Compile Include="Data\GitHubPlugin.CacheManifest.cs" />
     <Compile Include="Data\GitHubPlugin.cs" />
-    <Compile Include="Data\ISteamItem.cs" />
     <Compile Include="Data\LocalFolderPlugin.cs" />
     <Compile Include="Data\LocalPlugin.cs" />
     <Compile Include="Data\ModPlugin.cs" />
@@ -87,6 +85,7 @@
     <Compile Include="Network\NuGetPackageList.cs" />
     <Compile Include="PluginList.cs" />
     <Compile Include="Data\Profile.cs" />
+    <Compile Include="Preloader.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Splash\SplashScreen.cs">
       <SubType>Form</SubType>
@@ -111,6 +110,9 @@
     <PackageReference Include="Lib.Harmony">
       <Version>2.3.6</Version>
     </PackageReference>
+    <PackageReference Include="Mono.Cecil">
+      <Version>0.11.6</Version>
+    </PackageReference>
     <PackageReference Include="Newtonsoft.Json">
       <Version>13.0.3</Version>
     </PackageReference>
@@ -129,4 +131,5 @@
       <Name>Compiler</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
 </Project>

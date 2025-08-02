@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -11,14 +10,13 @@ namespace Pulsar.Compiler
 {
     public static class RoslynReferences
     {
+        private static readonly HashSet<string> referenceBlacklist = ["System.ValueTuple"];
         internal static readonly Dictionary<string, MetadataReference> AllReferences = [];
 
-        public static void GenerateAssemblyList(List<string> assemblies)
+        public static void GenerateAssemblyList(HashSet<string> assemblies)
         {
             if (AllReferences.Count > 0)
                 return;
-
-            AssemblyName harmonyInfo = typeof(HarmonyLib.Harmony).Assembly.GetName();
 
             Stack<Assembly> loadedAssemblies = new();
             foreach (string name in assemblies)
@@ -37,16 +35,6 @@ namespace Pulsar.Compiler
             {
                 foreach (Assembly a in loadedAssemblies)
                 {
-                    // Prevent other Harmony versions from being loaded
-                    AssemblyName name = a.GetName();
-                    if (name.Name == harmonyInfo.Name && name.Version != harmonyInfo.Version)
-                    {
-                        LogFile.Warn(
-                            $"Multiple Harmony assemblies are loaded. Pulsar is using {harmonyInfo} but found {name}"
-                        );
-                        continue;
-                    }
-
                     AddAssemblyReference(a);
                     sb.AppendLine(a.FullName);
                 }
@@ -64,19 +52,10 @@ namespace Pulsar.Compiler
 
                     foreach (AssemblyName name in a.GetReferencedAssemblies())
                     {
-                        // Prevent other Harmony versions from being loaded
-                        if (name.Name == harmonyInfo.Name && name.Version != harmonyInfo.Version)
-                        {
-                            LogFile.Warn(
-                                $"Multiple Harmony assemblies are loaded. Pulsar is using {harmonyInfo} but found {name}"
-                            );
-                            continue;
-                        }
-
                         if (
                             !ContainsReference(name)
                             && TryLoadAssembly(name, out Assembly aRef)
-                            && ReferenceHelper.IsValidReference(aRef)
+                            && IsValidReference(aRef)
                         )
                         {
                             AddAssemblyReference(aRef);
@@ -104,6 +83,8 @@ namespace Pulsar.Compiler
         {
             yield return typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly;
             yield return typeof(System.Windows.Forms.DataVisualization.Charting.Chart).Assembly;
+            yield return typeof(HarmonyLib.Harmony).Assembly;
+            yield return typeof(Mono.Cecil.AssemblyDefinition).Assembly;
         }
 
         private static bool ContainsReference(AssemblyName name)
@@ -130,6 +111,14 @@ namespace Pulsar.Compiler
             string name = a.GetName().Name;
             if (!AllReferences.ContainsKey(name))
                 AllReferences.Add(name, MetadataReference.CreateFromFile(a.Location));
+        }
+
+        private static bool IsValidReference(Assembly a)
+        {
+            string name = a.GetName().Name;
+            return !a.IsDynamic
+                && !string.IsNullOrWhiteSpace(a.Location)
+                && !referenceBlacklist.Contains(name);
         }
 
         public static void LoadReference(string name)

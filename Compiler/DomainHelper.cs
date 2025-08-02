@@ -12,11 +12,11 @@ namespace Pulsar.Compiler
 
         private static void SetupAppDomain()
         {
-            List<string> assemblies = (List<string>)AppDomain.CurrentDomain.GetData("assemblies");
+            var assemblies = (HashSet<string>)AppDomain.CurrentDomain.GetData("assemblies");
             RoslynReferences.GenerateAssemblyList(assemblies);
         }
 
-        public static void CreateAppDomain(string pulsarDir, List<string> assemblyList)
+        public static void CreateAppDomain(string pulsarDir, HashSet<string> assemblyList)
         {
             string libraries = Path.Combine(pulsarDir, "Libraries");
 
@@ -48,6 +48,12 @@ namespace Pulsar.Compiler
             domain.DoCallBack(SetupAppDomain);
 
             AppDomain = domain;
+        }
+
+        public static void UnloadAppDomain()
+        {
+            AppDomain.Unload(AppDomain);
+            AppDomain = null;
         }
     }
 }

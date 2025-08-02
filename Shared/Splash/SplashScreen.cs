@@ -9,8 +9,8 @@ namespace Pulsar.Shared.Splash
     {
         public float BarValue { get; private set; } = float.NaN;
 
-        private static readonly Size originalSplashSize = new Size(1024, 576);
-        private static readonly PointF originalSplashScale = new PointF(0.7f, 0.7f);
+        private static readonly Size originalSplashSize = new(1024, 576);
+        private static readonly PointF originalSplashScale = new(0.7f, 0.7f);
 
         private const float barWidth = 0.98f; // 98% of width
         private const float barHeight = 0.06f; // 6% of height

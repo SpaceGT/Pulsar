@@ -18,18 +18,27 @@ if "%BIN64:~-1%"=="\" set BIN64=%BIN64:~0,-1%
 
 echo Deploy location is "%BIN64%"
 
+REM Ensure the Pulsar directory exists
+set PULSAR_DIR=%BIN64%\Pulsar
+if not exist "%PULSAR_DIR%" (
+    echo Creating "Pulsar\" folder"
+    mkdir "%PULSAR_DIR%" >NUL 2>&1
+)
+
+echo Switching to "Bin64\Pulsar\"
+
 REM Copy launcher into game directory
 echo Copying "Pulsar.exe"
 
 for /l %%i in (1, 1, 10) do (
-    copy /y /b "%SOURCE%\Pulsar.exe" "%BIN64%\Pulsar.exe" >NUL 2>&1
+    copy /y /b "%SOURCE%\Pulsar.exe" "%PULSAR_DIR%\Pulsar.exe" >NUL 2>&1
 
     if !ERRORLEVEL! NEQ 0 (
         REM "timeout" requires input redirection which is not supported,
         REM so we use ping as a way to delay the script between retries.
         ping -n 2 127.0.0.1 >NUL 2>&1
     ) else (
-        copy /y /b "%SOURCE%\Pulsar.exe.config" "%BIN64%\Pulsar.exe.config" >NUL 2>&1
+        copy /y /b "%SOURCE%\Pulsar.exe.config" "%PULSAR_DIR%\Pulsar.exe.config" >NUL 2>&1
         goto BREAK_LOOP
     )
 )
@@ -40,13 +49,6 @@ echo Could not copy "Pulsar.exe".
 exit /b 1
 
 :BREAK_LOOP
-
-REM Ensure the Pulsar directory exists
-set PULSAR_DIR=%BIN64%\Pulsar
-if not exist "%PULSAR_DIR%" (
-    echo Creating "Pulsar\" folder"
-    mkdir "%PULSAR_DIR%" >NUL 2>&1
-)
 
 REM Get the library directory
 set DEPENDENCY_DIR=%PULSAR_DIR%\Libraries

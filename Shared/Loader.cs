@@ -24,7 +24,7 @@ namespace Pulsar.Shared
         private readonly PluginConfig config;
         private readonly StringBuilder debugCompileResults = new();
 
-        public Loader()
+        public Loader(HashSet<string> compileReferences)
         {
             config = ConfigManager.Instance.Config;
             splash = SplashManager.Instance;
@@ -47,8 +47,7 @@ namespace Pulsar.Shared
             GitHub.Init();
 
             splash?.SetText("Finding references...");
-            List<string> assemblies = ReferenceHelper.GetAssemblies(AppDomain.CurrentDomain);
-            DomainHelper.CreateAppDomain(ConfigManager.Instance.PulsarDir, assemblies);
+            DomainHelper.CreateAppDomain(ConfigManager.Instance.PulsarDir, compileReferences);
 
             splash?.SetText("Starting...");
 
@@ -92,6 +91,8 @@ namespace Pulsar.Shared
                         .AppendLine();
                 }
             }
+
+            DomainHelper.UnloadAppDomain();
 
             // FIXME: It can potentially run in the background speeding up the game's startup
             ReportEnabledPlugins();

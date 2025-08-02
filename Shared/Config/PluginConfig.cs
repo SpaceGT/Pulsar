@@ -154,10 +154,8 @@ namespace Pulsar.Shared.Config
                 Save();
         }
 
-        public void CheckGameVersion()
+        public void CheckGameVersion(Version currentGameVersion)
         {
-            Version currentGameVersion = ConfigManager.Instance.Dependencies.GetGameVersion();
-
             if (currentGameVersion == null)
                 return;
 

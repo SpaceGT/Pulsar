@@ -140,6 +140,7 @@
     <Compile Include="Main.cs" />
     <Compile Include="PluginInstance.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Steam.cs" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony">

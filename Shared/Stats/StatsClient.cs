@@ -27,10 +27,10 @@ namespace Pulsar.Shared.Stats
 
         // Hashed Steam ID of the player
         private static string PlayerHash =>
-            playerHash ??= Tools.GetStringHash($"{GetSteamId()}").Substring(0, 20);
+            playerHash ??= Tools
+                .GetStringHash($"{ConfigManager.Instance.SteamId}")
+                .Substring(0, 20);
         private static string playerHash;
-
-        private static Func<ulong> GetSteamId => ConfigManager.Instance.Dependencies.GetSteamID;
 
         // Latest voting token received
         private static string votingToken;

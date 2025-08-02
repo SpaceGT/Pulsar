@@ -20,15 +20,15 @@ namespace Pulsar.Shared
         public readonly LauncherConfig config;
         public readonly string Location;
 
-        public Launcher(string programGuid, string originalAssemblyFile, string pulsarDir)
+        public Launcher(string programGuid, string originalLoader, string pulsarDir)
         {
             mutex = new Mutex(true, programGuid, out newMutex);
             Location = Path.GetDirectoryName(
                 Path.GetFullPath(Assembly.GetCallingAssembly().Location)
             );
-            sePath = Path.Combine(Location, originalAssemblyFile);
+            sePath = originalLoader;
             config = LauncherConfig.Load(Path.Combine(pulsarDir, "launcher.xml"));
-            this.originalAssemblyFile = originalAssemblyFile;
+            originalAssemblyFile = Path.GetFileNameWithoutExtension(originalLoader);
         }
 
         public bool CanStart()

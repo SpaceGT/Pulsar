@@ -7,6 +7,7 @@ using Pulsar.Legacy.Plugin.Extensions;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
+using Pulsar.Shared.Splash;
 using Sandbox.Game.World;
 using VRage.Game;
 using VRage.Scripting;
@@ -52,18 +53,24 @@ namespace Pulsar.Legacy.Plugin.Patch
 
                 HashSet<string> conditionalSymbols = ConditionalSymbols;
                 conditionalSymbols.Add(ConditionalSymbol);
-                foreach (PluginData data in ConfigManager.Instance.Config.EnabledPlugins)
+
+                HashSet<ModPlugin> modPlugins =
+                [
+                    .. ConfigManager
+                        .Instance.Config.EnabledPlugins.OfType<ModPlugin>()
+                        .Where(mod => !currentMods.Contains(mod.WorkshopId))
+                        .Where(mod => mod.Exists),
+                ];
+
+                SplashManager.Instance?.SetText($"Updating workshop items...");
+                Steam.Update([.. modPlugins.Select(mod => mod.WorkshopId)]);
+
+                foreach (ModPlugin mod in modPlugins)
                 {
-                    if (
-                        data is ModPlugin mod
-                        && !currentMods.Contains(mod.WorkshopId)
-                        && mod.Exists
-                    )
-                    {
-                        LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
-                        loadScripts(__instance, mod.ModLocation, mod.GetModContext());
-                    }
+                    LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
+                    loadScripts(__instance, mod.ModLocation, mod.GetModContext());
                 }
+
                 conditionalSymbols.Remove(ConditionalSymbol);
             }
             catch (Exception e)

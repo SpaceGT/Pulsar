@@ -1,18 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using Pulsar.Shared;
+using Sandbox;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
 using SpaceEngineers;
 using SpaceEngineers.Game;
+using VRage.FileSystem;
 using VRage.Plugins;
 using VRage.Utils;
 
 namespace Pulsar.Legacy.Launcher
 {
+    internal class GameLog : IGameLog
+    {
+        public bool Exists()
+        {
+            string file = MyLog.Default?.GetFilePath();
+            return File.Exists(file) && file.EndsWith(".log");
+        }
+
+        public bool Open()
+        {
+            MyLog.Default.Flush();
+            string file = MyLog.Default?.GetFilePath();
+
+            if (!File.Exists(file) || !file.EndsWith(".log"))
+                return false;
+
+            Process.Start(file);
+            return true;
+        }
+
+        public void Write(string line) => MyLog.Default.WriteLine(line);
+    }
+
     internal static class Game
     {
         public static void RegisterPlugin(Assembly plugin)
@@ -24,23 +49,75 @@ namespace Pulsar.Legacy.Launcher
             userPluginsField.SetValue(null, new List<Assembly> { plugin });
         }
 
-        public static void StartSpaceEngineers(string[] args)
+        public static void SetMainAssembly(Assembly assembly)
         {
-            MyProgram.Main(args);
+            FieldInfo mainAssemblyField = typeof(MyFileSystem).GetField(
+                "m_mainAssembly",
+                BindingFlags.Static | BindingFlags.NonPublic
+            );
+            mainAssemblyField.SetValue(null, assembly);
+
+            FieldInfo mainAssemblyNameField = typeof(MyFileSystem).GetField(
+                "MainAssemblyName",
+                BindingFlags.Static | BindingFlags.Public
+            );
+            mainAssemblyNameField.SetValue(null, assembly.GetName().Name);
+
+            var exePath = new FileInfo(assembly.Location).DirectoryName;
+            var rootPath = new FileInfo(exePath).Directory?.FullName ?? Path.GetFullPath(exePath);
+
+            MyFileSystem.ExePath = exePath;
+            MyFileSystem.RootPath = rootPath;
         }
 
-        public static Version GetGameVersion()
+        public static ResolveEventHandler GameAssemblyResolver(string bin64Dir)
         {
-            SpaceEngineersGame.SetupBasicGameInfo();
-            int? gameVersionInt = MyPerGameSettings.BasicGameInfo.GameVersion;
-            if (!gameVersionInt.HasValue)
-                return null;
+            return (sender, args) =>
+            {
+                string targetName = new AssemblyName(args.Name).Name;
+                string loaderBase = AppDomain.CurrentDomain.BaseDirectory;
+                string targetPath = Path.Combine(bin64Dir, targetName);
 
-            string gameVersionStr = MyBuildNumbers.ConvertBuildNumberFromIntToStringFriendly(
-                gameVersionInt.Value,
-                "."
-            );
-            return new Version(gameVersionStr);
+                if (File.Exists(targetPath + ".dll"))
+                    return Assembly.LoadFrom(targetPath + ".dll");
+
+                if (File.Exists(targetPath + ".exe"))
+                    return Assembly.LoadFrom(targetPath + ".exe");
+
+                return null;
+            };
+        }
+
+        public static Version GetGameVersion(string gameDir)
+        {
+            // Version is fetched in an appdomain so that references can be unloaded
+            AppDomain domain = AppDomain.CreateDomain("GameVersion");
+            domain.SetData("GameDir", gameDir);
+            domain.DoCallBack(() =>
+            {
+                AppDomain domain = AppDomain.CurrentDomain;
+                string gameDir = (string)domain.GetData("GameDir");
+                domain.AssemblyResolve += GameAssemblyResolver(gameDir);
+            });
+            domain.DoCallBack(() =>
+            {
+                SpaceEngineersGame.SetupBasicGameInfo();
+                int? gameVersionInt = MyPerGameSettings.BasicGameInfo.GameVersion;
+                string gameVersionStr = null;
+
+                if (gameVersionInt.HasValue)
+                    gameVersionStr = MyBuildNumbers.ConvertBuildNumberFromIntToStringFriendly(
+                        gameVersionInt.Value,
+                        "."
+                    );
+
+                AppDomain.CurrentDomain.SetData("Version", gameVersionStr);
+            });
+
+            string version = (string)domain.GetData("Version");
+            AppDomain.Unload(domain);
+
+            return new Version(version);
         }
 
         public static void SetupMyFakes()
@@ -86,7 +163,12 @@ namespace Pulsar.Legacy.Launcher
             return Math.Min(1f, Math.Max(0f, ratio));
         }
 
+        public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
+
         public static void ShowIntroVideo(bool enabled) =>
             MyPlatformGameSettings.ENABLE_LOGOS = enabled;
+
+        public static void RunOnGameThread(Action action) =>
+            MySandboxGame.Static.Invoke(action, "Pulsar");
     }
 }

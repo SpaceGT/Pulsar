@@ -49,7 +49,7 @@ namespace Pulsar.Shared
         public bool TryGetPlugin(string id, out PluginData pluginData) =>
             Plugins.TryGetValue(id, out pluginData);
 
-        public List<ISteamItem> GetSteamPlugins() => Plugins.Values.OfType<ISteamItem>().ToList();
+        public List<ISteamItem> GetSteamPlugins() => [.. Plugins.Values.OfType<ISteamItem>()];
 
         public PluginList(string mainDirectory, PluginConfig config, SourcesConfig sources)
         {
@@ -83,7 +83,7 @@ namespace Pulsar.Shared
         public void SubscribeToItem(string id)
         {
             if (Plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
-                ConfigManager.Instance.Dependencies.SubscribeToItem(steam.WorkshopId);
+                ConfigManager.Instance.Dependencies.SteamSubscribe(steam.WorkshopId);
         }
 
         private void FindPluginGroups()

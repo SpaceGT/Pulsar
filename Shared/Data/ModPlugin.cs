@@ -4,9 +4,16 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using ProtoBuf;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data
 {
+    public interface ISteamItem
+    {
+        string Id { get; }
+        ulong WorkshopId { get; }
+    }
+
     [ProtoContract]
     public class ModPlugin : PluginData, ISteamItem
     {
@@ -56,7 +63,7 @@ namespace Pulsar.Shared.Data
                 if (modLocation != null)
                     return modLocation;
                 modLocation = Path.Combine(
-                    Path.GetFullPath(@"..\..\..\workshop\content\244850\"),
+                    Path.GetFullPath(ConfigManager.Instance.ModDir),
                     WorkshopId.ToString()
                 );
                 if (

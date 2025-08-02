@@ -182,7 +182,7 @@ namespace Pulsar.Shared.Data
                 + "The game may be unstable beyond this point. See loader.log or the game log for details.";
 
             MessageBoxButtons buttons = MessageBoxButtons.OK;
-            if (ConfigManager.Instance.Dependencies.HasGameLog())
+            if (LogFile.GameLog?.Exists() ?? false)
             {
                 msg += "\n\nWould you like to open the game log?";
                 buttons = MessageBoxButtons.YesNo;
@@ -190,7 +190,7 @@ namespace Pulsar.Shared.Data
             DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
 
             if (result == DialogResult.Yes)
-                ConfigManager.Instance.Dependencies.ViewGameLog();
+                LogFile.GameLog.Open();
         }
 
         public virtual bool UpdateEnabledPlugins(HashSet<string> enabledPlugins, bool enable)

@@ -169,7 +169,7 @@ namespace Pulsar.Shared
                 if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(fileName))
                 {
                     // Move back to the main thread so that we can interact with keen code again
-                    ConfigManager.Instance.Dependencies.InvokeOnGameThread(() => onOk(fileName));
+                    ConfigManager.Instance.Dependencies.OnMainThread(() => onOk(fileName));
                 }
             }
             catch (Exception e)
@@ -203,9 +203,7 @@ namespace Pulsar.Shared
                 if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(selectedPath))
                 {
                     // Move back to the main thread so that we can interact with keen code again
-                    ConfigManager.Instance.Dependencies.InvokeOnGameThread(() =>
-                        onOk(selectedPath)
-                    );
+                    ConfigManager.Instance.Dependencies.OnMainThread(() => onOk(selectedPath));
                 }
             }
             catch (Exception e)
@@ -260,6 +258,30 @@ namespace Pulsar.Shared
             FileInfo fileInfo1 = new(file1);
             FileInfo fileInfo2 = new(file2);
             return fileInfo1.Length == fileInfo2.Length && GetFileHash(file1) == GetFileHash(file2);
+        }
+
+        public static HashSet<string> GetFiles(
+            string path,
+            string[] includeGlobs,
+            string[] excludeGlobs
+        )
+        {
+            IEnumerable<string> included = includeGlobs.SelectMany(pattern =>
+                Directory.EnumerateFiles(path, pattern)
+            );
+
+            IEnumerable<string> excluded = excludeGlobs.SelectMany(pattern =>
+                Directory.EnumerateFiles(path, pattern)
+            );
+
+            HashSet<string> files =
+            [
+                .. included
+                    .Except(excluded, StringComparer.OrdinalIgnoreCase)
+                    .Select(Path.GetFileNameWithoutExtension),
+            ];
+
+            return files;
         }
 
         public static string FriendlyPlatformName()
