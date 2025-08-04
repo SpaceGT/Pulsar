@@ -159,6 +159,7 @@ namespace Pulsar.Shared.Data
                 p.StartInfo.UseShellExecute = false;
                 p.StartInfo.RedirectStandardOutput = true;
                 p.StartInfo.RedirectStandardError = true;
+                p.StartInfo.CreateNoWindow = true;
                 p.StartInfo.FileName = "git";
                 p.StartInfo.Arguments = "ls-files --cached --others --exclude-standard";
                 p.StartInfo.WorkingDirectory = folder;
