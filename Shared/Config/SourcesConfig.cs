@@ -11,7 +11,7 @@ namespace Pulsar.Shared.Config
         private string filePath;
 
         public bool ShowWarning { get; set; } = true;
-        public int MaxSourceAge { get; set; } = 24;
+        public int MaxSourceAge { get; set; } = 2;
 
         [XmlArray]
         [XmlArrayItem("LocalHub")]
