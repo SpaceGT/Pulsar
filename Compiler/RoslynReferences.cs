@@ -83,6 +83,15 @@ namespace Pulsar.Compiler
         {
             yield return typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly;
             yield return typeof(System.Windows.Forms.DataVisualization.Charting.Chart).Assembly;
+
+            // WPF assemblies
+            yield return typeof(System.Windows.Media.TextEffect).Assembly;
+            yield return typeof(System.Windows.Controls.Button).Assembly;
+            yield return typeof(System.Windows.Controls.Ribbon.Ribbon).Assembly;
+            yield return typeof(System.Windows.Point).Assembly;
+            yield return typeof(System.Xaml.XamlType).Assembly;
+
+            // Patching assemblies
             yield return typeof(HarmonyLib.Harmony).Assembly;
             yield return typeof(Mono.Cecil.AssemblyDefinition).Assembly;
         }
