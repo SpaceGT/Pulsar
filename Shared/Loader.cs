@@ -47,7 +47,11 @@ namespace Pulsar.Shared
             GitHub.Init();
 
             splash?.SetText("Finding references...");
-            DomainHelper.CreateAppDomain(ConfigManager.Instance.PulsarDir, compileReferences);
+            DomainHelper.CreateAppDomain(
+                ConfigManager.Instance.PulsarDir,
+                ConfigManager.Instance.GameDir,
+                compileReferences
+            );
 
             splash?.SetText("Starting...");
 

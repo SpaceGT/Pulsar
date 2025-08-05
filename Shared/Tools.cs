@@ -128,6 +128,21 @@ namespace Pulsar.Shared
             return false;
         }
 
+        public static string GetCommandArg(string argument)
+        {
+            string[] args = Environment.GetCommandLineArgs();
+
+            for (int i = 0; i < args.Length - 1; i++)
+            {
+                if (!args[i].Equals(argument, StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+
+                return args[i + 1];
+            }
+
+            return null;
+        }
+
         public static void OpenFileDialog(
             string title,
             string directory,

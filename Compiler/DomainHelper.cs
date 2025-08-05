@@ -16,7 +16,11 @@ namespace Pulsar.Compiler
             RoslynReferences.GenerateAssemblyList(assemblies);
         }
 
-        public static void CreateAppDomain(string pulsarDir, HashSet<string> assemblyList)
+        public static void CreateAppDomain(
+            string pulsarDir,
+            string gameDir,
+            HashSet<string> assemblies
+        )
         {
             string libraries = Path.Combine(pulsarDir, "Libraries");
 
@@ -29,12 +33,13 @@ namespace Pulsar.Compiler
 
             AppDomain domain = AppDomain.CreateDomain("Compiler", null, config);
 
-            // Load Space Engineers references from the Bin64 directory
+            // Load Space Engineers references from the game directory
+            domain.SetData("gameDir", gameDir);
             domain.AssemblyResolve += (sender, args) =>
             {
-                string loaderBase = AppDomain.CurrentDomain.BaseDirectory;
+                string gameDir = (string)AppDomain.CurrentDomain.GetData("gameDir");
                 string targetName = new AssemblyName(args.Name).Name;
-                string targetPath = Path.Combine(loaderBase, "..", "..", targetName);
+                string targetPath = Path.Combine(gameDir, targetName);
 
                 if (File.Exists(targetPath + ".dll"))
                     return Assembly.LoadFrom(targetPath + ".dll");
@@ -44,7 +49,7 @@ namespace Pulsar.Compiler
 
                 return null;
             };
-            domain.SetData("assemblies", assemblyList);
+            domain.SetData("assemblies", assemblies);
             domain.DoCallBack(SetupAppDomain);
 
             AppDomain = domain;

@@ -14,21 +14,19 @@ namespace Pulsar.Shared
 
         private bool newMutex;
         private readonly Mutex mutex;
-        private readonly string originalAssemblyFile;
         private readonly string sePath;
 
         public readonly LauncherConfig config;
         public readonly string Location;
 
-        public Launcher(string programGuid, string originalLoader, string pulsarDir)
+        public Launcher(string programGuid, string sePath, string pulsarDir)
         {
             mutex = new Mutex(true, programGuid, out newMutex);
             Location = Path.GetDirectoryName(
                 Path.GetFullPath(Assembly.GetCallingAssembly().Location)
             );
-            sePath = originalLoader;
+            this.sePath = sePath;
             config = LauncherConfig.Load(Path.Combine(pulsarDir, "launcher.xml"));
-            originalAssemblyFile = Path.GetFileNameWithoutExtension(originalLoader);
         }
 
         public bool CanStart()
@@ -36,14 +34,6 @@ namespace Pulsar.Shared
             if (!IsSingleInstance())
             {
                 Tools.ShowMessageBox("Error: Space Engineers is already running!");
-                return false;
-            }
-
-            if (!IsInGameFolder())
-            {
-                Tools.ShowMessageBox(
-                    $"Error: {originalAssemblyFile} not found!\nIs {Path.GetFileName(Assembly.GetCallingAssembly().Location)} in the Bin64 folder?"
-                );
                 return false;
             }
 
@@ -65,14 +55,9 @@ namespace Pulsar.Shared
             return true;
         }
 
-        private bool IsInGameFolder()
-        {
-            return File.Exists(sePath);
-        }
-
         private bool IsSingleInstance()
         {
-            // Check for other SpaceEngineersLauncher.exe
+            // Check for other Pulsar instances
             if (!newMutex)
             {
                 try
@@ -84,10 +69,10 @@ namespace Pulsar.Shared
                 catch (AbandonedMutexException) { } // Abandoned probably means that the process was killed or crashed
             }
 
-            // Check for other SpaceEngineers.exe
+            // Check for other Space Engineers instances
             if (
                 Process
-                    .GetProcessesByName(originalAssemblyFile.Replace("exe", ""))
+                    .GetProcessesByName(Path.GetFileNameWithoutExtension(sePath))
                     .Any(x =>
                         x.MainModule.FileName.Equals(sePath, StringComparison.OrdinalIgnoreCase)
                     )

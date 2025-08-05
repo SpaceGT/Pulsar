@@ -89,11 +89,11 @@ namespace Pulsar.Legacy.Launcher
             };
         }
 
-        public static Version GetGameVersion(string gameDir)
+        public static Version GetGameVersion(string bin64Dir)
         {
             // Version is fetched in an appdomain so that references can be unloaded
             AppDomain domain = AppDomain.CreateDomain("GameVersion");
-            domain.SetData("GameDir", gameDir);
+            domain.SetData("GameDir", bin64Dir);
             domain.DoCallBack(() =>
             {
                 AppDomain domain = AppDomain.CurrentDomain;

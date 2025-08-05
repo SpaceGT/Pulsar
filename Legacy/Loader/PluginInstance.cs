@@ -51,6 +51,19 @@ namespace Pulsar.Legacy.Loader
 
         public bool Instantiate()
         {
+            // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
+
+            try
+            {
+                FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
+                Delegate getConfigPath = new Func<string, string, string>(data.GetConfigPath);
+                pluginFunc.SetValue(null, getConfigPath);
+            }
+            catch (Exception e)
+            {
+                LogFile.Error($"Unable to find GetConfigPath in {data} due to an error: {e}");
+            }
+
             try
             {
                 plugin = (IPlugin)Activator.CreateInstance(mainType);
@@ -72,6 +85,7 @@ namespace Pulsar.Legacy.Loader
                 LogFile.Error($"Unable to find OpenConfigDialog() in {data} due to an error: {e}");
                 openConfigDialog = null;
             }
+
             return true;
         }
 

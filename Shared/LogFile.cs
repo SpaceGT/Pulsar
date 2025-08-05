@@ -16,7 +16,7 @@ namespace Pulsar.Shared
     {
         public static IGameLog GameLog = null;
 
-        private const string fileName = "pulsar.log";
+        private const string fileName = "info.log";
         private static Logger logger;
         private static LogFactory logFactory;
 

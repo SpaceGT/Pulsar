@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -226,6 +227,28 @@ namespace Pulsar.Shared.Data
         public virtual string GetAssetPath()
         {
             return null;
+        }
+
+        public string GetConfigPath(string name, string extension = null)
+        {
+            string data = Path.Combine(ConfigManager.Instance.PulsarDir, "Data");
+
+            if (!Directory.Exists(data))
+                Directory.CreateDirectory(data);
+
+            string config = Path.Combine(data, name);
+            if (extension is null)
+            {
+                config += @"\";
+                if (!Directory.Exists(config))
+                    Directory.CreateDirectory(config);
+            }
+            else
+            {
+                config += "." + extension;
+            }
+
+            return config;
         }
     }
 }

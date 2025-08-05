@@ -453,9 +453,7 @@ namespace Pulsar.Shared
             )
             {
                 LocalPlugin local = new(dll) { Source = "Local" };
-                string name = local.FriendlyName;
-                if (!name.StartsWith("0Harmony") && !name.StartsWith("Microsoft"))
-                    localPlugins[local.Id] = local;
+                localPlugins[local.Id] = local;
             }
 
             foreach (PluginData source in new List<PluginData>(localPlugins.Values))

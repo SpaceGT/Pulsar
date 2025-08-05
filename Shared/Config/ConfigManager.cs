@@ -25,11 +25,13 @@ namespace Pulsar.Shared.Config
         public IDependency Dependencies { get; private set; }
         public bool DebugCompileAll { get; }
         public string PulsarDir { get; }
+        public string GameDir { get; }
         public string ModDir { get; }
         public ulong SteamId { get; }
 
         public ConfigManager(
             string pulsarDir,
+            string gameDir,
             string modDir,
             ulong steamId,
             Version gameVersion,
@@ -41,6 +43,7 @@ namespace Pulsar.Shared.Config
             SafeMode = false;
             Dependencies = dependencies;
             PulsarDir = pulsarDir;
+            GameDir = gameDir;
             ModDir = modDir;
             SteamId = steamId;
             DebugCompileAll = debugCompileAll;

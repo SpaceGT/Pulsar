@@ -9,8 +9,6 @@ using VRage.Game;
 using VRage.Utils;
 using VRageMath;
 
-// ReSharper disable InconsistentNaming
-
 namespace Pulsar.Legacy.Patch
 {
     [HarmonyPatchCategory("Late")]
@@ -75,6 +73,7 @@ namespace Pulsar.Legacy.Patch
         }
     }
 
+    [HarmonyPatchCategory("Late")]
     [HarmonyPatch(typeof(MyGuiScreenMainMenu), "CreateInGameMenu")]
     public static class Patch_CreateInGameMenu
     {

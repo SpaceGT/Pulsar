@@ -46,7 +46,17 @@ namespace Pulsar.Legacy
             SplashManager.Instance?.SetText("Starting Pulsar...");
 
             string pulsarDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
-            string bin64Dir = Path.Combine(pulsarDir, "..");
+            string bin64Dir = Folder.GetBin64();
+
+            if (bin64Dir == null)
+            {
+                Tools.ShowMessageBox(
+                    $"Error: {OriginalAssemblyFile} not found!\n"
+                        + "You can specify a custom location with \"-bin64\""
+                );
+                return;
+            }
+
             string modDir = Path.Combine(
                 bin64Dir,
                 @"..\..\..\workshop\content",
@@ -65,6 +75,7 @@ namespace Pulsar.Legacy
             // This must be called before using most of the Shared project
             new ConfigManager(
                 pulsarDir,
+                bin64Dir,
                 modDir,
                 Steam.GetSteamId(),
                 Game.GetGameVersion(bin64Dir),

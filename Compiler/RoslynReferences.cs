@@ -94,6 +94,9 @@ namespace Pulsar.Compiler
             // Patching assemblies
             yield return typeof(HarmonyLib.Harmony).Assembly;
             yield return typeof(Mono.Cecil.AssemblyDefinition).Assembly;
+
+            // Required by some plugins
+            yield return typeof(Newtonsoft.Json.JsonConverter).Assembly;
         }
 
         private static bool ContainsReference(AssemblyName name)
