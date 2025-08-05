@@ -4,6 +4,7 @@ using Sandbox;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Early")]
     [HarmonyPatch(typeof(MySandboxGame), "ExitThreadSafe")]
     public class Patch_ExitThreadSafe
     {

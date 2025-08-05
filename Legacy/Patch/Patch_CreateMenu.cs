@@ -13,6 +13,7 @@ using VRageMath;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Late")]
     [HarmonyPatch(typeof(MyGuiScreenMainMenu), "CreateMainMenu")]
     public static class Patch_CreateMainMenu
     {

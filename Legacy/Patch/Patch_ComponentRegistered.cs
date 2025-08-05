@@ -7,6 +7,7 @@ using VRage.Plugins;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Early")]
     [HarmonyPatch(typeof(MySession), "RegisterComponentsFromAssembly")]
     [HarmonyPatch([typeof(Assembly), typeof(bool), typeof(MyModContext)])]
     public static class Patch_ComponentRegistered

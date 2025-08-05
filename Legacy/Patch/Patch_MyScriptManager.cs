@@ -13,6 +13,7 @@ using VRage.Scripting;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Late")]
     [HarmonyPatch(typeof(MyScriptManager), "LoadData")]
     public static class Patch_MyScripManager
     {

@@ -94,7 +94,7 @@ namespace Pulsar.Legacy
             );
             Game.SetMainAssembly(originalLauncher);
 
-            new Harmony(currentAssembly.GetName().Name).PatchAll(currentAssembly);
+            new Harmony(currentAssembly.GetName().Name + ".Early").PatchCategory("Early");
 
             Game.SetupMyFakes();
             Game.CorrectExitText();

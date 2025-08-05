@@ -47,15 +47,6 @@
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
-    <Reference Include="ProtoBuf.Net">
-      <HintPath>$(Bin64)\ProtoBuf.Net.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="ProtoBuf.Net.Core, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>$(Bin64)\ProtoBuf.Net.Core.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, processorArchitecture=AMD64">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>$(Bin64)\Sandbox.Game.dll</HintPath>
@@ -184,6 +175,9 @@
     </PackageReference>
     <PackageReference Include="Mono.Cecil">
       <Version>0.11.6</Version>
+    </PackageReference>
+    <PackageReference Include="protobuf-net">
+      <Version>2.4.9</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

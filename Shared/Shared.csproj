@@ -122,7 +122,9 @@
     <PackageReference Include="NuGet.Resolver">
       <Version>6.7.1</Version>
     </PackageReference>
-    <PackageReference Include="protobuf-net" Version="2.4.9" />
+    <PackageReference Include="protobuf-net">
+      <Version>2.4.9</Version>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

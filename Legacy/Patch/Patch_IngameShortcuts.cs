@@ -13,6 +13,7 @@ using VRage.Utils;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Early")]
     [HarmonyPatch(typeof(MyGuiScreenGamePlay), "HandleUnhandledInput")]
     public static class Patch_IngameShortcuts
     {

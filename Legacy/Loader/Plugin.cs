@@ -94,6 +94,9 @@ namespace Pulsar.Legacy.Loader
 
         public void Init(object gameInstance)
         {
+            Assembly currentAssembly = Assembly.GetExecutingAssembly();
+            new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
+
             if (ConfigManager.Instance.SafeMode)
                 DisablePlugins();
             else

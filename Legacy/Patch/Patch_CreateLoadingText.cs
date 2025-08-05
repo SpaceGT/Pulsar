@@ -5,6 +5,7 @@ using Sandbox.Game.Screens;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Early")]
     [HarmonyPatch(typeof(MyGuiScreenDownloadMods), "CreateLoadingText")]
     static class Patch_CreateLoadingText
     {

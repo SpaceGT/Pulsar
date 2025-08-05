@@ -11,6 +11,7 @@ using VRage.Game;
 
 namespace Pulsar.Legacy.Patch
 {
+    [HarmonyPatchCategory("Early")]
     [HarmonyPatch(typeof(MyDefinitionManager), "LoadData")]
     public static class Patch_MyDefinitionManager
     {
