@@ -105,7 +105,7 @@ namespace Pulsar.Shared
 
         private void FindModDependencies()
         {
-            foreach (PluginData data in modPlugins.Values)
+            foreach (PluginData data in GetSteamPlugins())
             {
                 if (data is ModPlugin mod)
                     FindModDependencies(mod);

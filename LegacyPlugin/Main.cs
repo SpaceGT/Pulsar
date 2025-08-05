@@ -11,6 +11,7 @@ using HarmonyLib;
 using Pulsar.Legacy.Plugin.GUI;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
+using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
 using Sandbox.Game.World;
 using VRage.Plugins;
@@ -133,6 +134,10 @@ namespace Pulsar.Legacy.Plugin
                 if (File.Exists(file) && file.EndsWith(".log"))
                     Process.Start(file);
             }
+
+            SplashManager.Instance?.SetText($"Updating workshop items...");
+            PluginConfig config = ConfigManager.Instance.Config;
+            Steam.Update(config.EnabledPlugins.OfType<ISteamItem>().Select(mod => mod.WorkshopId));
 
             SplashManager.Instance?.Delete();
         }

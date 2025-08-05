@@ -62,9 +62,6 @@ namespace Pulsar.Legacy.Plugin.Patch
                         .Where(mod => mod.Exists),
                 ];
 
-                SplashManager.Instance?.SetText($"Updating workshop items...");
-                Steam.Update([.. modPlugins.Select(mod => mod.WorkshopId)]);
-
                 foreach (ModPlugin mod in modPlugins)
                 {
                     LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
