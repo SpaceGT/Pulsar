@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 using Pulsar.Legacy.Launcher;
 
@@ -19,8 +20,9 @@ namespace Pulsar.Shared
         public readonly LauncherConfig config;
         public readonly string Location;
 
-        public Launcher(string programGuid, string sePath, string pulsarDir)
+        public Launcher(string sePath, string pulsarDir)
         {
+            string programGuid = GetCallerGuid();
             mutex = new Mutex(true, programGuid, out newMutex);
             Location = Path.GetDirectoryName(
                 Path.GetFullPath(Assembly.GetCallingAssembly().Location)
@@ -105,6 +107,16 @@ namespace Pulsar.Shared
         {
             if (newMutex)
                 mutex.Close();
+        }
+
+        private static string GetCallerGuid()
+        {
+            Assembly assembly = Assembly.GetCallingAssembly();
+            GuidAttribute attribute = assembly
+                .GetCustomAttributes<GuidAttribute>()
+                .FirstOrDefault();
+
+            return attribute?.Value ?? null;
         }
     }
 }

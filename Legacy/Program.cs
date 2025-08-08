@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -24,11 +25,11 @@ namespace Pulsar.Legacy
         }
 
         private const string OriginalAssemblyFile = "SpaceEngineers.exe";
-        private const string ProgramGuid = "03f85883-4990-4d47-968e-5e4fc5d72437";
 
         static void Main(string[] args)
         {
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
+            AssemblyName currentName = currentAssembly.GetName();
 
             // Executable is re-launched by SE with this flag when displaying a
             // crash report. Might allow plugins to edit this in the future.
@@ -38,14 +39,18 @@ namespace Pulsar.Legacy
                 return;
             }
 
-            LogFile.WriteLine("Starting Pulsar v" + currentAssembly.GetName().Version.ToString(3));
+            if (Tools.HasCommandArg("-debug"))
+                Debugger.Launch();
+
+            LogFile.WriteLine("Starting Pulsar v" + currentName.Version.ToString(3));
 
             if (!Tools.HasCommandArg("-nosplash"))
                 SplashManager.Instance = new SplashManager();
 
             SplashManager.Instance?.SetText("Starting Pulsar...");
 
-            string pulsarDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
+            string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
+            string pulsarDir = Path.Combine(currentDir, currentName.Name);
             string bin64Dir = Folder.GetBin64();
 
             if (bin64Dir == null)
@@ -84,7 +89,7 @@ namespace Pulsar.Legacy
             );
 
             string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
-            var launcher = new SharedLauncher(ProgramGuid, originalLoader, pulsarDir);
+            var launcher = new SharedLauncher(originalLoader, pulsarDir);
             if (!launcher.CanStart())
                 return;
 
@@ -105,7 +110,7 @@ namespace Pulsar.Legacy
             );
             Game.SetMainAssembly(originalLauncher);
 
-            new Harmony(currentAssembly.GetName().Name + ".Early").PatchCategory("Early");
+            new Harmony(currentName.Name + ".Early").PatchCategory("Early");
 
             Game.SetupMyFakes();
             Game.CorrectExitText();

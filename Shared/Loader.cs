@@ -47,11 +47,7 @@ namespace Pulsar.Shared
             GitHub.Init();
 
             splash?.SetText("Finding references...");
-            DomainHelper.CreateAppDomain(
-                ConfigManager.Instance.PulsarDir,
-                ConfigManager.Instance.GameDir,
-                compileReferences
-            );
+            DomainHelper.CreateAppDomain(ConfigManager.Instance.GameDir, compileReferences);
 
             splash?.SetText("Starting...");
 
@@ -126,7 +122,7 @@ namespace Pulsar.Shared
                 );
         }
 
-        public static bool TryGetAssembly(PluginData data, out Assembly assembly)
+        private static bool TryGetAssembly(PluginData data, out Assembly assembly)
         {
             assembly = null;
 

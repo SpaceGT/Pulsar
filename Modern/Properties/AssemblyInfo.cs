@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("Pulsar Legacy")]
-[assembly: AssemblyDescription("Plugin and Mod loader for Space Engineers 1")]
+[assembly: AssemblyTitle("Pulsar Modern")]
+[assembly: AssemblyDescription("Plugin and Mod loader for Space Engineers 2")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("Pulsar")]
@@ -19,7 +19,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e061250c-1358-4f05-8734-b3070dee792f")]
+[assembly: Guid("ffa63f4d-8e06-4531-9264-05688153e4e9")]
 
 // Version information for an assembly consists of the following four values:
 //

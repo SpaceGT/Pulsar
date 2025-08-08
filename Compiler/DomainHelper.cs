@@ -16,13 +16,10 @@ namespace Pulsar.Compiler
             RoslynReferences.GenerateAssemblyList(assemblies);
         }
 
-        public static void CreateAppDomain(
-            string pulsarDir,
-            string gameDir,
-            HashSet<string> assemblies
-        )
+        public static void CreateAppDomain(string gameDir, HashSet<string> assemblies)
         {
-            string libraries = Path.Combine(pulsarDir, "Libraries");
+            string path = Assembly.GetExecutingAssembly().Location;
+            string libraries = Path.GetDirectoryName(path);
 
             AppDomainSetup config = new()
             {

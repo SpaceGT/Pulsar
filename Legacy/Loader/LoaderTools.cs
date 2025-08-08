@@ -30,6 +30,7 @@ namespace Pulsar.Legacy.Loader
             Path.GetFullPath(Path.Combine(MyFileSystem.ExePath, "Plugins"));
 
         public const string ContinueArg = "-continue";
+        public const string DebugArg = "-debug";
 
         public static void AskToRestart()
         {
@@ -139,35 +140,30 @@ namespace Pulsar.Legacy.Loader
             MyPlugins.Unload();
         }
 
-        public static void Restart(bool autoRejoin = false)
+        public static void Restart(bool autoRejoin = false, bool? debugger = null)
         {
-            Start(autoRejoin);
+            Start(autoRejoin, debugger ?? Debugger.IsAttached);
             Process.GetCurrentProcess().Kill();
         }
 
-        private static void Start(bool autoRejoin)
+        private static void Start(bool autoRejoin, bool debugger)
         {
-            // Regular app case
-            StringBuilder sb = new();
-            IEnumerable<string> args = Environment
-                .GetCommandLineArgs()
-                .Skip(1)
-                .Where(x => x != ContinueArg);
+            // First "argument" is the invoked executable
+            List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
+
             if (autoRejoin)
-                args = args.Append(ContinueArg);
-            foreach (string arg in args)
-            {
-                if (sb.Length > 0)
-                    sb.Append(' ');
-                sb.Append('"');
-                sb.Append(arg);
-                sb.Append('"');
-            }
+                args.Add(ContinueArg);
+            else
+                args.Remove(ContinueArg);
+
+            if (debugger)
+                args.Add(DebugArg);
+            else
+                args.Remove(DebugArg);
 
             ProcessStartInfo currentStartInfo = Process.GetCurrentProcess().StartInfo;
             currentStartInfo.FileName = Application.ExecutablePath;
-            if (sb.Length > 0)
-                currentStartInfo.Arguments = sb.ToString();
+            currentStartInfo.Arguments = string.Join(" ", args.Select(a => $"\"{a}\""));
 
             Process.Start(currentStartInfo);
             Process.GetCurrentProcess().Kill();
