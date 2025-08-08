@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
-using Pulsar.Legacy.Launcher;
 
 namespace Pulsar.Shared
 {
@@ -16,19 +15,23 @@ namespace Pulsar.Shared
         private bool newMutex;
         private readonly Mutex mutex;
         private readonly string sePath;
+        private readonly string dependencyDir;
+        private readonly string checksum;
 
-        public readonly LauncherConfig config;
         public readonly string Location;
 
-        public Launcher(string sePath, string pulsarDir)
+        public Launcher(string sePath, string pulsarDir, string dependencyDir, string checksum)
         {
             string programGuid = GetCallerGuid();
+
+            this.sePath = sePath;
+            this.checksum = checksum;
+            this.dependencyDir = dependencyDir;
+
             mutex = new Mutex(true, programGuid, out newMutex);
             Location = Path.GetDirectoryName(
                 Path.GetFullPath(Assembly.GetCallingAssembly().Location)
             );
-            this.sePath = sePath;
-            config = LauncherConfig.Load(Path.Combine(pulsarDir, "launcher.xml"));
         }
 
         public bool CanStart()
@@ -86,19 +89,12 @@ namespace Pulsar.Shared
 
         private bool VerifyFiles()
         {
-            if (config.Files != null)
-            {
-                foreach (string file in config.Files)
-                {
-                    if (!File.Exists(Path.Combine(Location, file)))
-                    {
-                        LogFile.WriteLine(
-                            "WARNING: File verification failed, file does not exist: " + file
-                        );
-                        return false;
-                    }
-                }
-            }
+            string configPath = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
+            if (!File.Exists(configPath) || !Directory.Exists(dependencyDir))
+                return false;
+
+            if (checksum != null && Tools.GetFolderHash(dependencyDir) != checksum)
+                return false;
 
             return true;
         }

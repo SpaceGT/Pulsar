@@ -53,7 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AssemblyResolver.cs" />
-    <Compile Include="Config\LauncherConfig.cs" />
     <Compile Include="Config\GitHubPluginConfig.cs" />
     <Compile Include="Config\LocalFolderConfig.cs" />
     <Compile Include="Config\ConfigManager.cs" />

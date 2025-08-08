@@ -1,37 +1,25 @@
 ﻿using System;
+using System.Reflection;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using Pulsar.Legacy.Launcher;
 using Pulsar.Shared.Network;
 
 namespace Pulsar.Shared
 {
-    internal class Updater
+    public class Updater
     {
         // Stub file for a simple updater and loader for the Updater project
         // Launcher is responsible for the initial version checking
-        private static readonly Regex VersionRegex = new(@"^v(\d+\.)*\d+$");
 
-        public static void Update(LauncherConfig config, string repoName)
+        public static void CheckUpdate(string repoName)
         {
-            string currentVersion = null;
-            if (
-                !string.IsNullOrWhiteSpace(config.LoaderVersion)
-                && VersionRegex.IsMatch(config.LoaderVersion)
-            )
-            {
-                currentVersion = config.LoaderVersion;
-                LogFile.WriteLine("Pulsar " + currentVersion);
-            }
-            else
-            {
-                LogFile.WriteLine("Pulsar version unknown");
-            }
+            Assembly entryAssembly = Assembly.GetEntryAssembly();
+            Version currentVersion = entryAssembly.GetName().Version;
 
             if (
-                GitHub.GetRepoVersion(repoName, out string latestVersion)
-                && currentVersion != latestVersion
+                GitHub.GetRepoVersion(repoName, out Version latestVersion)
+                && currentVersion < latestVersion
+                && !Tools.HasCommandArg("-noupdate")
             )
             {
                 LogFile.WriteLine("An update is available to " + latestVersion);
@@ -49,6 +37,7 @@ namespace Pulsar.Shared
                 {
                     // TODO: Update the updater project first
                     // Then let that project update everything
+                    Environment.Exit(0);
                 }
                 else if (result == DialogResult.Cancel)
                 {

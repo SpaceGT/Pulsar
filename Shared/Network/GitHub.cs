@@ -100,7 +100,7 @@ namespace Pulsar.Shared.Network
             return true;
         }
 
-        public static bool GetRepoVersion(string name, out string version)
+        public static bool GetRepoVersion(string name, out Version version)
         {
             version = null;
 
@@ -112,7 +112,8 @@ namespace Pulsar.Shared.Network
                 using StreamReader reader = new(stream);
                 string text = reader.ReadToEnd();
                 var json = JObject.Parse(text);
-                version = json["tag_name"].ToString();
+                string strVersion = json["tag_name"].ToString().TrimStart('v');
+                version = new Version(strVersion);
             }
             catch (Exception e)
             {

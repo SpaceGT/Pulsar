@@ -25,6 +25,7 @@ namespace Pulsar.Legacy
         }
 
         private const string OriginalAssemblyFile = "SpaceEngineers.exe";
+        private const string PulsarRepo = "SpaceGT/Pulsar";
 
         static void Main(string[] args)
         {
@@ -51,6 +52,7 @@ namespace Pulsar.Legacy
 
             string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
             string pulsarDir = Path.Combine(currentDir, currentName.Name);
+            string dependencyDir = Path.Combine(currentDir, "Libraries");
             string bin64Dir = Folder.GetBin64();
 
             if (bin64Dir == null)
@@ -88,8 +90,15 @@ namespace Pulsar.Legacy
                 SharedLoader.DebugCompileAll
             );
 
+            Updater.CheckUpdate(PulsarRepo);
+
+            string checkSum = null;
+            string checkFile = Path.Combine(currentDir, "checksum.txt");
+            if (File.Exists(checkFile))
+                checkSum = File.ReadAllText(checkFile);
+
             string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
-            var launcher = new SharedLauncher(originalLoader, pulsarDir);
+            var launcher = new SharedLauncher(originalLoader, pulsarDir, dependencyDir, checkSum);
             if (!launcher.CanStart())
                 return;
 
