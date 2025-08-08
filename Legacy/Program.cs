@@ -26,6 +26,7 @@ namespace Pulsar.Legacy
 
         private const string OriginalAssemblyFile = "SpaceEngineers.exe";
         private const string PulsarRepo = "SpaceGT/Pulsar";
+        private const string SeVersion = "1.206.32";
 
         static void Main(string[] args)
         {
@@ -79,18 +80,21 @@ namespace Pulsar.Legacy
             Steam.EnsureAppID();
             Steam.StartSteam();
 
+            Version seVersion = Game.GetGameVersion(bin64Dir);
+
             // This must be called before using most of the Shared project
             new ConfigManager(
                 pulsarDir,
                 bin64Dir,
                 modDir,
                 Steam.GetSteamId(),
-                Game.GetGameVersion(bin64Dir),
+                seVersion,
                 new Dependency(),
                 SharedLoader.DebugCompileAll
             );
 
-            Updater.CheckUpdate(PulsarRepo);
+            bool outdated = seVersion != new Version(SeVersion);
+            Updater.CheckUpdate(PulsarRepo, outdated);
 
             string checkSum = null;
             string checkFile = Path.Combine(currentDir, "checksum.txt");

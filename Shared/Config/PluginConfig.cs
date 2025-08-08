@@ -33,20 +33,6 @@ namespace Pulsar.Shared.Config
         }
         private readonly Dictionary<string, PluginDataConfig> pluginSettings = [];
 
-        [XmlIgnore]
-        public Version GameVersion { get; set; }
-
-        [XmlElement("GameVersion")]
-        [EditorBrowsable(EditorBrowsableState.Never)]
-        public string GameVersionString
-        {
-            get => GameVersion?.ToString();
-            set => GameVersion = string.IsNullOrWhiteSpace(value) ? null : new Version(value);
-        }
-
-        [XmlIgnore]
-        public bool GameVersionChanged { get; private set; }
-
         // Base URL for the statistics server, change to http://localhost:5000 in config.xml for local development
         // ReSharper disable once UnassignedGetOnlyAutoProperty
         public string StatsServerBaseUrl { get; }
@@ -124,18 +110,6 @@ namespace Pulsar.Shared.Config
 
             if (save)
                 Save();
-        }
-
-        public void CheckGameVersion(Version currentGameVersion)
-        {
-            if (currentGameVersion == null)
-                return;
-
-            if (GameVersion != null && GameVersion != currentGameVersion)
-                GameVersionChanged = true;
-
-            GameVersion = currentGameVersion;
-            Save();
         }
 
         public void Save()

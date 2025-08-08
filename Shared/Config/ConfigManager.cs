@@ -21,6 +21,7 @@ namespace Pulsar.Shared.Config
         public SourcesConfig Sources { get; }
         public ProfilesConfig Profiles { get; }
         public PluginStats Stats { get; private set; }
+        public Version GameVersion { get; }
         public bool SafeMode { get; set; }
         public bool HasLocal { get; set; }
         public IDependency Dependencies { get; private set; }
@@ -48,9 +49,9 @@ namespace Pulsar.Shared.Config
             ModDir = modDir;
             SteamId = steamId;
             DebugCompileAll = debugCompileAll;
+            GameVersion = gameVersion;
 
             Config = PluginConfig.Load(pulsarDir);
-            Config.CheckGameVersion(gameVersion);
             Sources = SourcesConfig.Load(pulsarDir);
             Profiles = ProfilesConfig.Load(pulsarDir);
             List = new PluginList(pulsarDir, Config, Sources);

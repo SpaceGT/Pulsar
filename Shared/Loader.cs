@@ -51,9 +51,6 @@ namespace Pulsar.Shared
 
             splash?.SetText("Starting...");
 
-            if (config.GameVersionChanged)
-                GitHubPlugin.ClearGitHubCache();
-
             StatsClient.OverrideBaseUrl(config.StatsServerBaseUrl);
             ConfigManager.Instance.UpdatePlayerStats();
 

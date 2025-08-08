@@ -56,17 +56,6 @@ namespace Pulsar.Shared.Data
             if (!Directory.Exists(pluginCache))
                 return;
 
-            bool hasGitHub = ConfigManager.Instance.Config.EnabledPlugins.Any(x =>
-                x is GitHubPlugin
-            );
-
-            if (hasGitHub)
-            {
-                Tools.ShowMessageBox(
-                    "Space Engineers has been updated, so all plugins that are currently enabled must be downloaded and compiled."
-                );
-            }
-
             try
             {
                 LogFile.WriteLine("Deleting plugin cache because of an update");
@@ -174,7 +163,7 @@ namespace Pulsar.Shared.Data
 
             resolver = new AssemblyResolver();
 
-            Version gameVersion = ConfigManager.Instance.Config.GameVersion;
+            Version gameVersion = ConfigManager.Instance.GameVersion;
             string selectedCommit = GetSelectedVersion()?.Commit ?? Commit;
             if (
                 !manifest.IsCacheValid(
