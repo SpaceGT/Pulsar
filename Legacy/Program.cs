@@ -100,7 +100,7 @@ namespace Pulsar.Legacy
             if (preloader.HasPatches)
             {
                 SplashManager.Instance?.SetText("Applying Preloaders...");
-                preloader.Preload(Path.Combine(pulsarDir, "Preloader"));
+                preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"));
             }
 
             LogFile.GameLog = new GameLog();

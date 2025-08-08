@@ -25,14 +25,20 @@ namespace Pulsar.Shared
                 AddPatch(assembly);
         }
 
-        public void Preload(string preloadDir)
+        public void Preload(string gameDir, string preloadDir)
         {
+            var resolver = new DefaultAssemblyResolver();
+            resolver.AddSearchDirectory(gameDir);
+
+            var readerParams = new ReaderParameters() { AssemblyResolver = resolver };
+
             if (!Directory.Exists(preloadDir))
                 Directory.CreateDirectory(preloadDir);
 
             foreach (var kvp in patches)
             {
                 string dll = kvp.Key;
+                string seDll = Path.Combine(gameDir, dll);
                 HashSet<Type> patchClasses = kvp.Value;
 
                 if (IsAssemblyLoaded(dll))
@@ -47,7 +53,7 @@ namespace Pulsar.Shared
 
                 try
                 {
-                    asmDef = AssemblyDefinition.ReadAssembly(dll);
+                    asmDef = AssemblyDefinition.ReadAssembly(seDll, readerParams);
                 }
                 catch (FileNotFoundException)
                 {
@@ -68,9 +74,9 @@ namespace Pulsar.Shared
                     Patch(patchClass, ref asmDef);
 
                 // CLR does not respect pure in-memory refrences when resolving
-                string path = Path.Combine(preloadDir, dll);
-                asmDef.Write(path);
-                Assembly.LoadFrom(path);
+                string newDll = Path.Combine(preloadDir, dll);
+                asmDef.Write(newDll);
+                Assembly.LoadFrom(newDll);
             }
 
             foreach (string file in Directory.GetFiles(preloadDir))
