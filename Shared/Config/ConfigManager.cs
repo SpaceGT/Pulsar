@@ -19,6 +19,7 @@ namespace Pulsar.Shared.Config
         public PluginList List { get; }
         public PluginConfig Config { get; }
         public SourcesConfig Sources { get; }
+        public ProfilesConfig Profiles { get; }
         public PluginStats Stats { get; private set; }
         public bool SafeMode { get; set; }
         public bool HasLocal { get; set; }
@@ -51,9 +52,10 @@ namespace Pulsar.Shared.Config
             Config = PluginConfig.Load(pulsarDir);
             Config.CheckGameVersion(gameVersion);
             Sources = SourcesConfig.Load(pulsarDir);
+            Profiles = ProfilesConfig.Load(pulsarDir);
             List = new PluginList(pulsarDir, Config, Sources);
 
-            Config.Init(List, DebugCompileAll);
+            Config.Init(List, Profiles.Current.Plugins, DebugCompileAll);
         }
 
         public void UpdatePlayerStats()

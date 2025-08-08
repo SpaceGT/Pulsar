@@ -6,20 +6,18 @@ namespace Pulsar.Shared.Data
 {
     public class Profile
     {
-        // Unique key of the profile
-        public string Key { get; set; }
+        public string Key => Tools.CleanFileName(Name);
 
         // Name of the profile
         public string Name { get; set; }
 
         // Plugin IDs
-        public string[] Plugins { get; set; }
+        public HashSet<string> Plugins { get; set; }
 
         public Profile() { }
 
-        public Profile(string name, string[] plugins)
+        public Profile(string name, HashSet<string> plugins)
         {
-            Key = Guid.NewGuid().ToString();
             Name = name;
             Plugins = plugins;
         }

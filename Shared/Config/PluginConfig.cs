@@ -16,36 +16,8 @@ namespace Pulsar.Shared.Config
         private string filePath;
         private PluginList list;
 
-        [XmlArray]
-        [XmlArrayItem("Id")]
-        public string[] Plugins
-        {
-            get { return [.. enabledPlugins.Keys]; }
-            set
-            {
-                enabledPlugins.Clear();
-                foreach (string id in value)
-                    enabledPlugins[id] = null;
-            }
-        }
         public IEnumerable<PluginData> EnabledPlugins => enabledPlugins.Values;
         private readonly Dictionary<string, PluginData> enabledPlugins = [];
-
-        [XmlArray]
-        [XmlArrayItem("Profile")]
-        public Profile[] Profiles
-        {
-            get { return [.. ProfileMap.Values]; }
-            set
-            {
-                ProfileMap.Clear();
-                foreach (var profile in value.Where(x => x?.Key != null))
-                    ProfileMap[profile.Key] = profile;
-            }
-        }
-
-        [XmlIgnore]
-        public readonly Dictionary<string, Profile> ProfileMap = [];
 
         [XmlArray]
         [XmlArrayItem("Config")]
@@ -104,7 +76,7 @@ namespace Pulsar.Shared.Config
 
         public PluginConfig() { }
 
-        public void Init(PluginList plugins, bool debugCompileAll)
+        public void Init(PluginList plugins, HashSet<string> active, bool debugCompileAll)
         {
             list = plugins;
 
@@ -114,7 +86,7 @@ namespace Pulsar.Shared.Config
             foreach (PluginData plugin in plugins)
             {
                 string id = plugin.Id;
-                bool enabled = IsEnabled(id);
+                bool enabled = active.Contains(id);
 
                 if (enabled || (debugCompileAll && !plugin.IsLocal && plugin.IsCompiled))
                 {

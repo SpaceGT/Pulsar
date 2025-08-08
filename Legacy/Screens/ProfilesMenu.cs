@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Text;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Sandbox.Graphics.GUI;
@@ -8,31 +9,15 @@ using VRageMath;
 
 namespace Pulsar.Legacy.Screens
 {
-    public class ProfilesMenu : PluginScreen
+    public class ProfilesMenu(HashSet<string> enabledPlugins)
+        : PluginScreen(size: new Vector2(0.85f, 0.52f))
     {
         private MyGuiControlTable profilesTable;
         private MyGuiControlButton btnUpdate,
             btnLoad,
             btnRename,
             btnDelete;
-        private readonly Dictionary<string, Profile> profiles;
-        private readonly HashSet<string> enabledPlugins;
-        private bool profilesModified = false;
-
-        public ProfilesMenu(HashSet<string> enabledPlugins)
-            : base(size: new Vector2(0.85f, 0.52f))
-        {
-            this.enabledPlugins = enabledPlugins;
-            profiles = ConfigManager.Instance.Config.ProfileMap;
-            Closed += OnScreenClosed;
-        }
-
-        private void OnScreenClosed(MyGuiScreenBase source, bool isUnloading)
-        {
-            if (profilesModified)
-                ConfigManager.Instance.Config.Save();
-            Closed -= OnScreenClosed;
-        }
+        private readonly ProfilesConfig config = ConfigManager.Instance.Profiles;
 
         public override string GetFriendlyName()
         {
@@ -97,7 +82,7 @@ namespace Pulsar.Legacy.Screens
             profilesTable.ItemSelected += OnItemSelected;
             SetTableHeight(profilesTable, area.Size.Y);
             Controls.Add(profilesTable);
-            foreach (Profile p in profiles.Values)
+            foreach (Profile p in config.Profiles)
                 profilesTable.Add(CreateProfileRow(p));
             UpdateButtons();
         }
@@ -150,9 +135,8 @@ namespace Pulsar.Legacy.Screens
             MyGuiControlTable.Row row = profilesTable.SelectedRow;
             if (row?.UserData is Profile p)
             {
-                profiles.Remove(p.Key);
+                config.Remove(p.Key);
                 profilesTable.Remove(row);
-                profilesModified = true;
                 UpdateButtons();
             }
         }
@@ -168,9 +152,11 @@ namespace Pulsar.Legacy.Screens
                         p.Name,
                         onComplete: (name) =>
                         {
-                            p.Name = name;
+                            if (config.Exists(Tools.CleanFileName(name)))
+                                return;
+
+                            config.Rename(p.Key, name);
                             row.GetCell(0).Text.Clear().Append(name);
-                            profilesModified = true;
                         }
                     )
                 );
@@ -198,7 +184,7 @@ namespace Pulsar.Legacy.Screens
                 // Update profile
                 p.Plugins = [.. enabledPlugins];
                 row.GetCell(1).Text.Clear().Append(p.GetDescription());
-                profilesModified = true;
+                config.Save(p.Key);
             }
         }
 
@@ -208,12 +194,15 @@ namespace Pulsar.Legacy.Screens
                 return;
 
             Profile newProfile = new(name, [.. enabledPlugins]);
-            profiles[newProfile.Key] = newProfile;
+
+            if (config.Exists(newProfile.Key))
+                return;
+
+            config.Add(newProfile);
             MyGuiControlTable.Row row = CreateProfileRow(newProfile);
             profilesTable.Add(row);
             profilesTable.SelectedRow = row;
             UpdateButtons();
-            profilesModified = true;
         }
     }
 }

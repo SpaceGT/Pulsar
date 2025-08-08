@@ -334,6 +334,22 @@ namespace Pulsar.Shared
             return null;
         }
 
+        public static string CleanFileName(string name)
+        {
+            HashSet<char> invalid = [.. Path.GetInvalidFileNameChars()];
+            StringBuilder newName = new();
+
+            foreach (char character in name)
+            {
+                if (invalid.Contains(character))
+                    newName.Append('-');
+                else
+                    newName.Append(character);
+            }
+
+            return newName.ToString();
+        }
+
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
 

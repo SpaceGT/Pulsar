@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using Pulsar.Legacy.Loader;
-using Pulsar.Legacy.Screens;
 using Pulsar.Legacy.Screens.Controls;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -20,6 +19,7 @@ namespace Pulsar.Legacy.Screens
         private readonly PluginList pluginList = configManager.List;
         private List<PluginData> Plugins => [.. pluginList.OrderBy(x => x.FriendlyName)];
         private readonly PluginConfig config = configManager.Config;
+        private readonly ProfilesConfig profiles = configManager.Profiles;
         private readonly SourcesConfig sources = configManager.Sources;
         private MyGuiControlCheckbox consentBox;
         private MyGuiControlParent pluginsPanel;
@@ -555,19 +555,31 @@ namespace Pulsar.Legacy.Screens
 
         private void Save()
         {
-            foreach (
-                PluginData plugin in config
-                    .EnabledPlugins.Where(x => !enabledPlugins.Contains(x.Id))
-                    .ToArray()
-            )
+            PluginData[] toDisable =
+            [
+                .. config.EnabledPlugins.Where(x => !enabledPlugins.Contains(x.Id)),
+            ];
+
+            foreach (PluginData plugin in toDisable)
+            {
                 if (pluginList.Contains(plugin.Id))
+                {
                     config.SetEnabled(plugin, false);
+                    profiles.Current.Plugins.Remove(plugin.Id);
+                }
+            }
 
             foreach (string id in enabledPlugins)
+            {
                 if (pluginList.Contains(id))
+                {
                     config.SetEnabled(id, true);
+                    profiles.Current.Plugins.Add(id);
+                }
+            }
 
             config.Save();
+            profiles.Save();
         }
 
         private bool RequiresRestart()

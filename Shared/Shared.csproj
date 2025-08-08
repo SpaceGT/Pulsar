@@ -59,6 +59,7 @@
     <Compile Include="Config\ConfigManager.cs" />
     <Compile Include="Config\PluginConfig.cs" />
     <Compile Include="Config\PluginDataConfig.cs" />
+    <Compile Include="Config\ProfilesConfig.cs" />
     <Compile Include="Config\SourcesConfig.cs" />
     <Compile Include="Config\Sources\LocalHubConfig.cs" />
     <Compile Include="Config\Sources\LocalPluginConfig.cs" />

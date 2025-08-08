@@ -56,8 +56,11 @@ namespace Pulsar.Legacy.Loader
             try
             {
                 FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
-                Delegate getConfigPath = new Func<string, string, string>(data.GetConfigPath);
-                pluginFunc.SetValue(null, getConfigPath);
+                if (pluginFunc != null)
+                {
+                    Delegate getConfigPath = new Func<string, string, string>(data.GetConfigPath);
+                    pluginFunc.SetValue(null, getConfigPath);
+                }
             }
             catch (Exception e)
             {
