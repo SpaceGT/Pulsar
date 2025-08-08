@@ -14,6 +14,7 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
 using Sandbox.Game.World;
+using VRage;
 using VRage.Plugins;
 using VRage.Utils;
 using SharedLoader = Pulsar.Shared.Loader;
@@ -143,6 +144,8 @@ namespace Pulsar.Legacy.Loader
             );
 
             SplashManager.Instance?.Delete();
+            Patch.Patch_ShowAndFocus.Enabled = true;
+            MyVRage.Platform.Windows.Window.ShowAndFocus();
         }
 
         public void Update()

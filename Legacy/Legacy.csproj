@@ -45,28 +45,23 @@
   </PropertyGroup>
   <PropertyGroup />
   <ItemGroup>
-    <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Sandbox.Game">
       <HintPath>$(Bin64)\Sandbox.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Sandbox.Graphics, Version=0.1.1.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Sandbox.Graphics">
       <HintPath>$(Bin64)\Sandbox.Graphics.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="SpaceEngineers">
-      <SpecificVersion>False</SpecificVersion>
       <HintPath>$(Bin64)\SpaceEngineers.exe</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="SpaceEngineers.Game, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="SpaceEngineers.Game">
       <HintPath>$(Bin64)\SpaceEngineers.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Steamworks.NET, Version=20.1.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="Steamworks.NET">
       <HintPath>$(Bin64)\Steamworks.NET.dll</HintPath>
       <Private>False</Private>
     </Reference>
@@ -83,29 +78,28 @@
     <Reference Include="System.Windows.Forms.DataVisualization" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
-    <Reference Include="VRage, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="VRage">
       <HintPath>$(Bin64)\VRage.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VRage.Game, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="VRage.Game">
       <HintPath>$(Bin64)\VRage.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VRage.Input, Version=1.0.0.0, Culture=neutral, processorArchitecture=AMD64">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="VRage.Input">
       <HintPath>$(Bin64)\VRage.Input.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="VRage.Library">
       <HintPath>$(Bin64)\VRage.Library.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="VRage.Math, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
+    <Reference Include="VRage.Math">
       <HintPath>$(Bin64)\VRage.Math.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="VRage.Platform.Windows">
+      <HintPath>$(Bin64)\VRage.Platform.Windows.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="VRage.Scripting">
@@ -146,6 +140,7 @@
     <Compile Include="Patch\Patch_IngameShortcuts.cs" />
     <Compile Include="Patch\Patch_MyDefinitionManager.cs" />
     <Compile Include="Patch\Patch_MyScriptManager.cs" />
+    <Compile Include="Patch\Patch_ShowAndFocus.cs" />
     <Compile Include="Loader\PluginInstance.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
