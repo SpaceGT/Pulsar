@@ -13,6 +13,8 @@ namespace Pulsar.Compiler
         private static void SetupAppDomain()
         {
             var assemblies = (HashSet<string>)AppDomain.CurrentDomain.GetData("assemblies");
+            var gameDir = (string)AppDomain.CurrentDomain.GetData("gameDir");
+            RoslynReferences.Resolver.AddSearchDirectory(gameDir);
             RoslynReferences.GenerateAssemblyList(assemblies);
         }
 

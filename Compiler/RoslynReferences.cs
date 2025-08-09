@@ -4,6 +4,7 @@ using System.IO;
 using System.Reflection;
 using System.Text;
 using Microsoft.CodeAnalysis;
+using Mono.Cecil;
 using NLog;
 
 namespace Pulsar.Compiler
@@ -12,6 +13,7 @@ namespace Pulsar.Compiler
     {
         private static readonly HashSet<string> referenceBlacklist = ["System.ValueTuple"];
         internal static readonly Dictionary<string, MetadataReference> AllReferences = [];
+        internal static DefaultAssemblyResolver Resolver = new();
 
         public static void GenerateAssemblyList(HashSet<string> assemblies)
         {

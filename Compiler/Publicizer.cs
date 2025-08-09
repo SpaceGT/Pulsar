@@ -9,7 +9,9 @@ namespace Pulsar.Compiler
     {
         public static MetadataReference PublicizeReference(PortableExecutableReference reference)
         {
-            using var assembly = AssemblyDefinition.ReadAssembly(reference.FilePath);
+            var reader = new ReaderParameters { AssemblyResolver = RoslynReferences.Resolver };
+            using var assembly = AssemblyDefinition.ReadAssembly(reference.FilePath, reader);
+
             PublicizeAssembly(assembly);
 
             var stream = new MemoryStream();
