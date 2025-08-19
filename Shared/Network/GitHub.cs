@@ -80,11 +80,11 @@ namespace Pulsar.Shared.Network
         public static bool GetRepoHash(string name, string branch, out string hash)
         {
             hash = null;
+            LogFile.WriteLine("Hashing " + name + "/" + branch);
 
             try
             {
                 Uri uri = new(string.Format(hashUrl, name, branch), UriKind.Absolute);
-                LogFile.WriteLine("Downloading " + uri);
                 using Stream stream = GetStream(uri);
                 using StreamReader reader = new(stream);
                 string text = reader.ReadToEnd();
@@ -103,11 +103,11 @@ namespace Pulsar.Shared.Network
         public static bool GetRepoVersion(string name, out Version version)
         {
             version = null;
+            LogFile.WriteLine("Checking version of " + name);
 
             try
             {
                 Uri uri = new(string.Format(versionUrl, name), UriKind.Absolute);
-                LogFile.WriteLine("Downloading " + uri);
                 using Stream stream = GetStream(uri);
                 using StreamReader reader = new(stream);
                 string text = reader.ReadToEnd();
