@@ -69,7 +69,9 @@ namespace Pulsar.Legacy.Screens
                         MyMessageBoxStyleEnum.Info,
                         MyMessageBoxButtonsType.YES_NO_CANCEL,
                         new StringBuilder(
-                            "Are you sure to withdraw your consent to data handling?\r\n\r\nDoing so would irrecoverably remove all your votes\r\nand usage data from our statistics server."
+                            "Are you sure to withdraw your consent to data handling?\r\n\r\n"
+                                + "Doing so would irrecoverably remove all your votes\r\n"
+                                + "and usage data from our statistics server."
                         ),
                         new StringBuilder("Confirm consent withdrawal"),
                         callback: res => StoreConsent(res, false, continuation)
