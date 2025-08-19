@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
@@ -27,9 +26,7 @@ namespace Pulsar.Shared.Stats
 
         // Hashed Steam ID of the player
         private static string PlayerHash =>
-            playerHash ??= Tools
-                .GetStringHash($"{ConfigManager.Instance.SteamId}")
-                .Substring(0, 20);
+            playerHash ??= Tools.GetStringHash($"{Steam.GetSteamId()}").Substring(0, 20);
         private static string playerHash;
 
         // Latest voting token received

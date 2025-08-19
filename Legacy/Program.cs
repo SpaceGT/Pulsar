@@ -20,8 +20,6 @@ namespace Pulsar.Legacy
         class Dependency : IDependency
         {
             public void OnMainThread(Action action) => Game.RunOnGameThread(action);
-
-            public void SteamSubscribe(ulong id) => Steam.SubscribeToItem(id);
         }
 
         private const string OriginalAssemblyFile = "SpaceEngineers.exe";
@@ -75,11 +73,6 @@ namespace Pulsar.Legacy
 
             LogFile.Init(pulsarDir);
 
-            SplashManager.Instance?.SetText("Starting Steam...");
-
-            Steam.EnsureAppID();
-            Steam.StartSteam();
-
             Version seVersion = Game.GetGameVersion(bin64Dir);
 
             // This must be called before using most of the Shared project
@@ -87,7 +80,6 @@ namespace Pulsar.Legacy
                 pulsarDir,
                 bin64Dir,
                 modDir,
-                Steam.GetSteamId(),
                 seVersion,
                 new Dependency(),
                 SharedLoader.DebugCompileAll
@@ -102,9 +94,12 @@ namespace Pulsar.Legacy
                 checkSum = File.ReadAllText(checkFile);
 
             string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
-            var launcher = new SharedLauncher(originalLoader, pulsarDir, dependencyDir, checkSum);
+            var launcher = new SharedLauncher(originalLoader, dependencyDir, checkSum);
             if (!launcher.CanStart())
                 return;
+
+            SplashManager.Instance?.SetText("Starting Steam...");
+            Steam.Init();
 
             SplashManager.Instance?.SetText("Getting Plugins...");
             SharedLoader.Instance = new SharedLoader(References.GetReferences(bin64Dir));

@@ -20,9 +20,9 @@ namespace Pulsar.Shared
             Version currentVersion = entryAssembly.GetName().Version;
 
             if (
-                GitHub.GetRepoVersion(repoName, out Version latestVersion)
+                !noUpdate
+                && GitHub.GetRepoVersion(repoName, out Version latestVersion)
                 && currentVersion < latestVersion
-                && !noUpdate
             )
             {
                 LogFile.WriteLine("An update is available to " + latestVersion);

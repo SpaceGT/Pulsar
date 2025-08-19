@@ -8,8 +8,9 @@ namespace Pulsar.Legacy.Launcher
 {
     internal class Folder
     {
-        private const string steamInstallDir =
+        private const string registryKey =
             @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App {0}";
+        private const string registryName = "InstallLocation";
         private static readonly HashSet<string> seFiles =
         [
             "SpaceEngineers.exe",
@@ -39,11 +40,11 @@ namespace Pulsar.Legacy.Launcher
                 RegistryView.Registry64
             );
 
-            using var key = baseKey.OpenSubKey(string.Format(steamInstallDir, Steam.AppId));
+            using var key = baseKey.OpenSubKey(string.Format(registryKey, Steam.AppId));
             if (key == null)
                 return null;
 
-            var installLocation = key.GetValue("InstallLocation") as string;
+            var installLocation = key.GetValue(registryName) as string;
             if (string.IsNullOrWhiteSpace(installLocation))
                 return null;
 

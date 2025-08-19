@@ -20,7 +20,7 @@ namespace Pulsar.Shared
 
         public readonly string Location;
 
-        public Launcher(string sePath, string pulsarDir, string dependencyDir, string checksum)
+        public Launcher(string sePath, string dependencyDir, string checksum)
         {
             string programGuid = GetCallerGuid();
 

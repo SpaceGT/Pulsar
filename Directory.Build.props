@@ -8,5 +8,8 @@
 
     <!-- Folder containing SpaceEngineers2.exe -->
     <Game2>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1133870@InstallLocation)\Game2</Game2>
+
+    <!-- Path to Steamworks.NET (for .NET 4.8) -->
+    <Steamworks>$(Bin64)\Steamworks.NET.dll</Steamworks>
   </PropertyGroup>
 </Project>

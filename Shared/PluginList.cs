@@ -83,7 +83,7 @@ namespace Pulsar.Shared
         public void SubscribeToItem(string id)
         {
             if (Plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
-                ConfigManager.Instance.Dependencies.SteamSubscribe(steam.WorkshopId);
+                Steam.SubscribeToItem(steam.WorkshopId);
         }
 
         private void FindPluginGroups()

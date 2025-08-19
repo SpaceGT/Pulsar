@@ -61,10 +61,6 @@
       <HintPath>$(Bin64)\SpaceEngineers.Game.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="Steamworks.NET">
-      <HintPath>$(Bin64)\Steamworks.NET.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IdentityModel" />
@@ -145,7 +141,6 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="References.cs" />
-    <Compile Include="Launcher\Steam.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

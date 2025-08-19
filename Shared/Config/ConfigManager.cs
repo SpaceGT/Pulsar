@@ -7,7 +7,6 @@ namespace Pulsar.Shared.Config
     public interface IDependency
     {
         void OnMainThread(Action action);
-        void SteamSubscribe(ulong id);
     }
 
     public class ConfigManager
@@ -29,13 +28,11 @@ namespace Pulsar.Shared.Config
         public string PulsarDir { get; }
         public string GameDir { get; }
         public string ModDir { get; }
-        public ulong SteamId { get; }
 
         public ConfigManager(
             string pulsarDir,
             string gameDir,
             string modDir,
-            ulong steamId,
             Version gameVersion,
             IDependency dependencies,
             bool debugCompileAll = false
@@ -47,7 +44,6 @@ namespace Pulsar.Shared.Config
             PulsarDir = pulsarDir;
             GameDir = gameDir;
             ModDir = modDir;
-            SteamId = steamId;
             DebugCompileAll = debugCompileAll;
             GameVersion = gameVersion;
 
