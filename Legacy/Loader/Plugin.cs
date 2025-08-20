@@ -69,72 +69,50 @@ namespace Pulsar.Legacy.Loader
                 plugin.RegisterSession(MySession.Static);
         }
 
-        public void DisablePlugins()
-        {
-            LogFile.WriteLine("Skipping plugin instantiation");
-            plugins.Clear();
-        }
-
-        public void InstantiatePlugins()
-        {
-            LogFile.WriteLine($"Loading {SharedLoader.Instance.Plugins.Count} plugins");
-
-            foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            {
-                PluginInstance.TryGet(data, assembly, out PluginInstance instance);
-                plugins.Add(instance);
-            }
-
-            for (int i = plugins.Count - 1; i >= 0; i--)
-            {
-                PluginInstance p = plugins[i];
-                if (!p.Instantiate())
-                    plugins.RemoveAtFast(i);
-            }
-        }
-
         public void Init(object gameInstance)
         {
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
             new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
             if (ConfigManager.Instance.SafeMode)
-                DisablePlugins();
-            else
-                InstantiatePlugins();
-
-            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
-
-            if (ConfigManager.Instance.DebugCompileAll)
-                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
-            for (int i = plugins.Count - 1; i >= 0; i--)
             {
-                PluginInstance p = plugins[i];
-                if (!p.Init(gameInstance))
+                plugins.Clear();
+                LogFile.Warn("Skipping plugin instantiation");
+            }
+            else
+            {
+                InstantiatePlugins();
+                LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+                SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
+
+                if (ConfigManager.Instance.DebugCompileAll)
+                    debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
+
+                for (int i = plugins.Count - 1; i >= 0; i--)
                 {
-                    plugins.RemoveAtFast(i);
-                    if (ConfigManager.Instance.DebugCompileAll)
-                        debugCompileResults
-                            .Append(p.FriendlyName ?? "(null)")
-                            .Append(" - ")
-                            .Append(p.Id ?? "(null)")
-                            .Append(" by ")
-                            .Append(p.Author ?? "(null)")
-                            .AppendLine();
+                    PluginInstance p = plugins[i];
+                    if (!p.Init(gameInstance))
+                    {
+                        plugins.RemoveAtFast(i);
+                        if (ConfigManager.Instance.DebugCompileAll)
+                            debugCompileResults
+                                .Append(p.FriendlyName ?? "(null)")
+                                .Append(" - ")
+                                .Append(p.Id ?? "(null)")
+                                .Append(" by ")
+                                .Append(p.Author ?? "(null)")
+                                .AppendLine();
+                    }
                 }
             }
+
             init = true;
 
             if (ConfigManager.Instance.DebugCompileAll)
             {
                 MessageBox.Show("All plugins compiled, log file will now open");
-
                 LogFile.WriteLine(debugCompileResults.ToString());
-
-                string file = MyLog.Default.GetFilePath();
-                if (File.Exists(file) && file.EndsWith(".log"))
-                    Process.Start(file);
+                LogFile.Open();
             }
 
             SplashManager.Instance?.SetText($"Updating workshop items...");
@@ -143,9 +121,7 @@ namespace Pulsar.Legacy.Loader
                 config.EnabledPlugins.OfType<ISteamItem>().Select(mod => mod.WorkshopId)
             );
 
-            SplashManager.Instance?.Delete();
-            Patch.Patch_ShowAndFocus.Enabled = true;
-            MyVRage.Platform.Windows.Window.ShowAndFocus();
+            ShowGame();
         }
 
         public void Update()
@@ -207,6 +183,29 @@ namespace Pulsar.Legacy.Loader
                 }
             }
             catch { } // Do NOT throw exceptions inside this method!
+        }
+
+        private void InstantiatePlugins()
+        {
+            foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
+            {
+                PluginInstance.TryGet(data, assembly, out PluginInstance instance);
+                plugins.Add(instance);
+            }
+
+            for (int i = plugins.Count - 1; i >= 0; i--)
+            {
+                PluginInstance p = plugins[i];
+                if (!p.Instantiate())
+                    plugins.RemoveAtFast(i);
+            }
+        }
+
+        private static void ShowGame()
+        {
+            SplashManager.Instance?.Delete();
+            Patch.Patch_ShowAndFocus.Enabled = true;
+            MyVRage.Platform.Windows.Window.ShowAndFocus();
         }
     }
 }

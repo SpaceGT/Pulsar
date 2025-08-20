@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System.Diagnostics;
+using System.IO;
 using NLog;
 using NLog.Config;
 using NLog.Layouts;
@@ -19,10 +20,11 @@ namespace Pulsar.Shared
         private const string fileName = "info.log";
         private static Logger logger;
         private static LogFactory logFactory;
+        private static string file;
 
         public static void Init(string mainPath)
         {
-            string file = Path.Combine(mainPath, fileName);
+            file = Path.Combine(mainPath, fileName);
             LoggingConfiguration config = new();
             config.AddRuleForAllLevels(
                 new NLog.Targets.FileTarget()
@@ -64,13 +66,20 @@ namespace Pulsar.Shared
                     level = LogLevel.Info;
 
                 logger?.Log(level, text);
+
                 if (gameLog)
-                    GameLog.Write($"[Pulsar] [{level.Name}] {text}");
+                    GameLog?.Write($"[Pulsar] [{level.Name}] {text}");
             }
             catch
             {
                 Dispose();
             }
+        }
+
+        public static void Open()
+        {
+            if (file is not null)
+                Process.Start(file);
         }
 
         public static void Dispose()
@@ -84,6 +93,7 @@ namespace Pulsar.Shared
                 logFactory.Dispose();
             }
             catch { }
+
             logger = null;
             logFactory = null;
         }
