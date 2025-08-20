@@ -32,7 +32,7 @@ namespace Pulsar.Shared.Network
         public static Stream GetStream(Uri uri)
         {
             HttpWebRequest request = WebRequest.CreateHttp(uri);
-            request.UserAgent = "Pulsar.Shared";
+            request.UserAgent = "Pulsar";
             request.AutomaticDecompression =
                 DecompressionMethods.GZip | DecompressionMethods.Deflate;
             PluginConfig config = ConfigManager.Instance.Config;

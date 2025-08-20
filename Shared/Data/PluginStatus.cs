@@ -3,7 +3,7 @@
     public enum PluginStatus
     {
         None,
-        PendingUpdate,
+        Network,
         Updated,
         Error,
         Blocked,

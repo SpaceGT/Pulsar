@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Serialization;
@@ -32,10 +33,10 @@ namespace Pulsar.Shared.Data
             {
                 return Status switch
                 {
-                    PluginStatus.PendingUpdate => "Pending Update",
+                    PluginStatus.Network => "Network!",
                     PluginStatus.Updated => "Updated",
                     PluginStatus.Error => "Error!",
-                    PluginStatus.Blocked => "Not whitelisted!",
+                    PluginStatus.Blocked => "Blocked!",
                     _ => "",
                 };
             }
@@ -136,6 +137,8 @@ namespace Pulsar.Shared.Data
                     Error(
                         $"The plugin {name} was blocked by windows. Please unblock the file in the dll file properties."
                     );
+                else if (e is WebException)
+                    Status = PluginStatus.Network;
                 else
                     Error();
                 a = null;

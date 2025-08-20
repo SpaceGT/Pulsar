@@ -181,7 +181,7 @@ namespace Pulsar.Shared.Data
                 manifest.Commit = selectedCommit;
                 manifest.ClearAssets();
                 string name = assemblyName + '_' + Path.GetRandomFileName();
-                byte[] data = CompileFromSource(selectedCommit, name, x => lbl.SetBarValue(x));
+                byte[] data = CompileFromSource(selectedCommit, name, lbl.SetBarValue);
                 File.WriteAllBytes(manifest.DllFile, data);
                 manifest.DeleteUnknownFiles();
                 manifest.Save();
