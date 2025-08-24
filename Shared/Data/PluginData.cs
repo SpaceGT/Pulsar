@@ -132,7 +132,8 @@ namespace Pulsar.Shared.Data
 
                 if (e is NotSupportedException && e.Message.Contains("loadFromRemoteSources"))
                     Error(
-                        $"The plugin {name} was blocked by windows. Please unblock the file in the dll file properties."
+                        $"The plugin {name} was blocked by windows. "
+                            + "Please unblock the file in the dll file properties."
                     );
                 else if (e is WebException)
                     Status = PluginStatus.Network;
@@ -179,19 +180,27 @@ namespace Pulsar.Shared.Data
             if (ConfigManager.Instance.DebugCompileAll)
                 return;
             msg ??=
-                $"The plugin '{this}' caused an error. It is recommended that you disable this plugin and restart. "
-                + "The game may be unstable beyond this point. See loader.log or the game log for details.";
+                $"The plugin '{this}' caused an error. "
+                + "It is recommended that you disable this plugin and restart. "
+                + "The game may be unstable beyond this point. ";
 
-            MessageBoxButtons buttons = MessageBoxButtons.OK;
             if (LogFile.GameLog?.Exists() ?? false)
-            {
-                msg += "\n\nWould you like to open the game log?";
-                buttons = MessageBoxButtons.YesNo;
-            }
+                msg +=
+                    "See loader.log or the game log for details.\n\n"
+                    + "Would you like to open the Space Engineers and Pulsar logs?";
+            else
+                msg += "See loader.log for details.\n\nWould you like to open the Pulsar log?";
+
+            MessageBoxButtons buttons = MessageBoxButtons.YesNo;
             DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
 
-            if (result == DialogResult.Yes)
+            if (result == DialogResult.No)
+                return;
+
+            if (LogFile.GameLog?.Exists() ?? false)
                 LogFile.GameLog.Open();
+
+            LogFile.Open();
         }
 
         public virtual bool UpdateEnabledPlugins(HashSet<string> enabledPlugins, bool enable)

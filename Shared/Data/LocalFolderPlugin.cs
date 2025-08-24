@@ -34,7 +34,7 @@ namespace Pulsar.Shared.Data
             FriendlyName = Id;
         }
 
-        public override string ToString() => Folder;
+        public override string ToString() => Id;
 
         public override void LoadData(PluginDataConfig config)
         {

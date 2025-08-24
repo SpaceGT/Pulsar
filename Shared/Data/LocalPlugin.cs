@@ -37,9 +37,6 @@ namespace Pulsar.Shared.Data
             return null;
         }
 
-        public override string ToString()
-        {
-            return Id;
-        }
+        public override string ToString() => Id;
     }
 }
