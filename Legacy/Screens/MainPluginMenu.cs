@@ -227,7 +227,7 @@ namespace Pulsar.Legacy.Screens
 
         private bool TryGetPluginInstance(PluginData plugin, out PluginInstance instance)
         {
-            return Plugin.Instance.TryGetPluginInstance(plugin.Id, out instance);
+            return PluginLoader.Instance.TryGetPluginInstance(plugin.Id, out instance);
         }
 
         private void OpenPluginDetails(PluginData plugin)

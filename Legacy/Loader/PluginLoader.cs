@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -11,19 +8,17 @@ using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
-using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
 using Sandbox.Game.World;
 using VRage;
 using VRage.Plugins;
-using VRage.Utils;
 using SharedLoader = Pulsar.Shared.Loader;
 
 namespace Pulsar.Legacy.Loader
 {
-    public class Plugin : IHandleInputPlugin
+    public class PluginLoader : IHandleInputPlugin
     {
-        public static Plugin Instance;
+        public static PluginLoader Instance;
 
         private bool init;
         private readonly PluginConfig config;
@@ -31,7 +26,7 @@ namespace Pulsar.Legacy.Loader
         private readonly List<PluginInstance> plugins = [];
         public List<PluginInstance> Plugins => plugins;
 
-        public Plugin()
+        public PluginLoader()
         {
             Instance = this;
             config = ConfigManager.Instance.Config;

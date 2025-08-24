@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Reflection;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data
 {
@@ -8,16 +9,7 @@ namespace Pulsar.Shared.Data
         public override bool IsLocal => true;
         public override bool IsCompiled => false;
 
-        public override string Id
-        {
-            get { return base.Id; }
-            set
-            {
-                base.Id = value;
-                if (File.Exists(value))
-                    FriendlyName = Path.GetFileName(value);
-            }
-        }
+        public string Dll;
 
         private AssemblyResolver resolver;
 
@@ -25,18 +17,20 @@ namespace Pulsar.Shared.Data
 
         public LocalPlugin(string dll)
         {
-            Id = dll;
+            Dll = dll;
+            Id = Path.GetFileName(dll);
+            FriendlyName = Path.GetFileNameWithoutExtension(dll);
             Status = PluginStatus.None;
         }
 
         public override Assembly GetAssembly()
         {
-            if (File.Exists(Id))
+            if (File.Exists(Dll))
             {
                 resolver = new AssemblyResolver();
-                resolver.AddSourceFolder(Path.GetDirectoryName(Id));
-                resolver.AddAllowedAssemblyFile(Id);
-                Assembly a = Assembly.LoadFile(Id);
+                resolver.AddSourceFolder(Path.GetDirectoryName(Dll));
+                resolver.AddAllowedAssemblyFile(Dll);
+                Assembly a = Assembly.LoadFile(Dll);
                 Version = a.GetName().Version;
                 return a;
             }

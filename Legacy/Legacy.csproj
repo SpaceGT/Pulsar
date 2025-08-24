@@ -127,7 +127,7 @@
     <Compile Include="Screens\TextInputDialog.cs" />
     <Compile Include="Screens\ViewSourceMenu.cs" />
     <Compile Include="Loader\LoaderTools.cs" />
-    <Compile Include="Loader\Plugin.cs" />
+    <Compile Include="Loader\PluginLoader.cs" />
     <Compile Include="Loader\SteamMods.cs" />
     <Compile Include="Patch\Patch_ComponentRegistered.cs" />
     <Compile Include="Patch\Patch_CreateLoadingText.cs" />

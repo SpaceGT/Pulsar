@@ -10,6 +10,16 @@ namespace Pulsar.Legacy.Extensions
 {
     internal static class LocalFolderPluginExtensions
     {
+        private static void TrySaveSettings(string id)
+        {
+            ProfilesConfig profiles = ConfigManager.Instance.Profiles;
+            if (profiles.Current.Contains(id))
+            {
+                profiles.Current.Update(id);
+                profiles.Save();
+            }
+        }
+
         public static void AddDetailControls(
             this LocalFolderPlugin localFolderPlugin,
             PluginDetailMenu screen,
@@ -17,32 +27,34 @@ namespace Pulsar.Legacy.Extensions
             out MyGuiControlBase topControl
         )
         {
+            LocalFolderConfig folderSettings = localFolderPlugin.FolderSettings;
             MyGuiControlButton btnRemove = new(
-                text: new StringBuilder("Remove"),
+                text: new StringBuilder("Remove File"),
                 onButtonClick: (btn) =>
                 {
-                    PluginConfig config = ConfigManager.Instance.Config;
-                    config.Save();
-                    screen.CloseScreen();
-                    screen.InvokeOnPluginRemoved(localFolderPlugin);
-                    screen.InvokeOnRestartRequired();
+                    localFolderPlugin.DeserializeFile(null);
+                    TrySaveSettings(folderSettings.Id);
+                    screen.RecreateControls(false);
                 }
             );
+
+            if (folderSettings.DataFile == null)
+                btnRemove.Enabled = false;
+
             screen.PositionAbove(bottomControl, btnRemove);
             screen.Controls.Add(btnRemove);
 
             MyGuiControlButton btnLoadFile = new(
                 text: new StringBuilder("Load File"),
                 onButtonClick: (btn) =>
-                {
                     localFolderPlugin.LoadNewDataFile(() =>
                     {
-                        screen.CloseScreen();
-                    });
-                }
+                        TrySaveSettings(folderSettings.Id);
+                        btnRemove.Enabled = true;
+                        screen.RecreateControls(false);
+                    })
             );
             screen.PositionToRight(btnRemove, btnLoadFile);
-            LocalFolderConfig folderSettings = localFolderPlugin.FolderSettings;
             btnLoadFile.Enabled =
                 string.IsNullOrEmpty(folderSettings.DataFile)
                 || !File.Exists(folderSettings.DataFile);
@@ -55,7 +67,7 @@ namespace Pulsar.Legacy.Extensions
             releaseDropdown.ItemSelected += () =>
             {
                 folderSettings.DebugBuild = releaseDropdown.GetSelectedKey() == 1;
-                ConfigManager.Instance.Config.Save();
+                TrySaveSettings(folderSettings.Id);
                 screen.InvokeOnRestartRequired();
             };
             screen.PositionAbove(btnRemove, releaseDropdown, MyAlignH.Left);
@@ -65,7 +77,7 @@ namespace Pulsar.Legacy.Extensions
 
         public static void Show(this LocalFolderPlugin localFolderPlugin)
         {
-            string folder = Path.GetFullPath(localFolderPlugin.Id);
+            string folder = Path.GetFullPath(localFolderPlugin.Folder);
             if (Directory.Exists(folder))
                 Process.Start("explorer.exe", $"\"{folder}\"");
         }

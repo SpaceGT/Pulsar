@@ -22,7 +22,7 @@ public class ConfigurePlugin : PluginScreen
     public ConfigurePlugin()
         : base(size: new Vector2(0.7f, 0.9f))
     {
-        pluginInstances = [.. Plugin.Instance.Plugins.Where(p => p.HasConfigDialog)];
+        pluginInstances = [.. PluginLoader.Instance.Plugins.Where(p => p.HasConfigDialog)];
     }
 
     public override void RecreateControls(bool constructor)

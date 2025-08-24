@@ -580,14 +580,12 @@ namespace Pulsar.Legacy.Screens
         {
             MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
             PromptFolder(
-                (file) =>
+                (folder) =>
                 {
-                    DirectoryInfo folder = Directory.GetParent(file);
                     LocalPluginConfig plugin = new()
                     {
-                        Name = folder.Name,
-                        Folder = folder.FullName,
-                        File = file,
+                        Name = Path.GetFileName(folder),
+                        Folder = folder,
                         Enabled = true,
                     };
                     LocalPluginSources.Add(plugin);
@@ -616,15 +614,7 @@ namespace Pulsar.Legacy.Screens
                         return;
                     }
 
-                    Tools.OpenFileDialog(
-                        "Open the xml data file",
-                        folder,
-                        Tools.XmlDataType,
-                        (file) =>
-                        {
-                            onComplete(file);
-                        }
-                    );
+                    onComplete(folder);
                 }
             );
         }

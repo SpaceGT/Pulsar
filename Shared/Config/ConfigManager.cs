@@ -51,7 +51,7 @@ namespace Pulsar.Shared.Config
             Config = PluginConfig.Load(pulsarDir);
             Sources = SourcesConfig.Load(pulsarDir);
             Profiles = ProfilesConfig.Load(pulsarDir);
-            List = new PluginList(pulsarDir, Config, Sources, Profiles);
+            List = new PluginList(pulsarDir, Sources, Profiles);
         }
 
         public void UpdatePlayerStats()

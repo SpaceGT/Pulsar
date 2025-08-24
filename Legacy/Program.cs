@@ -127,7 +127,7 @@ namespace Pulsar.Legacy
                 Game.ShowIntroVideo(false);
 
             // This call is wrapped so that Keen references are not loaded prematurely
-            ((Action)(() => Game.RegisterPlugin(new Plugin())))();
+            ((Action)(() => Game.RegisterPlugin(new PluginLoader())))();
 
             ProgressPollFactory().Start();
 

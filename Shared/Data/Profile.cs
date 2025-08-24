@@ -31,14 +31,20 @@ namespace Pulsar.Shared.Data
 
         public IEnumerable<string> GetPluginIDs(bool includeLocal = true)
         {
-            IEnumerable<string> ids = GitHub
-                .Select(x => x.Id)
-                .Concat(Mods.Select(x => x.ToString()));
+            foreach (GitHubPluginConfig config in GitHub)
+                yield return config.Id;
 
-            if (includeLocal)
-                ids.Concat(Local.Concat(DevFolder.Select(x => x.Id)));
+            foreach (ulong id in Mods)
+                yield return id.ToString();
 
-            return ids;
+            if (!includeLocal)
+                yield break;
+
+            foreach (LocalFolderConfig config in DevFolder)
+                yield return config.Id;
+
+            foreach (string id in Local)
+                yield return id;
         }
 
         public bool Contains(string id) => GetPluginIDs().Contains(id);

@@ -108,172 +108,46 @@ namespace Pulsar.Legacy.Screens
 
         private void RemoteHubList(MyGuiControlTable list, RemoteHubConfig remoteHub)
         {
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Name"));
-                row.AddCell(new Cell(remoteHub.Name));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Repo"));
-                row.AddCell(new Cell(remoteHub.Repo));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Branch"));
-                row.AddCell(new Cell(remoteHub.Branch));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Last Check"));
-                row.AddCell(new Cell(DateToString(remoteHub.LastCheck)));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Hash"));
-                row.AddCell(new Cell(remoteHub.Hash ?? "Unknown"));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Enabled"));
-                row.AddCell(new Cell(remoteHub.Enabled.ToString()));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Official"));
-                row.AddCell(new Cell(remoteHub.Trusted.ToString()));
-                list.Add(row);
-            }
+            AddRow(list, "Name", remoteHub.Name);
+            AddRow(list, "Repo", remoteHub.Repo);
+            AddRow(list, "Branch", remoteHub.Branch);
+            AddRow(list, "Last Check", DateToString(remoteHub.LastCheck));
+            AddRow(list, "Hash", remoteHub.Hash ?? "Unknown");
+            AddRow(list, "Enabled", remoteHub.Enabled.ToString());
+            AddRow(list, "Official", remoteHub.Trusted.ToString());
         }
 
         private void LocalHubList(MyGuiControlTable list, LocalHubConfig localHub)
         {
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Name"));
-                row.AddCell(new Cell(localHub.Name));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Folder"));
-                row.AddCell(new Cell(localHub.Folder));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Hash"));
-                row.AddCell(new Cell(localHub.Hash ?? "Unknown"));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Enabled"));
-                row.AddCell(new Cell(localHub.Enabled.ToString()));
-                list.Add(row);
-            }
+            AddRow(list, "Name", localHub.Name);
+            AddRow(list, "Folder", localHub.Folder);
+            AddRow(list, "Hash", localHub.Hash ?? "Unknown");
+            AddRow(list, "Enabled", localHub.Enabled.ToString());
         }
 
         private void RemotePluginList(MyGuiControlTable list, RemotePluginConfig remotePlugin)
         {
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Name"));
-                row.AddCell(new Cell(remotePlugin.Name));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Repo"));
-                row.AddCell(new Cell(remotePlugin.Repo));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Branch"));
-                row.AddCell(new Cell(remotePlugin.Branch));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("File"));
-                row.AddCell(new Cell(remotePlugin.File));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Last Check"));
-                row.AddCell(new Cell(DateToString(remotePlugin.LastCheck)));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Enabled"));
-                row.AddCell(new Cell(remotePlugin.Enabled.ToString()));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Official"));
-                row.AddCell(new Cell(remotePlugin.Trusted.ToString()));
-                list.Add(row);
-            }
+            AddRow(list, "Name", remotePlugin.Name);
+            AddRow(list, "Repo", remotePlugin.Repo);
+            AddRow(list, "Branch", remotePlugin.Branch);
+            AddRow(list, "File", remotePlugin.File);
+            AddRow(list, "Last Check", DateToString(remotePlugin.LastCheck));
+            AddRow(list, "Enabled", remotePlugin.Enabled.ToString());
+            AddRow(list, "Official", remotePlugin.Trusted.ToString());
         }
 
         private void LocalPluginList(MyGuiControlTable list, LocalPluginConfig localPlugin)
         {
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Name"));
-                row.AddCell(new Cell(localPlugin.Name));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Folder"));
-                row.AddCell(new Cell(localPlugin.Folder));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("File"));
-                row.AddCell(new Cell(localPlugin.File));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Enabled"));
-                row.AddCell(new Cell(localPlugin.Enabled.ToString()));
-                list.Add(row);
-            }
+            AddRow(list, "Name", localPlugin.Name);
+            AddRow(list, "Folder", localPlugin.Folder);
+            AddRow(list, "Enabled", localPlugin.Enabled.ToString());
         }
 
         private void ModList(MyGuiControlTable list, ModConfig mod)
         {
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Name"));
-                row.AddCell(new Cell(mod.Name));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("ID"));
-                row.AddCell(new Cell(mod.ID.ToString()));
-                list.Add(row);
-            }
-            {
-                var row = new Row();
-                row.AddCell(new Cell("Enabled"));
-                row.AddCell(new Cell(mod.Enabled.ToString()));
-                list.Add(row);
-            }
+            AddRow(list, "Name", mod.Name);
+            AddRow(list, "ID", mod.ID.ToString());
+            AddRow(list, "Enabled", mod.Enabled.ToString());
         }
 
         private string DateToString(DateTime? dateTime)
@@ -332,6 +206,14 @@ namespace Pulsar.Legacy.Screens
             );
 
             MyGuiSandbox.AddScreen(msgBox);
+        }
+
+        private void AddRow(MyGuiControlTable list, string name, string value)
+        {
+            var row = new Row();
+            row.AddCell(new Cell(name));
+            row.AddCell(new Cell(value));
+            list.Add(row);
         }
 
         public override void OnRemoved()

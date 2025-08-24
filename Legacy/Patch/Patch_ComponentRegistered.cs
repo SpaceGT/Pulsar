@@ -15,7 +15,7 @@ namespace Pulsar.Legacy.Patch
         public static void Prefix(Assembly assembly)
         {
             if (assembly == MyPlugins.GameAssembly)
-                Plugin.Instance?.RegisterComponents();
+                PluginLoader.Instance?.RegisterComponents();
         }
     }
 }

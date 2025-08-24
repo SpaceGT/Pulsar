@@ -38,7 +38,6 @@ namespace Pulsar.Shared
         }
 
         private readonly SourcesConfig SourcesConfig;
-        private readonly PluginConfig PluginConfig;
         private readonly ProfilesConfig ProfilesConfig;
         private readonly string SourceDir;
         private string PluginSourceDir => Path.Combine(SourceDir, "Plugins");
@@ -52,17 +51,11 @@ namespace Pulsar.Shared
 
         public List<ISteamItem> GetSteamPlugins() => [.. Plugins.Values.OfType<ISteamItem>()];
 
-        public PluginList(
-            string mainDirectory,
-            PluginConfig config,
-            SourcesConfig sources,
-            ProfilesConfig profiles
-        )
+        public PluginList(string mainDirectory, SourcesConfig sources, ProfilesConfig profiles)
         {
             LocalPluginDir = Path.Combine(mainDirectory, "Local");
             SourceDir = Path.Combine(mainDirectory, "Sources");
             SourcesConfig = sources;
-            PluginConfig = config;
             ProfilesConfig = profiles;
 
             EnsureDirectories();
@@ -278,18 +271,12 @@ namespace Pulsar.Shared
 
         private void AddLocalPlugin(LocalPluginConfig source)
         {
-            if (Directory.Exists(source.Folder))
-            {
-                LocalFolderPlugin local = new(source.Folder) { Source = "Development Folder" };
+            if (!Directory.Exists(source.Folder))
+                return;
 
-                if (File.Exists(source.File))
-                {
-                    local.DeserializeFile(source.File);
-                    LoadPluginData(local);
-                }
-
-                localPlugins[source.Folder] = local;
-            }
+            LocalFolderPlugin local = new(source.Folder) { Source = "DevFolder" };
+            LoadPluginData(local);
+            localPlugins[local.Id] = local;
         }
 
         private void UpdateRemoteHub(RemoteHubConfig source)
@@ -459,15 +446,7 @@ namespace Pulsar.Shared
                 if (source.Enabled)
                     AddLocalPlugin(source);
                 else
-                {
-                    if (ProfilesConfig.Current.Contains(source.Folder))
-                    {
-                        ProfilesConfig.Current.Remove(source.Folder);
-                        ProfilesConfig.Save();
-                    }
-
-                    localPlugins.Remove(source.Folder);
-                }
+                    localPlugins.Remove(Path.GetFileName(source.Folder.TrimEnd('\\')));
 
             foreach (
                 string dll in Directory.EnumerateFiles(
@@ -484,16 +463,16 @@ namespace Pulsar.Shared
             foreach (PluginData source in new List<PluginData>(localPlugins.Values))
             {
                 if (
-                    source is LocalPlugin
+                    source is LocalPlugin local
                     && Directory
                         .EnumerateFiles(LocalPluginDir, "*.dll", SearchOption.AllDirectories)
-                        .Any(x => x == source.Id)
+                        .Any(x => x == local.Dll)
                 )
                     continue;
 
                 if (
-                    source is LocalFolderPlugin
-                    && SourcesConfig.LocalPluginSources.Any(x => x.Folder == source.Id)
+                    source is LocalFolderPlugin folder
+                    && SourcesConfig.LocalPluginSources.Any(x => x.Folder == folder.Folder)
                 )
                     continue;
 
@@ -771,10 +750,12 @@ namespace Pulsar.Shared
             }
 
             foreach (LocalPluginConfig source in SourcesConfig.LocalPluginSources)
-                AddLocalPlugin(source);
+                if (source.Enabled)
+                    AddLocalPlugin(source);
 
             foreach (LocalHubConfig source in SourcesConfig.LocalHubSources)
-                AddLocalHub(source);
+                if (source.Enabled)
+                    AddLocalHub(source);
         }
 
         private void AddLocalHub(LocalHubConfig source)

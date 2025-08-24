@@ -22,44 +22,57 @@ namespace Pulsar.Shared.Data
         private GitHubPlugin github;
         private AssemblyResolver resolver;
 
+        public string Folder;
         public LocalFolderConfig FolderSettings { get; private set; }
 
         public LocalFolderPlugin(string folder)
         {
-            Id = folder;
+            Id = Path.GetFileName(folder.TrimEnd('\\'));
+            Folder = folder;
             Status = PluginStatus.None;
-            FolderSettings = new LocalFolderConfig() { Id = folder };
+            FolderSettings = new LocalFolderConfig() { Id = Id };
+            FriendlyName = Id;
         }
+
+        public override string ToString() => Folder;
 
         public override void LoadData(PluginDataConfig config)
         {
-            if (
-                config is LocalFolderConfig folderConfig
-                && folderConfig.DataFile != null
-                && File.Exists(folderConfig.DataFile)
-            )
-            {
-                FolderSettings = folderConfig;
-            }
+            if (config is not LocalFolderConfig folderConfig)
+                return;
+
+            string file;
+            if (folderConfig.DataFile == null)
+                file = null;
+            else if (!Path.IsPathRooted(folderConfig.DataFile))
+                file = Path.Combine(Folder, folderConfig.DataFile);
+            else
+                file = folderConfig.DataFile;
+
+            FolderSettings = folderConfig;
+            DeserializeFile(file);
         }
 
         public override Assembly GetAssembly()
         {
-            if (Directory.Exists(Id))
+            if (Directory.Exists(Folder))
             {
                 ICompiler compiler = RoslynCompiler.CompilerFactory(FolderSettings.DebugBuild);
                 bool hasFile = false;
 
-                if (github.NuGetReferences != null && github.NuGetReferences.HasPackages)
+                if (github?.NuGetReferences != null && github.NuGetReferences.HasPackages)
                     InstallDependencies(compiler);
 
                 StringBuilder sb = new();
-                sb.Append("Compiling files from ").Append(Id).Append(":").AppendLine();
-                foreach (var file in GetProjectFiles(Id))
+                sb.Append("Compiling files from ").Append(Folder).Append(":").AppendLine();
+                foreach (var file in GetProjectFiles(Folder))
                 {
                     using FileStream fileStream = File.OpenRead(file);
                     hasFile = true;
-                    string name = file.Substring(Id.Length + 1, file.Length - (Id.Length + 1));
+                    string name = file.Substring(
+                        Folder.Length + 1,
+                        file.Length - (Folder.Length + 1)
+                    );
                     sb.Append(name).Append(", ");
                     compiler.Load(fileStream, file);
                 }
@@ -82,7 +95,7 @@ namespace Pulsar.Shared.Data
                 return a;
             }
 
-            throw new DirectoryNotFoundException("Unable to find directory '" + Id + "'");
+            throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
         }
 
         private void InstallDependencies(ICompiler compiler)
@@ -94,7 +107,7 @@ namespace Pulsar.Shared.Data
                 ConfigManager.Instance.PulsarDir,
                 "NuGet",
                 "bin",
-                Tools.GetStringHash(Path.GetFullPath(Id))
+                Tools.GetStringHash(Path.GetFullPath(Folder))
             );
             if (Directory.Exists(binDir))
                 Directory.Delete(binDir, true);
@@ -102,7 +115,7 @@ namespace Pulsar.Shared.Data
 
             if (!string.IsNullOrWhiteSpace(packageList.Config))
             {
-                string nugetFile = Path.GetFullPath(Path.Combine(Id, packageList.Config));
+                string nugetFile = Path.GetFullPath(Path.Combine(Folder, packageList.Config));
                 if (File.Exists(nugetFile))
                 {
                     NuGetPackage[] packages;
@@ -233,28 +246,33 @@ namespace Pulsar.Shared.Data
             return false;
         }
 
-        public override string ToString()
-        {
-            return Id;
-        }
-
-        public void LoadNewDataFile(Action onComplete)
+        public void LoadNewDataFile(Action onComplete = null)
         {
             Tools.OpenFileDialog(
                 "Open an xml data file",
-                Path.GetDirectoryName(FolderSettings.DataFile),
+                FriendlyName,
                 Tools.XmlDataType,
                 (file) =>
                 {
                     DeserializeFile(file);
-                    onComplete.Invoke();
+                    onComplete?.Invoke();
                 }
             );
         }
 
-        // Deserializes a data file
         public void DeserializeFile(string file)
         {
+            if (file == null)
+            {
+                github = null;
+                FriendlyName = Id;
+                FolderSettings.DataFile = null;
+                Tooltip = null;
+                Author = null;
+                Description = null;
+                return;
+            }
+
             if (!File.Exists(file))
                 return;
 
@@ -276,22 +294,28 @@ namespace Pulsar.Shared.Data
                 Author = github.Author;
                 Description = github.Description;
                 sourceDirectories = github
-                    .SourceDirectories?.Select(x => Path.Combine(Id, x).Replace('\\', '/'))
+                    .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
                     .ToArray();
-                FolderSettings.DataFile = file;
+
+                if (file.Contains(Folder))
+                    FolderSettings.DataFile = file.Replace(Folder, "").TrimStart('\\');
+                else
+                    FolderSettings.DataFile = file;
+
                 this.github = github;
             }
             catch (Exception e)
             {
-                LogFile.Error($"Error while reading the xml file {file} for {Id}: " + e);
+                LogFile.Error($"Error while reading the xml file {file} for {Folder}: " + e);
             }
         }
 
         public override string GetAssetPath()
         {
-            if (string.IsNullOrEmpty(github.AssetFolder))
+            if (string.IsNullOrEmpty(github?.AssetFolder))
                 return null;
-            return Path.GetFullPath(Path.Combine(Id, github.AssetFolder));
+
+            return Path.GetFullPath(Path.Combine(Folder, github.AssetFolder));
         }
     }
 }

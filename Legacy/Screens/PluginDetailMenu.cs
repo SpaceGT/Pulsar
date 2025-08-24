@@ -34,7 +34,7 @@ namespace Pulsar.Legacy.Screens
         {
             this.plugin = plugin;
             this.enabledPlugins = enabledPlugins;
-            if (Plugin.Instance.TryGetPluginInstance(plugin.Id, out PluginInstance instance))
+            if (PluginLoader.Instance.TryGetPluginInstance(plugin.Id, out PluginInstance instance))
                 pluginInstance = instance;
             PluginStats stats = ConfigManager.Instance.Stats ?? new PluginStats();
             this.stats = stats.GetStatsForPlugin(plugin);

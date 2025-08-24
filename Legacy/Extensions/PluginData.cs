@@ -26,6 +26,8 @@ namespace Pulsar.Legacy.Extensions
         {
             if (pluginData is LocalFolderPlugin localFolderPlugin)
                 localFolderPlugin.Show();
+            else if (pluginData is LocalPlugin localPlugin)
+                localPlugin.Show();
             else if (pluginData is GitHubPlugin gitHubPlugin)
                 gitHubPlugin.Show();
         }
