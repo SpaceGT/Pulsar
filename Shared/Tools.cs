@@ -108,13 +108,13 @@ namespace Pulsar.Shared
             if (time.TotalHours < 1)
                 return $"{time.Minutes} minutes ago";
 
-            if (time.TotalHours == 1)
+            if (time.Hours == 1)
                 return $"{time.Hours} hour ago";
 
-            if (time.TotalDays < 3)
+            if (time.TotalDays < 1)
                 return $"{time.Hours} hours ago";
 
-            if (time.TotalDays == 3)
+            if (time.Days == 1)
                 return $"{time.Days} day ago";
 
             return $"{time.Days} days ago";
