@@ -1,6 +1,5 @@
 using System;
 using System.Text;
-using Pulsar.Legacy.Loader;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Stats;
@@ -110,7 +109,10 @@ namespace Pulsar.Legacy.Screens
             config.Save();
 
             if (consent)
-                StatsClient.Track(Plugin.Instance.TrackablePluginIds);
+            {
+                ProfilesConfig profiles = ConfigManager.Instance.Profiles;
+                StatsClient.Track([.. profiles.Current.GetPluginIDs(false)]);
+            }
 
             OnConsentChanged?.Invoke();
 

@@ -57,7 +57,8 @@ namespace Pulsar.Legacy.Patch
                 HashSet<ModPlugin> modPlugins =
                 [
                     .. ConfigManager
-                        .Instance.Config.EnabledPlugins.OfType<ModPlugin>()
+                        .Instance.Profiles.Current.GetPlugins()
+                        .OfType<ModPlugin>()
                         .Where(mod => !currentMods.Contains(mod.WorkshopId))
                         .Where(mod => mod.Exists),
                 ];

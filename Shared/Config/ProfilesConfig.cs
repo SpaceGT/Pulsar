@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Xml;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 using Pulsar.Shared.Data;
 
@@ -88,32 +90,52 @@ namespace Pulsar.Shared.Config
                 if (name == currentKey + ".xml" || name.EndsWith(".bak"))
                     continue;
 
+                Profile profile = null;
+                using FileStream fs = File.OpenRead(file);
+
                 try
                 {
-                    using FileStream fs = File.OpenRead(file);
-                    Profile profile = (Profile)serializer.Deserialize(fs);
+                    profile = (Profile)serializer.Deserialize(fs);
+                }
+                catch (XmlException) { }
+
+                if ((bool)(profile?.Validate()))
+                {
                     config.profiles[profile.Key] = profile;
                 }
-                catch (Exception e)
+                else
                 {
-                    LogFile.Error($"An error occurred while loading profile " + name + ": " + e);
+                    LogFile.Error($"An error occurred while loading profile " + name);
                 }
             }
 
-            string path = Path.Combine(folderPath, currentKey + ".xml");
-            try
             {
-                using FileStream fs = File.OpenRead(path);
-                config.Current = (Profile)serializer.Deserialize(fs);
-            }
-            catch (Exception e)
-            {
-                LogFile.Error($"An error occurred while loading current plugins: " + e);
+                Profile current = null;
+                string file = Path.Combine(folderPath, currentKey + ".xml");
 
-                if (File.Exists(path))
-                    File.Move(path, path + ".bak");
+                if (File.Exists(file))
+                {
+                    using FileStream fs = File.OpenRead(file);
 
-                config.Current = new Profile(currentKey, []);
+                    try
+                    {
+                        current = (Profile)serializer.Deserialize(fs);
+                    }
+                    catch (XmlException) { }
+                }
+
+                if ((bool)(current?.Validate()))
+                {
+                    config.Current = current;
+                }
+                else
+                {
+                    LogFile.Error($"An error occurred while loading current plugins");
+                    config.Current = new Profile(currentKey);
+
+                    if (File.Exists(file))
+                        File.Move(file, file + ".bak");
+                }
             }
 
             return config;

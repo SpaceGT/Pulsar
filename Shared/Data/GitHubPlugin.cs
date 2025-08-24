@@ -39,8 +39,10 @@ namespace Pulsar.Shared.Data
         [ProtoMember(5)]
         public NuGetPackageList NuGetReferences { get; set; }
 
+        [XmlIgnore]
+        public GitHubPluginConfig Settings { get; private set; }
+
         private string assemblyName;
-        private GitHubPluginConfig config;
         private CacheManifest manifest;
         private NuGetClient nuget;
         private AssemblyResolver resolver;
@@ -67,30 +69,12 @@ namespace Pulsar.Shared.Data
             }
         }
 
-        public override bool LoadData(ref PluginDataConfig config, bool enabled)
+        public override void LoadData(PluginDataConfig config)
         {
-            if (enabled)
-            {
-                if (config is GitHubPluginConfig githubConfig && IsValidConfig(githubConfig))
-                {
-                    this.config = githubConfig;
-                    return false;
-                }
-
-                this.config = new GitHubPluginConfig() { Id = Id };
-                config = this.config;
-                return true;
-            }
-
-            this.config = null;
-
-            if (config != null)
-            {
-                config = null;
-                return true;
-            }
-
-            return false;
+            if (config is GitHubPluginConfig githubConfig && IsValidConfig(githubConfig))
+                Settings = githubConfig;
+            else
+                Settings = new GitHubPluginConfig() { Id = Id };
         }
 
         private bool IsValidConfig(GitHubPluginConfig githubConfig)
@@ -207,30 +191,31 @@ namespace Pulsar.Shared.Data
 
         public void SetSelectedVersion(int key)
         {
-            PluginConfig mainConfig = ConfigManager.Instance.Config;
+            ProfilesConfig profiles = ConfigManager.Instance.Profiles;
 
             string newVersion = key >= 0 ? AlternateVersions[key].Name : null;
             string currentVersion = GetSelectedVersion()?.Name;
             if (currentVersion == newVersion)
                 return;
 
-            if (config == null)
+            if (Settings == null)
+                Settings = new GitHubPluginConfig() { Id = Id, SelectedVersion = newVersion };
+            else
+                Settings.SelectedVersion = newVersion;
+
+            if (profiles.Current.Contains(Id))
             {
-                config = new GitHubPluginConfig() { Id = Id };
-
-                mainConfig.SavePluginData(config);
+                profiles.Current.Update(Id);
+                profiles.Save();
             }
-
-            config.SelectedVersion = newVersion;
-            mainConfig.Save();
         }
 
         public Branch GetSelectedVersion()
         {
-            if (config == null || string.IsNullOrWhiteSpace(config.SelectedVersion))
+            if (Settings == null || string.IsNullOrWhiteSpace(Settings.SelectedVersion))
                 return null;
             return AlternateVersions?.FirstOrDefault(x =>
-                x.Name.Equals(config.SelectedVersion, StringComparison.OrdinalIgnoreCase)
+                x.Name.Equals(Settings.SelectedVersion, StringComparison.OrdinalIgnoreCase)
             );
         }
 

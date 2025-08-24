@@ -31,7 +31,7 @@ namespace Pulsar.Shared.Data
             FolderSettings = new LocalFolderConfig() { Id = folder };
         }
 
-        public override bool LoadData(ref PluginDataConfig config, bool enabled)
+        public override void LoadData(PluginDataConfig config)
         {
             if (
                 config is LocalFolderConfig folderConfig
@@ -40,11 +40,7 @@ namespace Pulsar.Shared.Data
             )
             {
                 FolderSettings = folderConfig;
-                return false;
             }
-
-            config = FolderSettings;
-            return true;
         }
 
         public override Assembly GetAssembly()

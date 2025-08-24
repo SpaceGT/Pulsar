@@ -39,6 +39,7 @@ namespace Pulsar.Shared
 
         private readonly SourcesConfig SourcesConfig;
         private readonly PluginConfig PluginConfig;
+        private readonly ProfilesConfig ProfilesConfig;
         private readonly string SourceDir;
         private string PluginSourceDir => Path.Combine(SourceDir, "Plugins");
         private string HubSourceDir => Path.Combine(SourceDir, "Hubs");
@@ -51,12 +52,18 @@ namespace Pulsar.Shared
 
         public List<ISteamItem> GetSteamPlugins() => [.. Plugins.Values.OfType<ISteamItem>()];
 
-        public PluginList(string mainDirectory, PluginConfig config, SourcesConfig sources)
+        public PluginList(
+            string mainDirectory,
+            PluginConfig config,
+            SourcesConfig sources,
+            ProfilesConfig profiles
+        )
         {
             LocalPluginDir = Path.Combine(mainDirectory, "Local");
             SourceDir = Path.Combine(mainDirectory, "Sources");
             SourcesConfig = sources;
             PluginConfig = config;
+            ProfilesConfig = profiles;
 
             EnsureDirectories();
 
@@ -84,6 +91,24 @@ namespace Pulsar.Shared
         {
             if (Plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
                 Steam.SubscribeToItem(steam.WorkshopId);
+        }
+
+        private void LoadPluginData(PluginData plugin, PluginDataConfig config = null)
+        {
+            Profile current = ProfilesConfig.Current;
+
+            if (config == null)
+            {
+                if (plugin is GitHubPlugin)
+                    config = current.GitHub.Where(x => x.Id == plugin.Id).FirstOrDefault();
+                else if (plugin is LocalFolderPlugin)
+                    config = current.DevFolder.Where(x => x.Id == plugin.Id).FirstOrDefault();
+
+                // Compiled plugins and mods do not have a config
+            }
+
+            // Passing in null uses a new default config
+            plugin.LoadData(config);
         }
 
         private void FindPluginGroups()
@@ -206,6 +231,7 @@ namespace Pulsar.Shared
             var plugins = new Dictionary<string, PluginData>();
             foreach (PluginData data in list)
             {
+                LoadPluginData(data);
                 data.Source = sourceLabel;
                 plugins[data.Id] = data;
             }
@@ -259,8 +285,7 @@ namespace Pulsar.Shared
                 if (File.Exists(source.File))
                 {
                     local.DeserializeFile(source.File);
-                    if (PluginConfig.LoadPluginData(local))
-                        PluginConfig.Save();
+                    LoadPluginData(local);
                 }
 
                 localPlugins[source.Folder] = local;
@@ -435,11 +460,11 @@ namespace Pulsar.Shared
                     AddLocalPlugin(source);
                 else
                 {
-                    if (PluginConfig.IsEnabled(source.Folder))
-                        PluginConfig.SetEnabled(source.Folder, false);
-
-                    if (PluginConfig.RemovePluginData(source.Folder))
-                        PluginConfig.Save();
+                    if (ProfilesConfig.Current.Contains(source.Folder))
+                    {
+                        ProfilesConfig.Current.Remove(source.Folder);
+                        ProfilesConfig.Save();
+                    }
 
                     localPlugins.Remove(source.Folder);
                 }

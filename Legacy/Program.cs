@@ -82,7 +82,7 @@ namespace Pulsar.Legacy
                 modDir,
                 seVersion,
                 new Dependency(),
-                SharedLoader.DebugCompileAll
+                Tools.HasCommandArg("-debugCompileAll")
             );
 
             bool outdated = seVersion != new Version(SeVersion);

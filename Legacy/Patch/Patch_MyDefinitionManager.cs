@@ -22,7 +22,7 @@ namespace Pulsar.Legacy.Patch
                 HashSet<ulong> currentMods = [.. mods.Select(x => x.PublishedFileId)];
                 List<MyObjectBuilder_Checkpoint.ModItem> newMods = [.. mods];
 
-                foreach (PluginData data in ConfigManager.Instance.Config.EnabledPlugins)
+                foreach (PluginData data in ConfigManager.Instance.Profiles.Current.GetPlugins())
                 {
                     if (
                         data is ModPlugin mod

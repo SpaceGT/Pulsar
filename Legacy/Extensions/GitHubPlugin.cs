@@ -38,12 +38,12 @@ namespace Pulsar.Legacy.Extensions
             versionDropdown.SelectItemByKey(selectedKey);
             versionDropdown.ItemSelected += () =>
             {
-                PluginConfig mainConfig = ConfigManager.Instance.Config;
+                Profile current = ConfigManager.Instance.Profiles.Current;
 
                 int selectedKey = (int)versionDropdown.GetSelectedKey();
                 gitHubPlugin.SetSelectedVersion(selectedKey);
 
-                if (mainConfig.IsEnabled(gitHubPlugin.Id))
+                if (current.Contains(gitHubPlugin.Id))
                     screen.InvokeOnRestartRequired();
             };
 

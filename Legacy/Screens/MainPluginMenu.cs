@@ -18,7 +18,6 @@ namespace Pulsar.Legacy.Screens
 
         private readonly PluginList pluginList = configManager.List;
         private List<PluginData> Plugins => [.. pluginList.OrderBy(x => x.FriendlyName)];
-        private readonly PluginConfig config = configManager.Config;
         private readonly ProfilesConfig profiles = configManager.Profiles;
         private readonly SourcesConfig sources = configManager.Sources;
         private MyGuiControlCheckbox consentBox;
@@ -27,7 +26,7 @@ namespace Pulsar.Legacy.Screens
         private bool requiresRestart = false;
         private readonly HashSet<string> enabledPlugins =
         [
-            .. configManager.Config.EnabledPlugins.Select(x => x.Id),
+            .. configManager.Profiles.Current.GetPluginIDs(),
         ];
 
         public static void Open()
@@ -555,30 +554,26 @@ namespace Pulsar.Legacy.Screens
 
         private void Save()
         {
-            PluginData[] toDisable =
+            Profile current = profiles.Current;
+
+            string[] toDisable =
             [
-                .. config.EnabledPlugins.Where(x => !enabledPlugins.Contains(x.Id)),
+                .. current.GetPluginIDs().Where(x => !enabledPlugins.Contains(x)),
             ];
 
-            foreach (PluginData plugin in toDisable)
-            {
-                if (pluginList.Contains(plugin.Id))
-                {
-                    config.SetEnabled(plugin, false);
-                    profiles.Current.Plugins.Remove(plugin.Id);
-                }
-            }
+            foreach (string pluginId in toDisable)
+                if (pluginList.Contains(pluginId))
+                    current.Remove(pluginId);
 
             foreach (string id in enabledPlugins)
             {
                 if (pluginList.Contains(id))
                 {
-                    config.SetEnabled(id, true);
-                    profiles.Current.Plugins.Add(id);
+                    current.Update(id);
+                    pluginList.SubscribeToItem(id);
                 }
             }
 
-            config.Save();
             profiles.Save();
         }
 
@@ -586,7 +581,7 @@ namespace Pulsar.Legacy.Screens
         {
             if (requiresRestart)
                 return true;
-            HashSet<string> actualPlugins = [.. config.EnabledPlugins.Select(x => x.Id)];
+            HashSet<string> actualPlugins = [.. configManager.Profiles.Current.GetPluginIDs()];
             return enabledPlugins.Count != actualPlugins.Count
                 || !enabledPlugins.SetEquals(actualPlugins);
         }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Compiler;
@@ -16,17 +17,23 @@ namespace Pulsar.Shared
 {
     public class Loader
     {
-        public static bool DebugCompileAll = false;
         public static Loader Instance;
         public readonly List<(PluginData, Assembly)> Plugins = [];
 
-        private readonly SplashManager splash;
+        private readonly bool debugCompileAll;
+
         private readonly PluginConfig config;
+        private readonly SplashManager splash;
+        private readonly ProfilesConfig profiles;
         private readonly StringBuilder debugCompileResults = new();
 
         public Loader(HashSet<string> compileReferences)
         {
-            config = ConfigManager.Instance.Config;
+            ConfigManager manager = ConfigManager.Instance;
+            config = manager.Config;
+            profiles = manager.Profiles;
+            debugCompileAll = manager.DebugCompileAll;
+
             splash = SplashManager.Instance;
 
             if (Tools.EscapePressed())
@@ -45,6 +52,7 @@ namespace Pulsar.Shared
             }
 
             GitHub.Init();
+            LogEnabledPlugins();
 
             splash?.SetText("Finding references...");
             DomainHelper.CreateAppDomain(ConfigManager.Instance.GameDir, compileReferences);
@@ -65,11 +73,11 @@ namespace Pulsar.Shared
             splash?.SetText("Instantiating plugins...");
             LogFile.WriteLine("Instantiating plugins");
 
-            if (DebugCompileAll)
+            if (debugCompileAll)
                 debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
             //TODO: Compile in parallel
-            foreach (PluginData data in config.EnabledPlugins)
+            foreach (PluginData data in GetEnabledPlugins())
             {
                 if (TryGetAssembly(data, out Assembly plugin))
                 {
@@ -77,7 +85,7 @@ namespace Pulsar.Shared
                     if (data.IsLocal)
                         ConfigManager.Instance.HasLocal = true;
                 }
-                else if (DebugCompileAll)
+                else if (debugCompileAll)
                 {
                     debugCompileResults
                         .Append(data.FriendlyName ?? "(null)")
@@ -90,9 +98,7 @@ namespace Pulsar.Shared
             }
 
             DomainHelper.UnloadAppDomain();
-
-            // FIXME: It can potentially run in the background speeding up the game's startup
-            ReportEnabledPlugins();
+            Task.Run(ReportEnabledPlugins);
         }
 
         private void ReportEnabledPlugins()
@@ -104,10 +110,7 @@ namespace Pulsar.Shared
             LogFile.WriteLine("Reporting plugin usage");
 
             // Skip local plugins, keep only enabled ones
-            string[] trackablePluginIds =
-            [
-                .. config.EnabledPlugins.Where(x => !x.IsLocal).Select(x => x.Id),
-            ];
+            string[] trackablePluginIds = [.. profiles.Current.GetPluginIDs(false)];
 
             // Config has already been validated at this point so all enabled plugins will have list items
             // FIXME: Move into a background thread
@@ -127,6 +130,31 @@ namespace Pulsar.Shared
                 return false;
 
             return true;
+        }
+
+        private IEnumerable<PluginData> GetEnabledPlugins()
+        {
+            foreach (PluginData plugin in ConfigManager.Instance.List)
+            {
+                string id = plugin.Id;
+                bool enabled = profiles.Current.Contains(id);
+
+                if (enabled || (debugCompileAll && !plugin.IsLocal && plugin.IsCompiled))
+                    yield return plugin;
+            }
+        }
+
+        private void LogEnabledPlugins()
+        {
+            StringBuilder sb = new("Enabled plugins: ");
+            string[] plugins = [.. GetEnabledPlugins().Select(x => x.Id)];
+
+            if (plugins.Length > 0)
+                sb.Append(string.Join(", ", plugins));
+            else
+                sb.Append("None");
+
+            LogFile.WriteLine(sb.ToString());
         }
     }
 }

@@ -1,5 +1,5 @@
-using System;
 using System.Collections.Generic;
+using System.Linq;
 using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data
@@ -7,44 +7,57 @@ namespace Pulsar.Shared.Data
     public class Profile
     {
         public string Key => Tools.CleanFileName(Name);
-
-        // Name of the profile
         public string Name { get; set; }
 
-        // Plugin IDs
-        public HashSet<string> Plugins { get; set; }
+        public HashSet<GitHubPluginConfig> GitHub { get; set; }
+        public HashSet<LocalFolderConfig> DevFolder { get; set; }
+        public HashSet<string> Local { get; set; }
+        public HashSet<ulong> Mods { get; set; }
 
         public Profile() { }
 
-        public Profile(string name, HashSet<string> plugins)
+        public Profile(string name, IEnumerable<string> plugins = null)
         {
             Name = name;
-            Plugins = plugins;
+
+            GitHub = [];
+            DevFolder = [];
+            Local = [];
+            Mods = [];
+
+            foreach (string pluginId in plugins ?? [])
+                Update(pluginId);
         }
+
+        public IEnumerable<string> GetPluginIDs(bool includeLocal = true)
+        {
+            IEnumerable<string> ids = GitHub
+                .Select(x => x.Id)
+                .Concat(Mods.Select(x => x.ToString()));
+
+            if (includeLocal)
+                ids.Concat(Local.Concat(DevFolder.Select(x => x.Id)));
+
+            return ids;
+        }
+
+        public bool Contains(string id) => GetPluginIDs().Contains(id);
+
+        private static bool TryGetPlugin(string id, out PluginData pluginData) =>
+            ConfigManager.Instance.List.TryGetPlugin(id, out pluginData);
 
         public IEnumerable<PluginData> GetPlugins()
         {
-            foreach (string id in Plugins)
-            {
-                if (ConfigManager.Instance.List.TryGetPlugin(id, out PluginData plugin))
+            foreach (string id in GetPluginIDs())
+                if (TryGetPlugin(id, out PluginData plugin))
                     yield return plugin;
-            }
         }
 
         public string GetDescription()
         {
-            int locals = 0;
-            int plugins = 0;
-            int mods = 0;
-            foreach (PluginData plugin in GetPlugins())
-            {
-                if (plugin.IsLocal)
-                    locals++;
-                else if (plugin is ModPlugin)
-                    mods++;
-                else
-                    plugins++;
-            }
+            int locals = Local.Count + DevFolder.Count;
+            int plugins = GitHub.Count;
+            int mods = Mods.Count;
 
             List<string> infoItems = [];
             if (locals > 0)
@@ -56,5 +69,35 @@ namespace Pulsar.Shared.Data
 
             return string.Join(", ", infoItems);
         }
+
+        public void Update(string id)
+        {
+            if (!TryGetPlugin(id, out PluginData data))
+                return;
+
+            Remove(id);
+
+            if (data is GitHubPlugin gitHubData)
+                GitHub.Add(Tools.DeepCopy(gitHubData.Settings));
+            else if (data is LocalFolderPlugin folderData)
+                DevFolder.Add(Tools.DeepCopy(folderData.FolderSettings));
+            else if (data is LocalPlugin localData)
+                Local.Add(localData.Id);
+            else if (data is ModPlugin modData)
+                Mods.Add(ulong.Parse(modData.Id));
+        }
+
+        public void Remove(string id)
+        {
+            GitHub.RemoveWhere(x => x.Id == id);
+            DevFolder.RemoveWhere(x => x.Id == id);
+            Local.Remove(id);
+
+            if (ulong.TryParse(id, out ulong mId))
+                Mods.Remove(mId);
+        }
+
+        public bool Validate() =>
+            !new object[] { Name, GitHub, DevFolder, Local, Mods }.Contains(null);
     }
 }

@@ -182,7 +182,9 @@ namespace Pulsar.Legacy.Screens
             else if (row.UserData is Profile p)
             {
                 // Update profile
-                p.Plugins = [.. enabledPlugins];
+                foreach (string id in enabledPlugins)
+                    p.Update(id);
+
                 row.GetCell(1).Text.Clear().Append(p.GetDescription());
                 config.Save(p.Key);
             }

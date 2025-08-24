@@ -58,10 +58,6 @@ namespace Pulsar.Legacy.Loader
             return false;
         }
 
-        // Skip local plugins, keep only enabled ones
-        public string[] TrackablePluginIds =>
-            [.. config.EnabledPlugins.Where(x => !x.IsLocal).Select(x => x.Id)];
-
         public void RegisterComponents()
         {
             LogFile.WriteLine($"Registering {plugins.Count} components");
@@ -116,10 +112,8 @@ namespace Pulsar.Legacy.Loader
             }
 
             SplashManager.Instance?.SetText($"Updating workshop items...");
-            PluginConfig config = ConfigManager.Instance.Config;
-            SteamMods.Update(
-                config.EnabledPlugins.OfType<ISteamItem>().Select(mod => mod.WorkshopId)
-            );
+            ProfilesConfig profiles = ConfigManager.Instance.Profiles;
+            SteamMods.Update(profiles.Current.Mods);
 
             ShowGame();
         }

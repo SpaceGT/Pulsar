@@ -67,17 +67,14 @@ namespace Pulsar.Shared.Data
         public List<PluginData> Group { get; } = [];
 
         [XmlIgnore]
-        public bool Enabled => ConfigManager.Instance.Config.IsEnabled(Id);
+        public bool Enabled => ConfigManager.Instance.Profiles.Current.Contains(Id);
 
         protected PluginData() { }
 
         /// <summary>
-        /// Loads the user settings into the plugin. Returns true if the config was modified.
+        /// Loads the user settings into the plugin.
         /// </summary>
-        public virtual bool LoadData(ref PluginDataConfig config, bool enabled)
-        {
-            return false;
-        }
+        public virtual void LoadData(PluginDataConfig config) { }
 
         public abstract Assembly GetAssembly();
 

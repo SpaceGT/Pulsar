@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using Newtonsoft.Json;
 using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared
@@ -348,6 +349,12 @@ namespace Pulsar.Shared
             }
 
             return newName.ToString();
+        }
+
+        public static T DeepCopy<T>(T obj)
+        {
+            string json = JsonConvert.SerializeObject(obj);
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
         [DllImport("user32.dll")]
