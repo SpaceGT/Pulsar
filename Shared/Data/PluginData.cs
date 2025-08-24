@@ -93,7 +93,7 @@ namespace Pulsar.Shared.Data
                 if (Status == PluginStatus.Blocked)
                     return false;
 
-                if (a == null)
+                if (a is null)
                 {
                     LogFile.Error("Failed to load " + ToString());
                     Error();
@@ -151,7 +151,7 @@ namespace Pulsar.Shared.Data
 
         public bool Equals(PluginData other)
         {
-            return other != null && Id == other.Id;
+            return other is not null && Id == other.Id;
         }
 
         public override int GetHashCode()

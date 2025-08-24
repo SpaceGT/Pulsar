@@ -68,7 +68,7 @@ namespace Pulsar.Shared.Network
                         package.PackageIdentity,
                         package.TargetFramework
                     );
-                    if (installedPackage != null)
+                    if (installedPackage is not null)
                         packages.Add(installedPackage);
                 }
             }
@@ -115,7 +115,7 @@ namespace Pulsar.Shared.Network
                 foreach (PackageIdentity id in downloadPackages)
                 {
                     NuGetPackage installedPackage = await DownloadPackage(cacheContext, id);
-                    if (installedPackage != null)
+                    if (installedPackage is not null)
                         result.Add(installedPackage);
                 }
             }
@@ -151,7 +151,7 @@ namespace Pulsar.Shared.Network
 
             DependencyInfoResource dependencyInfoResource =
                 await sourceRepository.GetResourceAsync<DependencyInfoResource>();
-            if (dependencyInfoResource == null)
+            if (dependencyInfoResource is null)
                 return result.Values;
 
             Stack<PackageIdentity> stack = new(packages);
@@ -170,7 +170,7 @@ namespace Pulsar.Shared.Network
                             CancellationToken.None
                         );
                     result.Add(package, dependencyInfo);
-                    if (dependencyInfo == null)
+                    if (dependencyInfo is null)
                         continue;
                     foreach (PackageDependency dependency in dependencyInfo.Dependencies)
                         stack.Push(
@@ -179,7 +179,7 @@ namespace Pulsar.Shared.Network
                 }
             }
 
-            return result.Values.Where(x => x != null);
+            return result.Values.Where(x => x is not null);
         }
 
         public async Task<NuGetPackage> DownloadPackage(
@@ -192,7 +192,7 @@ namespace Pulsar.Shared.Network
                 return null;
 
             if (
-                framework == null
+                framework is null
                 || framework.IsAny
                 || framework.IsAgnostic
                 || framework.IsUnsupported
@@ -200,7 +200,7 @@ namespace Pulsar.Shared.Network
                 framework = ProjectFramework;
 
             string installedPath = pathResolver.GetInstalledPath(package);
-            if (installedPath == null)
+            if (installedPath is null)
             {
                 DownloadResource downloadResource =
                     await sourceRepository.GetResourceAsync<DownloadResource>(
@@ -225,7 +225,7 @@ namespace Pulsar.Shared.Network
                 );
 
                 installedPath = pathResolver.GetInstalledPath(package);
-                if (installedPath == null)
+                if (installedPath is null)
                     return null;
 
                 logger.LogInformation($"Package downloaded: {package.Id}");

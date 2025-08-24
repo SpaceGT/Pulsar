@@ -50,7 +50,7 @@ namespace Pulsar.Shared.Network
                 targetFramework,
                 itemGroups.Select(x => x.TargetFramework)
             );
-            if (nearest != null)
+            if (nearest is not null)
             {
                 List<Item> libFiles = [];
                 foreach (
@@ -63,7 +63,7 @@ namespace Pulsar.Shared.Network
                             .Items.Select(x =>
                                 GetPackageItem(x, group.TargetFramework, contentItems)
                             )
-                            .Where(x => x != null)
+                            .Where(x => x is not null)
                     );
                 return [.. libFiles];
             }

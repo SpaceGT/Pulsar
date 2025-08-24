@@ -93,14 +93,14 @@ namespace Pulsar.Legacy.Screens
 
         private static int TextComparison(StringBuilder x, StringBuilder y)
         {
-            if (x == null)
+            if (x is null)
             {
-                if (y == null)
+                if (y is null)
                     return 0;
                 return 1;
             }
 
-            if (y == null)
+            if (y is null)
                 return -1;
 
             return x.CompareTo(y);

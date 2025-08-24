@@ -79,18 +79,18 @@ public class ConfigurePlugin : PluginScreen
 
     private int CellTextComparison(MyGuiControlTable.Cell x, MyGuiControlTable.Cell y)
     {
-        if (x == null)
-            return y == null ? 0 : 1;
+        if (x is null)
+            return y is null ? 0 : 1;
 
-        return y == null ? -1 : TextComparison(x.Text, y.Text);
+        return y is null ? -1 : TextComparison(x.Text, y.Text);
     }
 
     private int TextComparison(StringBuilder x, StringBuilder y)
     {
-        if (x == null)
-            return y == null ? 0 : 1;
+        if (x is null)
+            return y is null ? 0 : 1;
 
-        return y == null ? -1 : x.CompareTo(y);
+        return y is null ? -1 : x.CompareTo(y);
     }
 
     private void OnItemSelected(MyGuiControlTable arg1, MyGuiControlTable.EventArgs arg2)

@@ -41,7 +41,7 @@ namespace Pulsar.Legacy.Launcher
             );
 
             using var key = baseKey.OpenSubKey(string.Format(registryKey, Steam.AppId));
-            if (key == null)
+            if (key is null)
                 return null;
 
             var installLocation = key.GetValue(registryName) as string;
@@ -70,7 +70,7 @@ namespace Pulsar.Legacy.Launcher
         private static string FromArguments()
         {
             string rawPath = Tools.GetCommandArg("-bin64");
-            if (rawPath == null)
+            if (rawPath is null)
                 return null;
 
             string path = Path.GetFullPath(rawPath);

@@ -35,7 +35,7 @@ namespace Pulsar.Legacy.Patch
             }
 
             Vector2 position;
-            if (lastBtn == null)
+            if (lastBtn is null)
             {
                 position = lastButtonPosition + MyGuiConstants.MENU_BUTTONS_POSITION_DELTA;
             }
@@ -61,7 +61,7 @@ namespace Pulsar.Legacy.Patch
             __instance.Controls.Add(openBtn);
 
             if (
-                ___m_continueButton != null
+                ___m_continueButton is not null
                 && ___m_continueButton.Visible
                 && !usedAutoRejoin
                 && Tools.HasCommandArg(LoaderTools.ContinueArg)

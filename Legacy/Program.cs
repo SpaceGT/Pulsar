@@ -54,7 +54,7 @@ namespace Pulsar.Legacy
             string dependencyDir = Path.Combine(currentDir, "Libraries");
             string bin64Dir = Folder.GetBin64();
 
-            if (bin64Dir == null)
+            if (bin64Dir is null)
             {
                 Tools.ShowMessageBox(
                     $"Error: {OriginalAssemblyFile} not found!\n"
@@ -149,7 +149,7 @@ namespace Pulsar.Legacy
                 float progress = 0;
                 SplashManager splash = SplashManager.Instance;
 
-                while (splash != null && progress < 1)
+                while (splash is not null && progress < 1)
                 {
                     // FIXME: Does not work well with preloaded assemblies
                     progress = Game.GetLoadProgress();

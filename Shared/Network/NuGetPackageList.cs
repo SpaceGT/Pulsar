@@ -16,6 +16,6 @@ namespace Pulsar.Shared.Network
         public string PackagesConfigNormalized => Config?.Replace('\\', '/').TrimStart('/');
 
         public bool HasPackages =>
-            !string.IsNullOrWhiteSpace(Config) || (PackageIds != null && PackageIds.Length > 0);
+            !string.IsNullOrWhiteSpace(Config) || (PackageIds is not null && PackageIds.Length > 0);
     }
 }

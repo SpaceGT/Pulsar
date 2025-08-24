@@ -123,7 +123,7 @@ namespace Pulsar.Legacy.Screens
 
         private void UpdateButtons()
         {
-            bool selected = profilesTable.SelectedRow != null;
+            bool selected = profilesTable.SelectedRow is not null;
             btnUpdate.Text = selected ? "Update" : "New";
             btnLoad.Enabled = selected;
             btnRename.Enabled = selected;
@@ -172,7 +172,7 @@ namespace Pulsar.Legacy.Screens
         private void OnUpdateClick(MyGuiControlButton btn)
         {
             MyGuiControlTable.Row row = profilesTable.SelectedRow;
-            if (row == null)
+            if (row is null)
             {
                 // New profile
                 MyScreenManager.AddScreen(

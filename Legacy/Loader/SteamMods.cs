@@ -43,7 +43,7 @@ namespace Pulsar.Legacy.Loader
             if (result.Result != VRage.GameServices.MyGameServiceCallResult.OK)
             {
                 Exception[] exceptions = task.Exceptions;
-                if (exceptions != null && exceptions.Length > 0)
+                if (exceptions is not null && exceptions.Length > 0)
                 {
                     StringBuilder sb = new();
                     sb.AppendLine("An error occurred while updating workshop items:");
@@ -71,11 +71,7 @@ namespace Pulsar.Legacy.Loader
                 .. mods.Select(x => new WorkshopId(x.PublishedFileId, x.PublishedServiceName)),
             ];
 
-            if (DownloadModsBlocking == null)
-                DownloadModsBlocking = AccessTools.Method(
-                    typeof(MyWorkshop),
-                    "DownloadModsBlocking"
-                );
+            DownloadModsBlocking ??= AccessTools.Method(typeof(MyWorkshop), "DownloadModsBlocking");
 
             MyWorkshop.ResultData resultData = (MyWorkshop.ResultData)
                 DownloadModsBlocking.Invoke(

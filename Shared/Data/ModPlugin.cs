@@ -60,7 +60,7 @@ namespace Pulsar.Shared.Data
         {
             get
             {
-                if (modLocation != null)
+                if (modLocation is not null)
                     return modLocation;
                 modLocation = Path.Combine(
                     Path.GetFullPath(ConfigManager.Instance.ModDir),
@@ -74,7 +74,7 @@ namespace Pulsar.Shared.Data
                     string legacyFile = Directory
                         .EnumerateFiles(modLocation, "*_legacy.bin")
                         .FirstOrDefault();
-                    if (legacyFile != null)
+                    if (legacyFile is not null)
                     {
                         isLegacy = true;
                         modLocation = legacyFile;

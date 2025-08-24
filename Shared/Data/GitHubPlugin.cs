@@ -81,7 +81,7 @@ namespace Pulsar.Shared.Data
         {
             if (string.IsNullOrWhiteSpace(githubConfig.SelectedVersion))
                 return true;
-            if (AlternateVersions == null)
+            if (AlternateVersions is null)
                 return false;
             return AlternateVersions.Any(x =>
                 x.Name.Equals(githubConfig.SelectedVersion, StringComparison.OrdinalIgnoreCase)
@@ -109,7 +109,7 @@ namespace Pulsar.Shared.Data
 
         private void CleanPaths(string[] paths)
         {
-            if (paths != null)
+            if (paths is not null)
             {
                 for (int i = paths.Length - 1; i >= 0; i--)
                 {
@@ -154,7 +154,7 @@ namespace Pulsar.Shared.Data
                     selectedCommit,
                     gameVersion,
                     !string.IsNullOrWhiteSpace(AssetFolder),
-                    NuGetReferences != null && NuGetReferences.HasPackages
+                    NuGetReferences is not null && NuGetReferences.HasPackages
                 )
             )
             {
@@ -198,7 +198,7 @@ namespace Pulsar.Shared.Data
             if (currentVersion == newVersion)
                 return;
 
-            if (Settings == null)
+            if (Settings is null)
                 Settings = new GitHubPluginConfig() { Id = Id, SelectedVersion = newVersion };
             else
                 Settings.SelectedVersion = newVersion;
@@ -212,7 +212,7 @@ namespace Pulsar.Shared.Data
 
         public Branch GetSelectedVersion()
         {
-            if (Settings == null || string.IsNullOrWhiteSpace(Settings.SelectedVersion))
+            if (Settings is null || string.IsNullOrWhiteSpace(Settings.SelectedVersion))
                 return null;
             return AlternateVersions?.FirstOrDefault(x =>
                 x.Name.Equals(Settings.SelectedVersion, StringComparison.OrdinalIgnoreCase)
@@ -237,7 +237,7 @@ namespace Pulsar.Shared.Data
                     callback?.Invoke(i / (float)zip.Entries.Count);
                 }
             }
-            if (NuGetReferences?.PackageIds != null)
+            if (NuGetReferences?.PackageIds is not null)
             {
                 nuget ??= new NuGetClient();
                 InstallPackages(nuget.DownloadPackages(NuGetReferences.PackageIds), compiler);
@@ -249,7 +249,7 @@ namespace Pulsar.Shared.Data
         private void CompileFromSource(ICompiler compiler, ZipArchiveEntry entry)
         {
             string path = RemoveRoot(entry.FullName);
-            if (NuGetReferences != null && path == NuGetReferences.PackagesConfigNormalized)
+            if (NuGetReferences is not null && path == NuGetReferences.PackagesConfigNormalized)
             {
                 nuget = new NuGetClient();
                 NuGetPackage[] packages;
@@ -333,7 +333,7 @@ namespace Pulsar.Shared.Data
             if (!path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
                 return false;
 
-            if (SourceDirectories == null || SourceDirectories.Length == 0)
+            if (SourceDirectories is null || SourceDirectories.Length == 0)
                 return true;
 
             foreach (string dir in SourceDirectories)

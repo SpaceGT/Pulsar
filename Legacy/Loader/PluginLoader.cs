@@ -115,27 +115,27 @@ namespace Pulsar.Legacy.Loader
 
         public void Update()
         {
-            if (init)
+            if (!init)
+                return;
+
+            for (int i = plugins.Count - 1; i >= 0; i--)
             {
-                for (int i = plugins.Count - 1; i >= 0; i--)
-                {
-                    PluginInstance p = plugins[i];
-                    if (!p.Update())
-                        plugins.RemoveAtFast(i);
-                }
+                PluginInstance p = plugins[i];
+                if (!p.Update())
+                    plugins.RemoveAtFast(i);
             }
         }
 
         public void HandleInput()
         {
-            if (init)
+            if (!init)
+                return;
+
+            for (int i = plugins.Count - 1; i >= 0; i--)
             {
-                for (int i = plugins.Count - 1; i >= 0; i--)
-                {
-                    PluginInstance p = plugins[i];
-                    if (!p.HandleInput())
-                        plugins.RemoveAtFast(i);
-                }
+                PluginInstance p = plugins[i];
+                if (!p.HandleInput())
+                    plugins.RemoveAtFast(i);
             }
         }
 
@@ -162,7 +162,7 @@ namespace Pulsar.Legacy.Loader
                 MemberAccessException accessException =
                     e.Exception as MemberAccessException
                     ?? e.Exception?.InnerException as MemberAccessException;
-                if (accessException != null)
+                if (accessException is not null)
                 {
                     foreach (PluginInstance plugin in plugins)
                     {

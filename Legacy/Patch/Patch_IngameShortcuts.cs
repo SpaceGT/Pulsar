@@ -20,7 +20,7 @@ namespace Pulsar.Legacy.Patch
         public static bool Prefix()
         {
             IMyInput input = MyInput.Static;
-            if (MySession.Static == null || input == null)
+            if (MySession.Static is null || input is null)
                 return true;
 
             if (input.IsAnyAltKeyPressed() && input.IsAnyCtrlKeyPressed())

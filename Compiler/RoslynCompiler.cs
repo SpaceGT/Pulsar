@@ -152,7 +152,7 @@ namespace Pulsar.Compiler
                 try
                 {
                     MetadataReference reference = MetadataReference.CreateFromFile(dll);
-                    if (reference != null)
+                    if (reference is not null)
                     {
                         LogFile.WriteLine(
                             "Custom compiler reference: " + (reference.Display ?? dll)

@@ -46,7 +46,7 @@ namespace Pulsar.Legacy.Patch
             try
             {
                 HashSet<ulong> currentMods;
-                if (MySession.Static.Mods != null)
+                if (MySession.Static.Mods is not null)
                     currentMods = [.. MySession.Static.Mods.Select(x => x.PublishedFileId)];
                 else
                     currentMods = [];

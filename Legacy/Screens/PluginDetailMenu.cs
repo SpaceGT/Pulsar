@@ -79,7 +79,7 @@ namespace Pulsar.Legacy.Screens
                 onButtonClick: OnPluginSettingsClick
             )
             {
-                Enabled = pluginInstance != null && pluginInstance.HasConfigDialog,
+                Enabled = pluginInstance is not null && pluginInstance.HasConfigDialog,
             };
             PositionToRight(btnInfo, btnSettings);
             Controls.Add(btnSettings);
@@ -218,11 +218,11 @@ namespace Pulsar.Legacy.Screens
                 vote = 0;
 
             PluginStat updatedStat = StatsClient.Vote(plugin.Id, vote);
-            if (updatedStat == null)
+            if (updatedStat is null)
                 return;
 
             PluginStats allStats = ConfigManager.Instance.Stats;
-            if (allStats != null)
+            if (allStats is not null)
                 allStats.Stats[plugin.Id] = updatedStat;
 
             stats = updatedStat;
@@ -231,7 +231,7 @@ namespace Pulsar.Legacy.Screens
 
         private void RefreshVotingPanel()
         {
-            if (votingPanel == null)
+            if (votingPanel is null)
                 return;
             votingPanel.Controls.Clear();
             CreateVotingPanel(votingPanel);

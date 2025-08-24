@@ -93,7 +93,7 @@ namespace Pulsar.Shared
             if (!File.Exists(configPath) || !Directory.Exists(dependencyDir))
                 return false;
 
-            if (checksum != null && Tools.GetFolderHash(dependencyDir) != checksum)
+            if (checksum is not null && Tools.GetFolderHash(dependencyDir) != checksum)
                 return false;
 
             return true;

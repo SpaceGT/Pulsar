@@ -34,7 +34,7 @@ namespace Pulsar.Legacy.Loader
 
         public static void AskToRestart()
         {
-            if (MyGuiScreenGamePlay.Static != null)
+            if (MyGuiScreenGamePlay.Static is not null)
                 AskSave(
                     delegate
                     {

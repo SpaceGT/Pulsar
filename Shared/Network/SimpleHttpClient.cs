@@ -22,7 +22,7 @@ namespace Pulsar.Shared.Network
                     CreateRequest(HttpMethod.Get, url).GetResponse();
 
                 using var responseStream = response.GetResponseStream();
-                if (responseStream == null)
+                if (responseStream is null)
                     return null;
 
                 using var streamReader = new StreamReader(responseStream, Encoding.UTF8);
@@ -48,7 +48,7 @@ namespace Pulsar.Shared.Network
                     CreateRequest(HttpMethod.Get, uri).GetResponse();
 
                 using var responseStream = response.GetResponseStream();
-                if (responseStream == null)
+                if (responseStream is null)
                     return null;
 
                 using var streamReader = new StreamReader(responseStream, Encoding.UTF8);
@@ -140,7 +140,7 @@ namespace Pulsar.Shared.Network
         private static TV PostRequest<TV>(HttpWebRequest request, byte[] body = null)
             where TV : class, new()
         {
-            if (body != null)
+            if (body is not null)
             {
                 using var requestStream = request.GetRequestStream();
                 requestStream.Write(body, 0, body.Length);
@@ -149,7 +149,7 @@ namespace Pulsar.Shared.Network
 
             using var response = (HttpWebResponse)request.GetResponse();
             using var responseStream = response.GetResponseStream();
-            if (responseStream == null)
+            if (responseStream is null)
                 return null;
 
             using var streamReader = new StreamReader(responseStream, Encoding.UTF8);
@@ -159,7 +159,7 @@ namespace Pulsar.Shared.Network
 
         private static bool PostRequest(HttpWebRequest request, byte[] body = null)
         {
-            if (body != null)
+            if (body is not null)
             {
                 using var requestStream = request.GetRequestStream();
                 requestStream.Write(body, 0, body.Length);
@@ -184,7 +184,7 @@ namespace Pulsar.Shared.Network
             Dictionary<string, string> parameters
         )
         {
-            if (parameters == null || parameters.Count == 0)
+            if (parameters is null || parameters.Count == 0)
                 return;
 
             var first = true;

@@ -42,7 +42,7 @@ namespace Pulsar.Shared.Data
                 return;
 
             string file;
-            if (folderConfig.DataFile == null)
+            if (folderConfig.DataFile is null)
                 file = null;
             else if (!Path.IsPathRooted(folderConfig.DataFile))
                 file = Path.Combine(Folder, folderConfig.DataFile);
@@ -60,7 +60,7 @@ namespace Pulsar.Shared.Data
                 ICompiler compiler = RoslynCompiler.CompilerFactory(FolderSettings.DebugBuild);
                 bool hasFile = false;
 
-                if (github?.NuGetReferences != null && github.NuGetReferences.HasPackages)
+                if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
                     InstallDependencies(compiler);
 
                 StringBuilder sb = new();
@@ -128,7 +128,7 @@ namespace Pulsar.Shared.Data
                 }
             }
 
-            if (packageList.PackageIds != null)
+            if (packageList.PackageIds is not null)
             {
                 foreach (NuGetPackage package in nuget.DownloadPackages(packageList.PackageIds))
                     InstallPackage(package, compiler, binDir);
@@ -235,7 +235,7 @@ namespace Pulsar.Shared.Data
 
         private bool IsValidProjectFile(string file)
         {
-            if (sourceDirectories == null || sourceDirectories.Length == 0)
+            if (sourceDirectories is null || sourceDirectories.Length == 0)
                 return true;
             file = file.Replace('\\', '/');
             foreach (string dir in sourceDirectories)
@@ -262,7 +262,7 @@ namespace Pulsar.Shared.Data
 
         public void DeserializeFile(string file)
         {
-            if (file == null)
+            if (file is null)
             {
                 github = null;
                 FriendlyName = Id;

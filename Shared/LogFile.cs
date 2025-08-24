@@ -62,9 +62,7 @@ namespace Pulsar.Shared
         {
             try
             {
-                if (level == null)
-                    level = LogLevel.Info;
-
+                level ??= LogLevel.Info;
                 logger?.Log(level, text);
 
                 if (gameLog)
@@ -84,7 +82,7 @@ namespace Pulsar.Shared
 
         public static void Dispose()
         {
-            if (logger == null)
+            if (logger is null)
                 return;
 
             try

@@ -15,7 +15,7 @@ namespace Pulsar.Legacy.Extensions
         )
         {
             if (
-                gitHubPlugin.AlternateVersions == null
+                gitHubPlugin.AlternateVersions is null
                 || gitHubPlugin.AlternateVersions.Length == 0
             )
             {

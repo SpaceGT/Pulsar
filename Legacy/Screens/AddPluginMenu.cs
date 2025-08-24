@@ -142,7 +142,7 @@ namespace Pulsar.Legacy.Screens
             int selectedItem = (int)sortDropdown.GetSelectedKey();
             if (Enum.IsDefined(typeof(SortingMethod), selectedItem))
             {
-                if (sortDropdown.TryGetItemByKey(-1) != null)
+                if (sortDropdown.TryGetItemByKey(-1) is not null)
                 {
                     // In order to remove the placeholder without messing up the dropdown highlight, the selected item must be selected again
                     sortDropdown.ItemSelected -= OnSortSelected;
@@ -368,7 +368,7 @@ namespace Pulsar.Legacy.Screens
         private void OnPluginItemClicked(ParentButton btn)
         {
             MyGuiControlBase checkbox = btn.Controls.GetControlByName("PluginEnabled");
-            if (checkbox != null && checkbox.CheckMouseOver(false))
+            if (checkbox is not null && checkbox.CheckMouseOver(false))
                 return;
             if (btn.UserData is PluginData plugin)
             {

@@ -38,7 +38,7 @@ namespace Pulsar.Legacy.Extensions
                 }
             );
 
-            if (folderSettings.DataFile == null)
+            if (folderSettings.DataFile is null)
                 btnRemove.Enabled = false;
 
             screen.PositionAbove(bottomControl, btnRemove);

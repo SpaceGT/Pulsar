@@ -51,8 +51,7 @@ namespace Pulsar.Compiler
         {
             try
             {
-                if (level == null)
-                    level = LogLevel.Info;
+                level ??= LogLevel.Info;
                 logger?.Log(level, text);
             }
             catch
@@ -63,7 +62,7 @@ namespace Pulsar.Compiler
 
         public static void Dispose()
         {
-            if (logger == null)
+            if (logger is null)
                 return;
 
             try

@@ -19,7 +19,7 @@ namespace Pulsar.Shared.Config
         public void Save(string key = null)
         {
             Profile profile;
-            if (key == null)
+            if (key is null)
                 profile = Current;
             else
                 profile = profiles[key];

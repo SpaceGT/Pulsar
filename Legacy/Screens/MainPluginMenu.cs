@@ -241,14 +241,14 @@ namespace Pulsar.Legacy.Screens
         private bool TryGetListPlugin(MyGuiControlTable list, out PluginData plugin)
         {
             MyGuiControlTable.Row row = list.SelectedRow;
-            if (row == null)
+            if (row is null)
             {
                 plugin = null;
                 return false;
             }
 
             plugin = row.UserData as PluginData;
-            return plugin != null;
+            return plugin is not null;
         }
 
         private bool TryGetListPlugin(MyGuiControlTable list, int index, out PluginData plugin)
@@ -257,7 +257,7 @@ namespace Pulsar.Legacy.Screens
             {
                 MyGuiControlTable.Row row = list.GetRow(index);
                 plugin = row.UserData as PluginData;
-                return plugin != null;
+                return plugin is not null;
             }
 
             plugin = null;
@@ -405,14 +405,14 @@ namespace Pulsar.Legacy.Screens
 
         private static int TextComparison(StringBuilder x, StringBuilder y)
         {
-            if (x == null)
+            if (x is null)
             {
-                if (y == null)
+                if (y is null)
                     return 0;
                 return 1;
             }
 
-            if (y == null)
+            if (y is null)
                 return -1;
 
             return x.CompareTo(y);

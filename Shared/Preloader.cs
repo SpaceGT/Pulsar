@@ -88,7 +88,7 @@ namespace Pulsar.Shared
         {
             IEnumerable<string> targets = GetTargets(patch);
 
-            if (targets == null)
+            if (targets is null)
             {
                 string name = patch.Assembly.GetName().Name;
                 string message = $"Preloader plugin '{name}' does not define targets";
@@ -110,7 +110,7 @@ namespace Pulsar.Shared
         {
             Type patch = assembly.GetType(ClassName);
 
-            if (patch != null)
+            if (patch is not null)
                 AddPatch(patch);
         }
 
@@ -130,7 +130,7 @@ namespace Pulsar.Shared
                 BindingFlags.Public | BindingFlags.Static
             );
 
-            if (prop == null || prop.GetValue(null) is not IEnumerable<string> targets)
+            if (prop is null || prop.GetValue(null) is not IEnumerable<string> targets)
                 return null;
 
             return targets;
@@ -143,7 +143,7 @@ namespace Pulsar.Shared
                 BindingFlags.Public | BindingFlags.Static
             );
 
-            if (patchMethod == null)
+            if (patchMethod is null)
             {
                 string name = patch.Assembly.GetName().Name;
                 string message = $"Preloader plugin '{name}' does not define a patch method";
@@ -159,7 +159,7 @@ namespace Pulsar.Shared
             {
                 patchMethod.Invoke(null, args);
             }
-            catch (TargetInvocationException tie) when (tie.InnerException != null)
+            catch (TargetInvocationException tie) when (tie.InnerException is not null)
             {
                 string name = patch.Assembly.GetName().Name;
                 var message = $"Preloader plugin '{name}' had an exception:\n" + tie.InnerException;

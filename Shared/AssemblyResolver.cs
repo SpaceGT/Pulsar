@@ -86,7 +86,7 @@ namespace Pulsar.Shared
 
         private bool IsAllowedRequest(Assembly requestingAssembly)
         {
-            if (requestingAssembly == null)
+            if (requestingAssembly is null)
                 return false;
 
             string name = requestingAssembly.GetName().Name;

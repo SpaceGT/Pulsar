@@ -90,7 +90,7 @@ namespace Pulsar.Shared
         {
             Profile current = ProfilesConfig.Current;
 
-            if (config == null)
+            if (config is null)
             {
                 if (plugin is GitHubPlugin)
                     config = current.GitHub.Where(x => x.Id == plugin.Id).FirstOrDefault();
@@ -132,7 +132,7 @@ namespace Pulsar.Shared
 
         private void FindModDependencies(ModPlugin mod)
         {
-            if (mod.DependencyIds == null)
+            if (mod.DependencyIds is null)
                 return;
 
             Dictionary<ulong, ModPlugin> dependencies = new() { { mod.WorkshopId, mod } };
@@ -143,7 +143,7 @@ namespace Pulsar.Shared
             {
                 ModPlugin temp = toProcess.Pop();
 
-                if (temp.DependencyIds == null)
+                if (temp.DependencyIds is null)
                     continue;
 
                 foreach (ulong id in temp.DependencyIds)
@@ -316,7 +316,7 @@ namespace Pulsar.Shared
             )
                 return;
 
-            if (pluginData != null)
+            if (pluginData is not null)
             {
                 pluginData.Source = "GitHub";
                 purePlugins[pluginData.Id] = pluginData;

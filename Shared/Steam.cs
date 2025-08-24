@@ -66,7 +66,7 @@ namespace Pulsar.Shared
             );
 
             using var key = baseKey.OpenSubKey(registryKey);
-            if (key == null)
+            if (key is null)
                 return null;
 
             var path = key.GetValue(registryName) as string;

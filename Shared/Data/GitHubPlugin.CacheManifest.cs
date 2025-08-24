@@ -124,9 +124,9 @@ namespace Pulsar.Shared.Data
                 if (!File.Exists(DllFile) || Commit != currentCommit)
                     return false;
 
-                if (currentGameVersion != null)
+                if (currentGameVersion is not null)
                 {
-                    if (GameVersion == null || GameVersion != currentGameVersion)
+                    if (GameVersion is null || GameVersion != currentGameVersion)
                         return false;
                 }
 

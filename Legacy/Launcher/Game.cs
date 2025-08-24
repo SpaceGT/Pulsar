@@ -136,7 +136,7 @@ namespace Pulsar.Legacy.Launcher
             string message;
             string platform = Tools.FriendlyPlatformName();
 
-            if (platform == null)
+            if (platform is null)
                 message = "Exit Game";
             else
                 message = MyCommonTexts

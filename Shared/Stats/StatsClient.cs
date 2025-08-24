@@ -83,7 +83,7 @@ namespace Pulsar.Shared.Stats
 
         public static PluginStat Vote(string pluginId, int vote)
         {
-            if (votingToken == null)
+            if (votingToken is null)
             {
                 LogFile.Error($"Voting token is not available, cannot vote");
                 return null;

@@ -24,7 +24,7 @@ namespace Pulsar.Legacy.Loader
         public string Id => data.Id;
         public string FriendlyName => data.FriendlyName;
         public string Author => data.Author;
-        public bool HasConfigDialog => openConfigDialog != null;
+        public bool HasConfigDialog => openConfigDialog is not null;
 
         private PluginInstance(PluginData data, Assembly mainAssembly, Type mainType)
         {
@@ -40,7 +40,7 @@ namespace Pulsar.Legacy.Loader
         {
             // Note: this wont find exceptions thrown within transpiled methods or some kinds of patches
             Assembly a = exception.TargetSite?.DeclaringType?.Assembly;
-            if (a != null && a == mainAssembly)
+            if (a is not null && a == mainAssembly)
             {
                 data.InvalidateCache();
                 ThrowError($"ERROR: Plugin {data} threw an exception: {exception}");
@@ -56,7 +56,7 @@ namespace Pulsar.Legacy.Loader
             try
             {
                 FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
-                if (pluginFunc != null)
+                if (pluginFunc is not null)
                 {
                     Delegate getConfigPath = new Func<string, string, string>(data.GetConfigPath);
                     pluginFunc.SetValue(null, getConfigPath);
@@ -109,7 +109,7 @@ namespace Pulsar.Legacy.Loader
 
         public void OpenConfig()
         {
-            if (plugin == null || openConfigDialog == null)
+            if (plugin is null || openConfigDialog is null)
                 return;
 
             try
@@ -124,7 +124,7 @@ namespace Pulsar.Legacy.Loader
 
         public bool Init(object gameInstance)
         {
-            if (plugin == null)
+            if (plugin is null)
                 return false;
 
             try
@@ -141,38 +141,36 @@ namespace Pulsar.Legacy.Loader
 
         public void RegisterSession(MySession session)
         {
-            if (plugin != null)
+            if (plugin is null)
+                return;
+
+            try
             {
-                try
+                Type descType = typeof(MySessionComponentDescriptor);
+                int count = 0;
+                foreach (
+                    Type t in mainAssembly.GetTypes().Where(t => Attribute.IsDefined(t, descType))
+                )
                 {
-                    Type descType = typeof(MySessionComponentDescriptor);
-                    int count = 0;
-                    foreach (
-                        Type t in mainAssembly
-                            .GetTypes()
-                            .Where(t => Attribute.IsDefined(t, descType))
-                    )
-                    {
-                        MySessionComponentBase comp = (MySessionComponentBase)
-                            Activator.CreateInstance(t);
-                        session.RegisterComponent(comp, comp.UpdateOrder, comp.Priority);
-                        count++;
-                    }
-                    if (count > 0)
-                        LogFile.WriteLine(
-                            $"Registered {count} session components from: {mainAssembly.FullName}"
-                        );
+                    MySessionComponentBase comp = (MySessionComponentBase)
+                        Activator.CreateInstance(t);
+                    session.RegisterComponent(comp, comp.UpdateOrder, comp.Priority);
+                    count++;
                 }
-                catch (Exception e)
-                {
-                    ThrowError($"Failed to register {data} because of an error: {e}");
-                }
+                if (count > 0)
+                    LogFile.WriteLine(
+                        $"Registered {count} session components from: {mainAssembly.FullName}"
+                    );
+            }
+            catch (Exception e)
+            {
+                ThrowError($"Failed to register {data} because of an error: {e}");
             }
         }
 
         public bool Update()
         {
-            if (plugin == null)
+            if (plugin is null)
                 return false;
 
             plugin.Update();
@@ -181,7 +179,7 @@ namespace Pulsar.Legacy.Loader
 
         public bool HandleInput()
         {
-            if (plugin == null)
+            if (plugin is null)
                 return false;
 
             inputPlugin?.HandleInput();
@@ -190,19 +188,19 @@ namespace Pulsar.Legacy.Loader
 
         public void Dispose()
         {
-            if (plugin != null)
+            if (plugin is null)
+                return;
+
+            try
             {
-                try
-                {
-                    plugin.Dispose();
-                    plugin = null;
-                    inputPlugin = null;
-                }
-                catch (Exception e)
-                {
-                    data.Status = PluginStatus.Error;
-                    LogFile.Error($"Failed to dispose {data} because of an error: {e}");
-                }
+                plugin.Dispose();
+                plugin = null;
+                inputPlugin = null;
+            }
+            catch (Exception e)
+            {
+                data.Status = PluginStatus.Error;
+                LogFile.Error($"Failed to dispose {data} because of an error: {e}");
             }
         }
 
@@ -223,7 +221,7 @@ namespace Pulsar.Legacy.Loader
                     .GetTypes()
                     .FirstOrDefault(t => typeof(IPlugin).IsAssignableFrom(t));
 
-                if (pluginType == null)
+                if (pluginType is null)
                 {
                     LogFile.Error($"Failed to load {data} because it does not contain an IPlugin");
                     data.Error();
@@ -243,7 +241,7 @@ namespace Pulsar.Legacy.Loader
                     .AppendLine();
                 if (
                     e is ReflectionTypeLoadException typeLoadEx
-                    && typeLoadEx.LoaderExceptions != null
+                    && typeLoadEx.LoaderExceptions is not null
                 )
                 {
                     sb.Append("Exception details: ").AppendLine();
