@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Windows.Forms;
 using System.Xml;
-using System.Xml.Linq;
 using System.Xml.Serialization;
 using Pulsar.Shared.Data;
 
@@ -98,15 +98,12 @@ namespace Pulsar.Shared.Config
                     profile = (Profile)serializer.Deserialize(fs);
                 }
                 catch (XmlException) { }
+                catch (InvalidOperationException) { }
 
-                if ((bool)(profile?.Validate()))
-                {
+                if (profile?.Validate() == true)
                     config.profiles[profile.Key] = profile;
-                }
                 else
-                {
-                    LogFile.Error($"An error occurred while loading profile " + name);
-                }
+                    LogFile.Error("An error occurred while loading profile " + name);
             }
 
             {
@@ -122,19 +119,25 @@ namespace Pulsar.Shared.Config
                         current = (Profile)serializer.Deserialize(fs);
                     }
                     catch (XmlException) { }
+                    catch (InvalidOperationException) { }
                 }
 
-                if ((bool)(current?.Validate()))
-                {
+                if (current?.Validate() == true)
                     config.Current = current;
-                }
                 else
                 {
-                    LogFile.Error($"An error occurred while loading current plugins");
+                    LogFile.Error($"An error occurred while loading the {currentKey} profile");
                     config.Current = new Profile(currentKey);
 
                     if (File.Exists(file))
+                    {
                         File.Move(file, file + ".bak");
+                        string message =
+                            "The current profile could not be loaded!\n"
+                            + "The list of enabled plugins has been reset.\n\n"
+                            + $"The original profile has been saved to Profiles\\{currentKey}.xml.bak";
+                        Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    }
                 }
             }
 
