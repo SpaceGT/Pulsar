@@ -18,9 +18,7 @@ namespace Pulsar.Shared.Splash
             {
                 splash = new SplashScreen();
                 ready.Set();
-
-                if (!splash.invalid)
-                    Application.Run(splash);
+                Application.Run(splash);
             });
             thread.SetApartmentState(ApartmentState.STA);
             thread.IsBackground = true;
@@ -32,6 +30,8 @@ namespace Pulsar.Shared.Splash
 
         public void SetBarValue(float ratio = float.NaN) =>
             splash.Invoke(() => splash.SetBarValue(ratio));
+
+        public void SetTitle(string title) => splash.Invoke(() => splash.Text = title);
 
         public void Delete()
         {

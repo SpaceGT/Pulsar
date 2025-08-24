@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
@@ -28,6 +29,8 @@ namespace Pulsar.Legacy
 
         static void Main(string[] args)
         {
+            Application.EnableVisualStyles();
+
             Assembly currentAssembly = Assembly.GetExecutingAssembly();
             AssemblyName currentName = currentAssembly.GetName();
 
@@ -47,6 +50,7 @@ namespace Pulsar.Legacy
             if (!Tools.HasCommandArg("-nosplash"))
                 SplashManager.Instance = new SplashManager();
 
+            SplashManager.Instance?.SetTitle("Pulsar");
             SplashManager.Instance?.SetText("Starting Pulsar...");
 
             string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));

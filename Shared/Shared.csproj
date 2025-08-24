@@ -97,6 +97,9 @@
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Splash\SplashManager.cs" />
+    <Compile Include="Splash\SplashScreen.Designer.cs">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </Compile>
     <Compile Include="Stats\Model\ConsentRequest.cs" />
     <Compile Include="Stats\Model\PluginStat.cs" />
     <Compile Include="Stats\Model\PluginStats.cs" />
@@ -109,9 +112,9 @@
     <Compile Include="Updater.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Splash\throbber.gif" />
-    <EmbeddedResource Include="Splash\text.png" />
-    <EmbeddedResource Include="Splash\icon.ico" />
+    <EmbeddedResource Include="Splash\SplashScreen.resx">
+      <DependentUpon>SplashScreen.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony">
