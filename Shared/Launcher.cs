@@ -6,7 +6,6 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
-using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared
 {
@@ -98,14 +97,14 @@ namespace Pulsar.Shared
             }
             else
             {
-                message += "Would you like to download the latest version?";
+                message += "Attempt to download the latest version?";
                 buttons = MessageBoxButtons.YesNo;
             }
 
             DialogResult result = Tools.ShowMessageBox(message, buttons);
 
             if (result != DialogResult.Yes)
-                Environment.Exit(0);
+                Environment.Exit(1);
 
             return false;
         }

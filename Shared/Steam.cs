@@ -43,7 +43,7 @@ namespace Pulsar.Shared
             catch (Win32Exception)
             {
                 ShowWarning();
-                Environment.Exit(0);
+                Environment.Exit(1);
             }
 
             for (int i = 0; i < SteamTimeout; i++)
@@ -55,7 +55,7 @@ namespace Pulsar.Shared
             }
 
             ShowWarning();
-            Environment.Exit(0);
+            Environment.Exit(1);
         }
 
         private static string GetSteamPath()
