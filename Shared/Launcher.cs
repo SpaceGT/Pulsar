@@ -5,6 +5,8 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Windows.Forms;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared
 {
@@ -39,12 +41,6 @@ namespace Pulsar.Shared
             if (!IsSingleInstance())
             {
                 Tools.ShowMessageBox("Error: Space Engineers is already running!");
-                return false;
-            }
-
-            if (!VerifyFiles())
-            {
-                Tools.ShowMessageBox("ERROR: You have a broken Pulsar insallation!");
                 return false;
             }
 
@@ -85,6 +81,33 @@ namespace Pulsar.Shared
                 return false;
 
             return true;
+        }
+
+        public bool Verify(bool noUpdates = false)
+        {
+            if (VerifyFiles())
+                return true;
+
+            MessageBoxButtons buttons;
+            string message = "You have a broken Pulsar insallation!\n";
+
+            if (noUpdates)
+            {
+                message += "Please rebuild or manually redownload.";
+                buttons = MessageBoxButtons.OK;
+            }
+            else
+            {
+                message += "Would you like to download the latest version?";
+                buttons = MessageBoxButtons.YesNo;
+            }
+
+            DialogResult result = Tools.ShowMessageBox(message, buttons);
+
+            if (result != DialogResult.Yes)
+                Environment.Exit(0);
+
+            return false;
         }
 
         private bool VerifyFiles()

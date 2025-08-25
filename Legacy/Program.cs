@@ -89,8 +89,11 @@ namespace Pulsar.Legacy
                 Tools.HasCommandArg("-debugCompileAll")
             );
 
-            bool outdated = seVersion != new Version(SeVersion);
-            Updater.CheckUpdate(PulsarRepo, outdated);
+            bool seMismatch = seVersion != new Version(SeVersion);
+            bool noUpdate = Tools.HasCommandArg("-noupdate");
+            Updater updater = new(PulsarRepo, seMismatch, noUpdate);
+            if (updater.ShouldUpdate())
+                updater.Update();
 
             string checkSum = null;
             string checkFile = Path.Combine(currentDir, "checksum.txt");
@@ -99,6 +102,12 @@ namespace Pulsar.Legacy
 
             string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
             var launcher = new SharedLauncher(originalLoader, dependencyDir, checkSum);
+            if (!launcher.Verify(noUpdate))
+            {
+                updater.Update();
+                return;
+            }
+
             if (!launcher.CanStart())
                 return;
 

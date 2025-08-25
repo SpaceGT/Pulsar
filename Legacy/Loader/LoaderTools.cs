@@ -151,15 +151,13 @@ namespace Pulsar.Legacy.Loader
             // First "argument" is the invoked executable
             List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
 
+            args.Remove(ContinueArg);
             if (autoRejoin)
                 args.Add(ContinueArg);
-            else
-                args.Remove(ContinueArg);
 
+            args.Remove(DebugArg);
             if (debugger)
                 args.Add(DebugArg);
-            else
-                args.Remove(DebugArg);
 
             ProcessStartInfo currentStartInfo = Process.GetCurrentProcess().StartInfo;
             currentStartInfo.FileName = Application.ExecutablePath;

@@ -38,7 +38,6 @@ for /l %%i in (1, 1, 10) do (
         REM so we use ping as a way to delay the script between retries.
         ping -n 2 127.0.0.1 >NUL 2>&1
     ) else (
-        copy /y /b "%SOURCE%\%UPDATER%.config" "%PULSAR%\" >NUL 2>&1
         goto BREAK_LOOP
     )
 )

@@ -1,21 +1,65 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Windows.Forms;
+
 namespace Pulsar.Updater
 {
-    internal static class Program
+    static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
-        [STAThread]
+        private const string DebugArg = "-debug";
+
         static void Main()
         {
-            // TODO: Adapt the existing installer into an updater
+            if (Tools.HasCommandArg(DebugArg))
+                Debugger.Launch();
 
-            MessageBox.Show(
-                "Updater is still under development",
-                null,
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information
-            );
+            string? caller = Tools.GetCommandArg("-caller");
+            string? remote = Tools.GetCommandArg("-remote");
+            string? local = Tools.GetCommandArg("-local");
+
+            if (caller is null || remote is null || local is null)
+            {
+                ShowInfo();
+                return;
+            }
+
+            Uri uri = new(remote, UriKind.Absolute);
+            using Stream stream = Network.GetStream(uri);
+            using ZipArchive zip = new(stream, ZipArchiveMode.Read, leaveOpen: false);
+
+            Writer.Update(zip, local);
+            Start(caller);
+        }
+
+        private static void ShowInfo()
+        {
+            string caption = "Pulsar Updater";
+            string message =
+                "This program used by Pulsar when updating and should not be ran directly.\n"
+                + "You are free to delete it - a new copy will be fetched when required.";
+            MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        private static void Start(string exe)
+        {
+            List<string> originalArgs = [.. Environment.GetCommandLineArgs().Skip(7)];
+
+            originalArgs.Remove(DebugArg);
+            if (Debugger.IsAttached)
+                originalArgs.Add(DebugArg);
+
+            ProcessStartInfo startInfo = new()
+            {
+                FileName = exe,
+                Arguments = string.Join(" ", originalArgs),
+                UseShellExecute = false,
+            };
+
+            Process.Start(startInfo);
         }
     }
 }

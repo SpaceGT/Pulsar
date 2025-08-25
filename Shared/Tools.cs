@@ -357,6 +357,13 @@ namespace Pulsar.Shared
             return JsonConvert.DeserializeObject<T>(json);
         }
 
+        public static string RemoveAll(string text, IEnumerable<string> tokens)
+        {
+            foreach (string t in tokens)
+                text = text.Replace(t, "");
+            return text;
+        }
+
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
 

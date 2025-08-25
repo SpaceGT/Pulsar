@@ -8,10 +8,10 @@ namespace Pulsar.Shared.Network
 {
     public static class GitHub
     {
-        private const string hashUrl = "https://api.github.com/repos/{0}/commits/{1}";
-        private const string versionUrl = "https://api.github.com/repos/{0}/releases/latest";
-        private const string repoZipUrl = "https://github.com/{0}/archive/{1}.zip";
-        private const string rawUrl = "https://raw.githubusercontent.com/{0}/{1}/";
+        private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
+        private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases/latest";
+        private const string GetRepo = "https://github.com/{0}/archive/{1}.zip";
+        private const string GetFile = "https://raw.githubusercontent.com/{0}/{1}/";
 
         public static void Init()
         {
@@ -62,7 +62,7 @@ namespace Pulsar.Shared.Network
 
         public static Stream DownloadRepo(string name, string branch)
         {
-            Uri uri = new(string.Format(repoZipUrl, name, branch), UriKind.Absolute);
+            Uri uri = new(string.Format(GetRepo, name, branch), UriKind.Absolute);
             LogFile.WriteLine("Downloading " + uri);
             return GetStream(uri);
         }
@@ -70,7 +70,7 @@ namespace Pulsar.Shared.Network
         public static Stream DownloadFile(string name, string branch, string path)
         {
             Uri uri = new(
-                string.Format(rawUrl, name, branch) + path.TrimStart('/'),
+                string.Format(GetFile, name, branch) + path.TrimStart('/'),
                 UriKind.Absolute
             );
             LogFile.WriteLine("Downloading " + uri);
@@ -84,11 +84,7 @@ namespace Pulsar.Shared.Network
 
             try
             {
-                Uri uri = new(string.Format(hashUrl, name, branch), UriKind.Absolute);
-                using Stream stream = GetStream(uri);
-                using StreamReader reader = new(stream);
-                string text = reader.ReadToEnd();
-                var json = JObject.Parse(text);
+                JObject json = GetRepoJson(string.Format(CommitInfo, name, branch));
                 hash = json["sha"].ToString();
             }
             catch (Exception e)
@@ -107,11 +103,7 @@ namespace Pulsar.Shared.Network
 
             try
             {
-                Uri uri = new(string.Format(versionUrl, name), UriKind.Absolute);
-                using Stream stream = GetStream(uri);
-                using StreamReader reader = new(stream);
-                string text = reader.ReadToEnd();
-                var json = JObject.Parse(text);
+                JObject json = GetRepoJson(string.Format(ReleaseInfo, name));
                 string strVersion = json["tag_name"].ToString().TrimStart('v');
                 version = new Version(strVersion);
             }
@@ -122,6 +114,15 @@ namespace Pulsar.Shared.Network
             }
 
             return true;
+        }
+
+        public static JObject GetRepoJson(string url)
+        {
+            Uri uri = new(url, UriKind.Absolute);
+            using Stream stream = GetStream(uri);
+            using StreamReader reader = new(stream);
+            string text = reader.ReadToEnd();
+            return JObject.Parse(text);
         }
     }
 }
