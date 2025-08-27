@@ -11,6 +11,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -49,6 +50,5 @@
   </Target>
   <ItemGroup>
     <Reference Include="System.IO.Compression" />
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 </Project>

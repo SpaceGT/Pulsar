@@ -5,9 +5,9 @@ using NLog.Layouts;
 
 namespace Pulsar.Compiler
 {
-    internal static class LogFile
+    public static class LogFile
     {
-        private const string fileName = "compiler.log";
+        private const string fileName = "info.log";
         private static Logger logger;
         private static LogFactory logFactory;
 
@@ -18,14 +18,16 @@ namespace Pulsar.Compiler
             config.AddRuleForAllLevels(
                 new NLog.Targets.FileTarget()
                 {
-                    DeleteOldFileOnStartup = true,
+                    DeleteOldFileOnStartup = false,
+                    ReplaceFileContentsOnEachWrite = false,
+                    KeepFileOpen = false,
                     FileName = file,
                     Layout = new SimpleLayout(
                         "${longdate} [${level:uppercase=true}] (${threadid}) ${message:withexception=true}"
                     ),
                 }
             );
-            logFactory = new LogFactory(config) { ThrowExceptions = false };
+            logFactory = new LogFactory() { ThrowExceptions = false, Configuration = config };
 
             try
             {

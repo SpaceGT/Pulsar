@@ -18,7 +18,7 @@ namespace Pulsar.Legacy
 {
     static class Program
     {
-        class Dependency : IDependency
+        class ExternalTools : IExternalTools
         {
             public void OnMainThread(Action action) => Game.RunOnGameThread(action);
         }
@@ -55,7 +55,8 @@ namespace Pulsar.Legacy
 
             string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
             string pulsarDir = Path.Combine(currentDir, currentName.Name);
-            string dependencyDir = Path.Combine(currentDir, "Libraries");
+            string libraryDir = Path.Combine(currentDir, "Libraries");
+            string dependencyDir = Path.Combine(libraryDir, currentName.Name);
             string bin64Dir = Folder.GetBin64();
 
             if (bin64Dir is null)
@@ -85,7 +86,6 @@ namespace Pulsar.Legacy
                 bin64Dir,
                 modDir,
                 seVersion,
-                new Dependency(),
                 Tools.HasCommandArg("-debugCompileAll")
             );
 
@@ -101,7 +101,7 @@ namespace Pulsar.Legacy
                 checkSum = File.ReadAllText(checkFile);
 
             string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
-            var launcher = new SharedLauncher(originalLoader, dependencyDir, checkSum);
+            var launcher = new SharedLauncher(originalLoader, libraryDir, checkSum);
             if (!launcher.Verify(noUpdate))
             {
                 updater.Update();
@@ -115,7 +115,12 @@ namespace Pulsar.Legacy
             Steam.Init();
 
             SplashManager.Instance?.SetText("Getting Plugins...");
-            SharedLoader.Instance = new SharedLoader(References.GetReferences(bin64Dir));
+
+            using (CompilerFactory compiler = new([bin64Dir, dependencyDir], bin64Dir, pulsarDir))
+            {
+                Tools.Init(new ExternalTools(), compiler);
+                SharedLoader.Instance = new SharedLoader();
+            }
 
             Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
             if (preloader.HasPatches)

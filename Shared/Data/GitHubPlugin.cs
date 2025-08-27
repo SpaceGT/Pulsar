@@ -225,7 +225,7 @@ namespace Pulsar.Shared.Data
             Action<float> callback = null
         )
         {
-            ICompiler compiler = RoslynCompiler.CompilerFactory();
+            ICompiler compiler = Tools.Compiler.Create();
             using (Stream s = GitHub.DownloadRepo(Id, commit))
             using (ZipArchive zip = new(s))
             {

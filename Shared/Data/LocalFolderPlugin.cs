@@ -57,7 +57,7 @@ namespace Pulsar.Shared.Data
         {
             if (Directory.Exists(Folder))
             {
-                ICompiler compiler = RoslynCompiler.CompilerFactory(FolderSettings.DebugBuild);
+                ICompiler compiler = Tools.Compiler.Create(FolderSettings.DebugBuild);
                 bool hasFile = false;
 
                 if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)

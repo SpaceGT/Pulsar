@@ -5,11 +5,6 @@ using Pulsar.Shared.Stats.Model;
 
 namespace Pulsar.Shared.Config
 {
-    public interface IDependency
-    {
-        void OnMainThread(Action action);
-    }
-
     public class ConfigManager
     {
         public const string HarmonyVersion = "2.3.6.0";
@@ -24,7 +19,6 @@ namespace Pulsar.Shared.Config
         public Version GameVersion { get; }
         public bool SafeMode { get; set; }
         public bool HasLocal { get; set; }
-        public IDependency Dependencies { get; private set; }
         public bool DebugCompileAll { get; }
         public string PulsarDir { get; }
         public string GameDir { get; }
@@ -35,13 +29,11 @@ namespace Pulsar.Shared.Config
             string gameDir,
             string modDir,
             Version gameVersion,
-            IDependency dependencies,
             bool debugCompileAll = false
         )
         {
             Instance = this;
             SafeMode = false;
-            Dependencies = dependencies;
             PulsarDir = pulsarDir;
             GameDir = gameDir;
             ModDir = modDir;

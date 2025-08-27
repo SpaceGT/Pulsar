@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -10,6 +9,12 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Pulsar.Compiler
 {
+    public interface ICompilerFactory : IDisposable
+    {
+        void Init();
+        public ICompiler Create(bool debugBuild = false);
+    }
+
     public interface ICompiler
     {
         void Load(Stream s, string name);
@@ -24,20 +29,6 @@ namespace Pulsar.Compiler
         private readonly List<Source> source = [];
         private readonly PublicizedAssemblies publicizedAssemblies = new();
         private readonly List<MetadataReference> customReferences = [];
-
-        public static ICompiler CompilerFactory(bool debugBuild = false)
-        {
-            AppDomain appDomain = DomainHelper.AppDomain;
-
-            RoslynCompiler instance = (RoslynCompiler)
-                appDomain.CreateInstanceAndUnwrap(
-                    Assembly.GetExecutingAssembly().FullName,
-                    typeof(RoslynCompiler).FullName
-                );
-
-            instance.DebugBuild = debugBuild;
-            return instance;
-        }
 
         public void Load(Stream s, string name)
         {
@@ -57,15 +48,14 @@ namespace Pulsar.Compiler
             symbols = null;
 
             var references = RoslynReferences
-                .AllReferences.Select(kv =>
+                .Instance.AllReferences.Select(kv =>
                     publicizedAssemblies.PublicizeReferenceIfRequired(
                         assemblyName,
                         kv.Key,
                         kv.Value
                     )
                 )
-                .Concat(customReferences)
-                .ToHashSet();
+                .Concat(customReferences);
 
             var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
 

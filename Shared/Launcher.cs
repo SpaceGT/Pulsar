@@ -111,11 +111,17 @@ namespace Pulsar.Shared
 
         private bool VerifyFiles()
         {
-            string configPath = AppDomain.CurrentDomain.SetupInformation.ConfigurationFile;
-            if (!File.Exists(configPath) || !Directory.Exists(dependencyDir))
+            if (!Directory.Exists(dependencyDir))
                 return false;
 
             if (checksum is not null && Tools.GetFolderHash(dependencyDir) != checksum)
+                return false;
+
+            string seFolder = Path.GetDirectoryName(sePath);
+            bool hasConfig = Tools.GetFiles(seFolder, ["*.config"], []).Any();
+            string configPath = Assembly.GetEntryAssembly().Location + ".config";
+
+            if (hasConfig && !File.Exists(configPath))
                 return false;
 
             return true;

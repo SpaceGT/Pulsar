@@ -30,7 +30,9 @@ namespace Pulsar.Shared
                 new NLog.Targets.FileTarget()
                 {
                     DeleteOldFileOnStartup = true,
+                    ReplaceFileContentsOnEachWrite = false,
                     FileName = file,
+                    KeepFileOpen = false,
                     Layout = new SimpleLayout(
                         "${longdate} [${level:uppercase=true}] (${threadid}) ${message:withexception=true}"
                     ),

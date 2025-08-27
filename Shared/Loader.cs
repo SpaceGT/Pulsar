@@ -6,7 +6,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using HarmonyLib;
-using Pulsar.Compiler;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
@@ -27,7 +26,7 @@ namespace Pulsar.Shared
         private readonly ProfilesConfig profiles;
         private readonly StringBuilder debugCompileResults = new();
 
-        public Loader(HashSet<string> compileReferences)
+        public Loader()
         {
             ConfigManager manager = ConfigManager.Instance;
             config = manager.Config;
@@ -53,10 +52,6 @@ namespace Pulsar.Shared
 
             GitHub.Init();
             LogEnabledPlugins();
-
-            splash?.SetText("Finding references...");
-            DomainHelper.CreateAppDomain(ConfigManager.Instance.GameDir, compileReferences);
-
             splash?.SetText("Starting...");
 
             StatsClient.OverrideBaseUrl(config.StatsServerBaseUrl);
@@ -97,7 +92,6 @@ namespace Pulsar.Shared
                 }
             }
 
-            DomainHelper.UnloadAppDomain();
             Task.Run(ReportEnabledPlugins);
         }
 

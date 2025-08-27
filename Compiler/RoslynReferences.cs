@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
+using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Mono.Cecil;
@@ -9,65 +9,32 @@ using NLog;
 
 namespace Pulsar.Compiler
 {
-    public static class RoslynReferences
+    public class RoslynReferences
     {
-        private static readonly HashSet<string> referenceBlacklist = ["System.ValueTuple"];
-        internal static readonly Dictionary<string, MetadataReference> AllReferences = [];
-        internal static DefaultAssemblyResolver Resolver = new();
+        public static RoslynReferences Instance = new();
+        public DefaultAssemblyResolver Resolver = new();
 
-        public static void GenerateAssemblyList(HashSet<string> assemblies)
+        internal readonly Dictionary<string, MetadataReference> AllReferences = [];
+        private readonly HashSet<string> referenceBlacklist =
+        [
+            "System.ValueTuple",
+            "System.Private.ServiceModel",
+            "System.ServiceModel.Syndication",
+        ];
+
+        public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
         {
             if (AllReferences.Count > 0)
                 return;
 
-            Stack<Assembly> loadedAssemblies = new();
-            foreach (string name in assemblies)
-                loadedAssemblies.Push(Assembly.Load(name));
-
-            StringBuilder sb = new();
-
+            StringBuilder sb = new("Assembly References:");
             sb.AppendLine();
-            string line = "===================================";
-            sb.AppendLine(line);
-            sb.AppendLine("Assembly References");
-            sb.AppendLine(line);
+            sb.Append(string.Join(", ", assemblies));
 
             LogLevel level = LogLevel.Info;
             try
             {
-                foreach (Assembly a in loadedAssemblies)
-                {
-                    AddAssemblyReference(a);
-                    sb.AppendLine(a.FullName);
-                }
-
-                foreach (Assembly a in GetOtherReferences())
-                {
-                    AddAssemblyReference(a);
-                    sb.AppendLine(a.FullName);
-                }
-
-                sb.AppendLine(line);
-                while (loadedAssemblies.Count > 0)
-                {
-                    Assembly a = loadedAssemblies.Pop();
-
-                    foreach (AssemblyName name in a.GetReferencedAssemblies())
-                    {
-                        if (
-                            !ContainsReference(name)
-                            && TryLoadAssembly(name, out Assembly aRef)
-                            && IsValidReference(aRef)
-                        )
-                        {
-                            AddAssemblyReference(aRef);
-                            sb.AppendLine(name.FullName);
-                            loadedAssemblies.Push(aRef);
-                        }
-                    }
-                }
-
-                sb.AppendLine(line);
+                LoadAssemblies(assemblies);
             }
             catch (Exception e)
             {
@@ -78,85 +45,54 @@ namespace Pulsar.Compiler
             LogFile.WriteLine(sb.ToString(), level);
         }
 
-        /// <summary>
-        /// This method is used to load references that otherwise would not exist or be optimized out
-        /// </summary>
-        private static IEnumerable<Assembly> GetOtherReferences()
-        {
-            yield return typeof(Microsoft.CSharp.RuntimeBinder.Binder).Assembly;
-            yield return typeof(System.Windows.Forms.DataVisualization.Charting.Chart).Assembly;
-
-            // WPF assemblies
-            yield return typeof(System.Windows.Media.TextEffect).Assembly;
-            yield return typeof(System.Windows.Controls.Button).Assembly;
-            yield return typeof(System.Windows.Controls.Ribbon.Ribbon).Assembly;
-            yield return typeof(System.Windows.Point).Assembly;
-            yield return typeof(System.Xaml.XamlType).Assembly;
-
-            // Patching assemblies
-            yield return typeof(HarmonyLib.Harmony).Assembly;
-            yield return typeof(Mono.Cecil.AssemblyDefinition).Assembly;
-
-            // Required by some plugins
-            yield return typeof(Newtonsoft.Json.JsonConverter).Assembly;
-        }
-
-        private static bool ContainsReference(AssemblyName name)
-        {
-            return AllReferences.ContainsKey(name.Name);
-        }
-
-        private static bool TryLoadAssembly(AssemblyName name, out Assembly aRef)
+        public void LoadReference(string name, bool recurse = true)
         {
             try
             {
-                aRef = Assembly.Load(name);
-                return true;
+                LoadAssemblies([name], recurse);
+                LogFile.WriteLine("Reference added at runtime: " + name);
             }
             catch (IOException)
             {
-                aRef = null;
-                return false;
+                LogFile.Error("Unable to find the assembly '" + name + "'!");
             }
         }
 
-        private static void AddAssemblyReference(Assembly a)
+        private void LoadAssemblies(IEnumerable<string> names, bool recuse = true)
         {
-            string name = a.GetName().Name;
-            if (!AllReferences.ContainsKey(name))
-                AllReferences.Add(name, MetadataReference.CreateFromFile(a.Location));
-        }
+            Stack<string> toProcess = new(names);
 
-        private static bool IsValidReference(Assembly a)
-        {
-            string name = a.GetName().Name;
-            return !a.IsDynamic
-                && !string.IsNullOrWhiteSpace(a.Location)
-                && !referenceBlacklist.Contains(name);
-        }
-
-        public static void LoadReference(string name)
-        {
-            try
+            while (toProcess.Count > 0)
             {
-                AssemblyName aName = new(name);
-                if (!AllReferences.ContainsKey(aName.Name))
-                {
-                    Assembly a = Assembly.Load(aName);
-                    LogFile.WriteLine("Reference added at runtime: " + a.FullName);
-                    MetadataReference aRef = MetadataReference.CreateFromFile(a.Location);
-                    AllReferences[a.GetName().Name] = aRef;
-                }
-            }
-            catch (IOException)
-            {
-                LogFile.Warn("Unable to find the assembly '" + name + "'!");
+                string assembly = toProcess.Pop();
+
+                if (referenceBlacklist.Contains(assembly))
+                    continue;
+
+                if (AllReferences.ContainsKey(assembly))
+                    continue;
+
+                var (reference, dependencies) = LoadAssembly(assembly);
+                AllReferences[assembly] = reference;
+
+                if (recuse)
+                    foreach (string name in dependencies)
+                        toProcess.Push(name);
             }
         }
 
-        public static bool Contains(string id)
+        private (MetadataReference, IEnumerable<string>) LoadAssembly(string name)
         {
-            return AllReferences.ContainsKey(id);
+            AssemblyNameReference nameReference = new(name, null);
+            AssemblyDefinition definition = Resolver.Resolve(nameReference);
+
+            var references = definition.MainModule.AssemblyReferences;
+            string fileName = definition.MainModule.FileName;
+
+            var reference = MetadataReference.CreateFromFile(fileName);
+            IEnumerable<string> dependencies = references.Select(x => x.Name);
+
+            return (reference, dependencies);
         }
     }
 }

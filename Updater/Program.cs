@@ -14,6 +14,8 @@ namespace Pulsar.Updater
 
         static void Main()
         {
+            Application.EnableVisualStyles();
+
             if (Tools.HasCommandArg(DebugArg))
                 Debugger.Launch();
 

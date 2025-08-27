@@ -11,6 +11,7 @@ if "%~3" == "" (
 REM Extract locations from parameters
 for %%F in ("%~1") do set "SOURCE=%%~dpF"
 for %%F in ("%~1") do set "LAUNCHER=%%~nxF"
+for %%F in ("%~1") do set "NAME=%%~nF"
 set PULSAR=%~2
 set LICENSE=%~3
 
@@ -55,49 +56,50 @@ echo Copying License
 copy /y /b "%LICENSE%" "%PULSAR%\" >NUL 2>&1
 
 REM Get the library directory
-set DEPENDENCY_DIR=%PULSAR%\Libraries
-if not exist "%DEPENDENCY_DIR%" (
+set SHARED_DIR=%PULSAR%\Libraries
+if not exist "%SHARED_DIR%" (
     echo Creating "Pulsar\Libraries\" folder"
-    mkdir "%DEPENDENCY_DIR%" >NUL 2>&1
+    mkdir "%SHARED_DIR%" >NUL 2>&1
 )
-
-echo Switching to "Pulsar\Libraries\"
+set LIBRARY_DIR=%SHARED_DIR%\%NAME%
+if not exist "%LIBRARY_DIR%" (
+    echo Creating "Pulsar\Libraries\%NAME%" folder"
+    mkdir "%LIBRARY_DIR%" >NUL 2>&1
+)
+echo Switching to "Pulsar\Libraries\%NAME%"
 
 REM Copy Pulsar dependencies
 echo Copying "Pulsar.Shared.dll"
-copy /y /b "%SOURCE%\Pulsar.Shared.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Pulsar.Shared.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "Pulsar.Compiler.dll"
-copy /y /b "%SOURCE%\Pulsar.Compiler.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\Pulsar.Compiler.dll.config" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Pulsar.Compiler.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Pulsar.Compiler.dll.config" "%LIBRARY_DIR%\" >NUL 2>&1
 
 REM Copy other dependencies
 echo Copying "0Harmony.dll"
-copy /y /b "%SOURCE%\0Harmony.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\0Harmony.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "Mono.Cecil.dll"
-copy /y /b "%SOURCE%\Mono.Cecil.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Mono.Cecil.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "Newtonsoft.Json.dll"
-copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "NLog.dll"
-copy /y /b "%SOURCE%\NLog.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\NLog.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "protobuf-net.dll"
-copy /y /b "%SOURCE%\protobuf-net.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
-
-echo Copying "System.Collections.Immutable.dll"
-copy /y /b "%SOURCE%\System.Collections.Immutable.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
-
-echo Copying "System.Reflection.Metadata.dll"
-copy /y /b "%SOURCE%\System.Reflection.Metadata.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\protobuf-net.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "Microsoft.CodeAnalysis.*.dll"
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
+echo Copying "System.*.dll"
+copy /y /b "%SOURCE%\System.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "NuGet.*.dll"
-copy /y /b "%SOURCE%\NuGet.*.dll" "%DEPENDENCY_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 exit /b 0

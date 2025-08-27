@@ -8,14 +8,26 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using Newtonsoft.Json;
-using Pulsar.Shared.Config;
+using Pulsar.Compiler;
 
 namespace Pulsar.Shared
 {
+    public interface IExternalTools
+    {
+        void OnMainThread(Action action);
+    }
+
     public static class Tools
     {
-        public static readonly string XmlDataType = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
-        public static readonly UTF8Encoding Utf8 = new();
+        public const string XmlDataType = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
+        public static IExternalTools External { get; private set; }
+        public static ICompilerFactory Compiler { get; private set; }
+
+        public static void Init(IExternalTools external, ICompilerFactory compiler)
+        {
+            External = external;
+            Compiler = compiler;
+        }
 
         public static string GetFileHash(string file)
         {
@@ -185,7 +197,7 @@ namespace Pulsar.Shared
                 if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(fileName))
                 {
                     // Move back to the main thread so that we can interact with keen code again
-                    ConfigManager.Instance.Dependencies.OnMainThread(() => onOk(fileName));
+                    External.OnMainThread(() => onOk(fileName));
                 }
             }
             catch (Exception e)
@@ -219,7 +231,7 @@ namespace Pulsar.Shared
                 if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(selectedPath))
                 {
                     // Move back to the main thread so that we can interact with keen code again
-                    ConfigManager.Instance.Dependencies.OnMainThread(() => onOk(selectedPath));
+                    External.OnMainThread(() => onOk(selectedPath));
                 }
             }
             catch (Exception e)
@@ -276,7 +288,7 @@ namespace Pulsar.Shared
             return fileInfo1.Length == fileInfo2.Length && GetFileHash(file1) == GetFileHash(file2);
         }
 
-        public static HashSet<string> GetFiles(
+        public static IEnumerable<string> GetFiles(
             string path,
             string[] includeGlobs,
             string[] excludeGlobs
@@ -290,14 +302,9 @@ namespace Pulsar.Shared
                 Directory.EnumerateFiles(path, pattern)
             );
 
-            HashSet<string> files =
-            [
-                .. included
-                    .Except(excluded, StringComparer.OrdinalIgnoreCase)
-                    .Select(Path.GetFileNameWithoutExtension),
-            ];
-
-            return files;
+            return included
+                .Except(excluded, StringComparer.OrdinalIgnoreCase)
+                .Select(Path.GetFileNameWithoutExtension);
         }
 
         public static string FriendlyPlatformName()

@@ -10,7 +10,8 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFramework>net48</TargetFramework>
+    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
+    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -45,11 +46,8 @@
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="4.3.8" />
+    <PackageReference Include="NLog" Version="6.0.3" />
     <PackageReference Include="NuGet.Resolver" Version="6.7.1" />
     <PackageReference Include="protobuf-net" Version="2.4.9" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 </Project>

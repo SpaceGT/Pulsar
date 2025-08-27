@@ -6,6 +6,8 @@ namespace Pulsar.Modern
     {
         static void Main(string[] args)
         {
+            Application.EnableVisualStyles();
+
             MessageBox.Show(
                 "Pulsar for SE2 is still under development",
                 null,
