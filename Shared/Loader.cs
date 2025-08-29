@@ -24,7 +24,6 @@ public class Loader
     private readonly PluginConfig config;
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
-    private readonly StringBuilder debugCompileResults = new();
 
     public Loader()
     {
@@ -68,6 +67,7 @@ public class Loader
         splash?.SetText("Instantiating plugins...");
         LogFile.WriteLine("Instantiating plugins");
 
+        StringBuilder debugCompileResults = new();
         if (debugCompileAll)
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
@@ -80,7 +80,7 @@ public class Loader
                 if (data.IsLocal)
                     ConfigManager.Instance.HasLocal = true;
             }
-            else if (debugCompileAll)
+            else if (debugCompileAll && data is not ModPlugin)
             {
                 debugCompileResults
                     .Append(data.FriendlyName ?? "(null)")
@@ -91,6 +91,9 @@ public class Loader
                     .AppendLine();
             }
         }
+
+        if (debugCompileAll)
+            LogFile.WriteLine(debugCompileResults.ToString());
 
         Task.Run(ReportEnabledPlugins);
     }

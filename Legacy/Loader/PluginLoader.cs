@@ -21,16 +21,12 @@ public class PluginLoader : IHandleInputPlugin
     public static PluginLoader Instance;
 
     private bool init;
-    private readonly PluginConfig config;
-    private readonly StringBuilder debugCompileResults = new();
     private readonly List<PluginInstance> plugins = [];
     public List<PluginInstance> Plugins => plugins;
 
     public PluginLoader()
     {
         Instance = this;
-        config = ConfigManager.Instance.Config;
-
         AppDomain.CurrentDomain.FirstChanceException += OnException;
         PlayerConsent.OnConsentChanged += OnConsentChanged;
     }
@@ -62,6 +58,7 @@ public class PluginLoader : IHandleInputPlugin
 
     public void Init(object gameInstance)
     {
+        StringBuilder debugCompileResults = new();
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
