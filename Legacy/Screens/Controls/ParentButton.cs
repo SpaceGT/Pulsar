@@ -5,82 +5,81 @@ using VRage.Audio;
 using VRage.Input;
 using VRageMath;
 
-namespace Pulsar.Legacy.Screens.GuiControls
+namespace Pulsar.Legacy.Screens.GuiControls;
+
+class ParentButton : MyGuiControlParent
 {
-    class ParentButton : MyGuiControlParent
+    private bool mouseOver = false;
+    private bool mouseClick = false;
+
+    public event Action<ParentButton> OnButtonClicked;
+
+    public ParentButton() { }
+
+    public ParentButton(
+        Vector2? position = null,
+        Vector2? size = null,
+        Vector4? backgroundColor = null,
+        string toolTip = null
+    )
+        : base(position, size, backgroundColor, toolTip)
     {
-        private bool mouseOver = false;
-        private bool mouseClick = false;
+        CanPlaySoundOnMouseOver = false;
+        HighlightType = MyGuiControlHighlightType.WHEN_CURSOR_OVER;
+        CanHaveFocus = true;
+        IsActiveControl = true;
+        OnMouseOverChanged(mouseOver);
+    }
 
-        public event Action<ParentButton> OnButtonClicked;
-
-        public ParentButton() { }
-
-        public ParentButton(
-            Vector2? position = null,
-            Vector2? size = null,
-            Vector4? backgroundColor = null,
-            string toolTip = null
-        )
-            : base(position, size, backgroundColor, toolTip)
+    public override MyGuiControlBase HandleInput()
+    {
+        bool actualMouseOver = CheckMouseOver(); // Do NOT trust Keen's IsMouseOver
+        if (actualMouseOver != mouseOver)
         {
-            CanPlaySoundOnMouseOver = false;
-            HighlightType = MyGuiControlHighlightType.WHEN_CURSOR_OVER;
-            CanHaveFocus = true;
-            IsActiveControl = true;
+            mouseOver = actualMouseOver;
             OnMouseOverChanged(mouseOver);
         }
 
-        public override MyGuiControlBase HandleInput()
+        if (mouseOver)
         {
-            bool actualMouseOver = CheckMouseOver(); // Do NOT trust Keen's IsMouseOver
-            if (actualMouseOver != mouseOver)
+            if (
+                MyInput.Static.IsNewPrimaryButtonPressed()
+                || MyInput.Static.IsNewSecondaryButtonPressed()
+            )
             {
-                mouseOver = actualMouseOver;
-                OnMouseOverChanged(mouseOver);
+                mouseClick = true;
             }
-
-            if (mouseOver)
-            {
-                if (
-                    MyInput.Static.IsNewPrimaryButtonPressed()
-                    || MyInput.Static.IsNewSecondaryButtonPressed()
+            else if (
+                mouseClick
+                && (
+                    MyInput.Static.IsNewPrimaryButtonReleased()
+                    || MyInput.Static.IsNewSecondaryButtonReleased()
                 )
-                {
-                    mouseClick = true;
-                }
-                else if (
-                    mouseClick
-                    && (
-                        MyInput.Static.IsNewPrimaryButtonReleased()
-                        || MyInput.Static.IsNewSecondaryButtonReleased()
-                    )
-                )
-                {
-                    mouseClick = false;
-                    OnButtonClicked?.Invoke(this);
-                }
-            }
-            else
+            )
             {
                 mouseClick = false;
+                OnButtonClicked?.Invoke(this);
             }
-
-            return base.HandleInput();
         }
-
-        private void OnMouseOverChanged(bool mouseOver)
+        else
         {
-            BorderEnabled = mouseOver;
-            if (mouseOver)
-                BackgroundTexture = MyGuiConstants.TEXTURE_RECTANGLE_NEUTRAL;
-            else
-                BackgroundTexture = MyGuiConstants.TEXTURE_RECTANGLE_DARK;
+            mouseClick = false;
         }
 
-        public void PlayClickSound()
-        {
-            MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
-        }
+        return base.HandleInput();
+    }
+
+    private void OnMouseOverChanged(bool mouseOver)
+    {
+        BorderEnabled = mouseOver;
+        if (mouseOver)
+            BackgroundTexture = MyGuiConstants.TEXTURE_RECTANGLE_NEUTRAL;
+        else
+            BackgroundTexture = MyGuiConstants.TEXTURE_RECTANGLE_DARK;
+    }
+
+    public void PlayClickSound()
+    {
+        MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
     }
 }

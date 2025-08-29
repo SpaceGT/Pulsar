@@ -1,7 +1,6 @@
-﻿namespace Pulsar.Shared.Config
+﻿namespace Pulsar.Shared.Config;
+
+public class GitHubPluginConfig : PluginDataConfig
 {
-    public class GitHubPluginConfig : PluginDataConfig
-    {
-        public string SelectedVersion { get; set; }
-    }
+    public string SelectedVersion { get; set; }
 }

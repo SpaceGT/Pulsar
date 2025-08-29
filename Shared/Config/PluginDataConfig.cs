@@ -1,11 +1,10 @@
 ﻿using System.Xml.Serialization;
 
-namespace Pulsar.Shared.Config
+namespace Pulsar.Shared.Config;
+
+[XmlInclude(typeof(LocalFolderConfig))]
+[XmlInclude(typeof(GitHubPluginConfig))]
+public abstract class PluginDataConfig
 {
-    [XmlInclude(typeof(LocalFolderConfig))]
-    [XmlInclude(typeof(GitHubPluginConfig))]
-    public abstract class PluginDataConfig
-    {
-        public string Id { get; set; }
-    }
+    public string Id { get; set; }
 }

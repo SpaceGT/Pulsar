@@ -4,98 +4,97 @@ using NLog;
 using NLog.Config;
 using NLog.Layouts;
 
-namespace Pulsar.Shared
+namespace Pulsar.Shared;
+
+public interface IGameLog
 {
-    public interface IGameLog
+    bool Open();
+    bool Exists();
+    void Write(string line);
+}
+
+public static class LogFile
+{
+    public static IGameLog GameLog = null;
+
+    private const string fileName = "info.log";
+    private static Logger logger;
+    private static LogFactory logFactory;
+    private static string file;
+
+    public static void Init(string mainPath)
     {
-        bool Open();
-        bool Exists();
-        void Write(string line);
+        file = Path.Combine(mainPath, fileName);
+        LoggingConfiguration config = new();
+        config.AddRuleForAllLevels(
+            new NLog.Targets.FileTarget()
+            {
+                DeleteOldFileOnStartup = true,
+                ReplaceFileContentsOnEachWrite = false,
+                FileName = file,
+                KeepFileOpen = false,
+                Layout = new SimpleLayout(
+                    "${longdate} [${level:uppercase=true}] (${threadid}) ${message:withexception=true}"
+                ),
+            }
+        );
+        logFactory = new LogFactory(config) { ThrowExceptions = false };
+
+        try
+        {
+            logger = logFactory.GetLogger("Pulsar");
+        }
+        catch
+        {
+            logger = null;
+        }
     }
 
-    public static class LogFile
+    public static void Error(string text, bool gameLog = false)
     {
-        public static IGameLog GameLog = null;
+        WriteLine(text, LogLevel.Error, gameLog);
+    }
 
-        private const string fileName = "info.log";
-        private static Logger logger;
-        private static LogFactory logFactory;
-        private static string file;
+    public static void Warn(string text, bool gameLog = false)
+    {
+        WriteLine(text, LogLevel.Warn, gameLog);
+    }
 
-        public static void Init(string mainPath)
+    public static void WriteLine(string text, LogLevel level = null, bool gameLog = false)
+    {
+        try
         {
-            file = Path.Combine(mainPath, fileName);
-            LoggingConfiguration config = new();
-            config.AddRuleForAllLevels(
-                new NLog.Targets.FileTarget()
-                {
-                    DeleteOldFileOnStartup = true,
-                    ReplaceFileContentsOnEachWrite = false,
-                    FileName = file,
-                    KeepFileOpen = false,
-                    Layout = new SimpleLayout(
-                        "${longdate} [${level:uppercase=true}] (${threadid}) ${message:withexception=true}"
-                    ),
-                }
-            );
-            logFactory = new LogFactory(config) { ThrowExceptions = false };
+            level ??= LogLevel.Info;
+            logger?.Log(level, text);
 
-            try
-            {
-                logger = logFactory.GetLogger("Pulsar");
-            }
-            catch
-            {
-                logger = null;
-            }
+            if (gameLog)
+                GameLog?.Write($"[Pulsar] [{level.Name}] {text}");
         }
-
-        public static void Error(string text, bool gameLog = false)
+        catch
         {
-            WriteLine(text, LogLevel.Error, gameLog);
+            Dispose();
         }
+    }
 
-        public static void Warn(string text, bool gameLog = false)
+    public static void Open()
+    {
+        if (file is not null)
+            Process.Start(file);
+    }
+
+    public static void Dispose()
+    {
+        if (logger is null)
+            return;
+
+        try
         {
-            WriteLine(text, LogLevel.Warn, gameLog);
+            logFactory.Flush();
+            logFactory.Dispose();
         }
+        catch { }
 
-        public static void WriteLine(string text, LogLevel level = null, bool gameLog = false)
-        {
-            try
-            {
-                level ??= LogLevel.Info;
-                logger?.Log(level, text);
-
-                if (gameLog)
-                    GameLog?.Write($"[Pulsar] [{level.Name}] {text}");
-            }
-            catch
-            {
-                Dispose();
-            }
-        }
-
-        public static void Open()
-        {
-            if (file is not null)
-                Process.Start(file);
-        }
-
-        public static void Dispose()
-        {
-            if (logger is null)
-                return;
-
-            try
-            {
-                logFactory.Flush();
-                logFactory.Dispose();
-            }
-            catch { }
-
-            logger = null;
-            logFactory = null;
-        }
+        logger = null;
+        logFactory = null;
     }
 }

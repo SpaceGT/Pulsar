@@ -1,11 +1,10 @@
-﻿namespace Pulsar.Shared.Data
+﻿namespace Pulsar.Shared.Data;
+
+public enum PluginStatus
 {
-    public enum PluginStatus
-    {
-        None,
-        Network,
-        Updated,
-        Error,
-        Blocked,
-    }
+    None,
+    Network,
+    Updated,
+    Error,
+    Blocked,
 }

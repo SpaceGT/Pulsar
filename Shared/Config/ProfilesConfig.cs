@@ -6,142 +6,141 @@ using System.Xml;
 using System.Xml.Serialization;
 using Pulsar.Shared.Data;
 
-namespace Pulsar.Shared.Config
+namespace Pulsar.Shared.Config;
+
+public class ProfilesConfig(string folderPath)
 {
-    public class ProfilesConfig(string folderPath)
+    private const string currentKey = "Current";
+    private readonly Dictionary<string, Profile> profiles = [];
+
+    public Profile Current { get; private set; }
+    public IEnumerable<Profile> Profiles => profiles.Values;
+
+    public void Save(string key = null)
     {
-        private const string currentKey = "Current";
-        private readonly Dictionary<string, Profile> profiles = [];
+        Profile profile;
+        if (key is null)
+            profile = Current;
+        else
+            profile = profiles[key];
 
-        public Profile Current { get; private set; }
-        public IEnumerable<Profile> Profiles => profiles.Values;
-
-        public void Save(string key = null)
+        try
         {
-            Profile profile;
-            if (key is null)
-                profile = Current;
-            else
-                profile = profiles[key];
-
-            try
-            {
-                XmlSerializer serializer = new(typeof(Profile));
-
-                if (!Directory.Exists(folderPath))
-                    Directory.CreateDirectory(folderPath);
-
-                string path = Path.Combine(folderPath, profile.Key + ".xml");
-
-                if (File.Exists(path))
-                    File.Delete(path);
-
-                using FileStream fs = File.OpenWrite(path);
-                serializer.Serialize(fs, profile);
-            }
-            catch (Exception e)
-            {
-                LogFile.Error($"An error occurred while saving profile " + profile.Name + ": " + e);
-            }
-        }
-
-        public bool Exists(string key) => profiles.ContainsKey(key) || key == currentKey;
-
-        public void Add(Profile profile)
-        {
-            profiles[profile.Key] = profile;
-            Save(profile.Key);
-        }
-
-        public void Remove(string key)
-        {
-            profiles.Remove(key);
-            string path = Path.Combine(folderPath, key + ".xml");
-            File.Delete(path);
-        }
-
-        public void Rename(string key, string newName)
-        {
-            Profile profile = profiles[key];
-            profiles.Remove(key);
-
-            File.Delete(Path.Combine(folderPath, key + ".xml"));
-
-            profile.Name = newName;
-            profiles[profile.Key] = profile;
-
-            Save(profile.Key);
-        }
-
-        public static ProfilesConfig Load(string mainDirectory)
-        {
-            LogFile.WriteLine("Loading profiles");
-
-            string folderPath = Path.Combine(mainDirectory, "Profiles");
-            ProfilesConfig config = new(folderPath);
             XmlSerializer serializer = new(typeof(Profile));
 
             if (!Directory.Exists(folderPath))
                 Directory.CreateDirectory(folderPath);
 
-            foreach (string file in Directory.GetFiles(folderPath))
-            {
-                string name = Path.GetFileName(file);
-                if (name == currentKey + ".xml" || name.EndsWith(".bak"))
-                    continue;
+            string path = Path.Combine(folderPath, profile.Key + ".xml");
 
-                Profile profile = null;
+            if (File.Exists(path))
+                File.Delete(path);
+
+            using FileStream fs = File.OpenWrite(path);
+            serializer.Serialize(fs, profile);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"An error occurred while saving profile " + profile.Name + ": " + e);
+        }
+    }
+
+    public bool Exists(string key) => profiles.ContainsKey(key) || key == currentKey;
+
+    public void Add(Profile profile)
+    {
+        profiles[profile.Key] = profile;
+        Save(profile.Key);
+    }
+
+    public void Remove(string key)
+    {
+        profiles.Remove(key);
+        string path = Path.Combine(folderPath, key + ".xml");
+        File.Delete(path);
+    }
+
+    public void Rename(string key, string newName)
+    {
+        Profile profile = profiles[key];
+        profiles.Remove(key);
+
+        File.Delete(Path.Combine(folderPath, key + ".xml"));
+
+        profile.Name = newName;
+        profiles[profile.Key] = profile;
+
+        Save(profile.Key);
+    }
+
+    public static ProfilesConfig Load(string mainDirectory)
+    {
+        LogFile.WriteLine("Loading profiles");
+
+        string folderPath = Path.Combine(mainDirectory, "Profiles");
+        ProfilesConfig config = new(folderPath);
+        XmlSerializer serializer = new(typeof(Profile));
+
+        if (!Directory.Exists(folderPath))
+            Directory.CreateDirectory(folderPath);
+
+        foreach (string file in Directory.GetFiles(folderPath))
+        {
+            string name = Path.GetFileName(file);
+            if (name == currentKey + ".xml" || name.EndsWith(".bak"))
+                continue;
+
+            Profile profile = null;
+            using FileStream fs = File.OpenRead(file);
+
+            try
+            {
+                profile = (Profile)serializer.Deserialize(fs);
+            }
+            catch (XmlException) { }
+            catch (InvalidOperationException) { }
+
+            if (profile?.Validate() == true)
+                config.profiles[profile.Key] = profile;
+            else
+                LogFile.Error("An error occurred while loading profile " + name);
+        }
+
+        {
+            Profile current = null;
+            string file = Path.Combine(folderPath, currentKey + ".xml");
+
+            if (File.Exists(file))
+            {
                 using FileStream fs = File.OpenRead(file);
 
                 try
                 {
-                    profile = (Profile)serializer.Deserialize(fs);
+                    current = (Profile)serializer.Deserialize(fs);
                 }
                 catch (XmlException) { }
                 catch (InvalidOperationException) { }
-
-                if (profile?.Validate() == true)
-                    config.profiles[profile.Key] = profile;
-                else
-                    LogFile.Error("An error occurred while loading profile " + name);
             }
 
+            if (current?.Validate() == true)
+                config.Current = current;
+            else
             {
-                Profile current = null;
-                string file = Path.Combine(folderPath, currentKey + ".xml");
+                LogFile.Error($"An error occurred while loading the {currentKey} profile");
+                config.Current = new Profile(currentKey);
 
                 if (File.Exists(file))
                 {
-                    using FileStream fs = File.OpenRead(file);
-
-                    try
-                    {
-                        current = (Profile)serializer.Deserialize(fs);
-                    }
-                    catch (XmlException) { }
-                    catch (InvalidOperationException) { }
-                }
-
-                if (current?.Validate() == true)
-                    config.Current = current;
-                else
-                {
-                    LogFile.Error($"An error occurred while loading the {currentKey} profile");
-                    config.Current = new Profile(currentKey);
-
-                    if (File.Exists(file))
-                    {
-                        File.Move(file, file + ".bak");
-                        string message =
-                            "The current profile could not be loaded!\n"
-                            + "The list of enabled plugins has been reset.\n\n"
-                            + $"The original profile has been saved to Profiles\\{currentKey}.xml.bak";
-                        Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    }
+                    File.Move(file, file + ".bak");
+                    string message =
+                        "The current profile could not be loaded!\n"
+                        + "The list of enabled plugins has been reset.\n\n"
+                        + $"The original profile has been saved to Profiles\\{currentKey}.xml.bak";
+                    Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
-
-            return config;
         }
+
+        return config;
     }
 }

@@ -14,187 +14,186 @@ using VRage;
 using VRage.Plugins;
 using SharedLoader = Pulsar.Shared.Loader;
 
-namespace Pulsar.Legacy.Loader
+namespace Pulsar.Legacy.Loader;
+
+public class PluginLoader : IHandleInputPlugin
 {
-    public class PluginLoader : IHandleInputPlugin
+    public static PluginLoader Instance;
+
+    private bool init;
+    private readonly PluginConfig config;
+    private readonly StringBuilder debugCompileResults = new();
+    private readonly List<PluginInstance> plugins = [];
+    public List<PluginInstance> Plugins => plugins;
+
+    public PluginLoader()
     {
-        public static PluginLoader Instance;
+        Instance = this;
+        config = ConfigManager.Instance.Config;
 
-        private bool init;
-        private readonly PluginConfig config;
-        private readonly StringBuilder debugCompileResults = new();
-        private readonly List<PluginInstance> plugins = [];
-        public List<PluginInstance> Plugins => plugins;
+        AppDomain.CurrentDomain.FirstChanceException += OnException;
+        PlayerConsent.OnConsentChanged += OnConsentChanged;
+    }
 
-        public PluginLoader()
-        {
-            Instance = this;
-            config = ConfigManager.Instance.Config;
-
-            AppDomain.CurrentDomain.FirstChanceException += OnException;
-            PlayerConsent.OnConsentChanged += OnConsentChanged;
-        }
-
-        public bool TryGetPluginInstance(string id, out PluginInstance instance)
-        {
-            instance = null;
-            if (!init)
-                return false;
-
-            foreach (PluginInstance p in plugins)
-            {
-                if (p.Id == id)
-                {
-                    instance = p;
-                    return true;
-                }
-            }
-
+    public bool TryGetPluginInstance(string id, out PluginInstance instance)
+    {
+        instance = null;
+        if (!init)
             return false;
+
+        foreach (PluginInstance p in plugins)
+        {
+            if (p.Id == id)
+            {
+                instance = p;
+                return true;
+            }
         }
 
-        public void RegisterComponents()
+        return false;
+    }
+
+    public void RegisterComponents()
+    {
+        LogFile.WriteLine($"Registering {plugins.Count} components");
+        foreach (PluginInstance plugin in plugins)
+            plugin.RegisterSession(MySession.Static);
+    }
+
+    public void Init(object gameInstance)
+    {
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
+
+        if (ConfigManager.Instance.SafeMode)
         {
-            LogFile.WriteLine($"Registering {plugins.Count} components");
-            foreach (PluginInstance plugin in plugins)
-                plugin.RegisterSession(MySession.Static);
+            plugins.Clear();
+            LogFile.Warn("Skipping plugin instantiation");
         }
-
-        public void Init(object gameInstance)
+        else
         {
-            Assembly currentAssembly = Assembly.GetExecutingAssembly();
-            new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
-
-            if (ConfigManager.Instance.SafeMode)
-            {
-                plugins.Clear();
-                LogFile.Warn("Skipping plugin instantiation");
-            }
-            else
-            {
-                InstantiatePlugins();
-                LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-                SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
-
-                if (ConfigManager.Instance.DebugCompileAll)
-                    debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
-
-                for (int i = plugins.Count - 1; i >= 0; i--)
-                {
-                    PluginInstance p = plugins[i];
-                    if (!p.Init(gameInstance))
-                    {
-                        plugins.RemoveAtFast(i);
-                        if (ConfigManager.Instance.DebugCompileAll)
-                            debugCompileResults
-                                .Append(p.FriendlyName ?? "(null)")
-                                .Append(" - ")
-                                .Append(p.Id ?? "(null)")
-                                .Append(" by ")
-                                .Append(p.Author ?? "(null)")
-                                .AppendLine();
-                    }
-                }
-            }
-
-            init = true;
+            InstantiatePlugins();
+            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 
             if (ConfigManager.Instance.DebugCompileAll)
-            {
-                MessageBox.Show("All plugins compiled, log file will now open");
-                LogFile.WriteLine(debugCompileResults.ToString());
-                LogFile.Open();
-            }
-
-            SplashManager.Instance?.SetText($"Updating workshop items...");
-            ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-            SteamMods.Update(profiles.Current.Mods);
-
-            ShowGame();
-        }
-
-        public void Update()
-        {
-            if (!init)
-                return;
+                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
             for (int i = plugins.Count - 1; i >= 0; i--)
             {
                 PluginInstance p = plugins[i];
-                if (!p.Update())
-                    plugins.RemoveAtFast(i);
-            }
-        }
-
-        public void HandleInput()
-        {
-            if (!init)
-                return;
-
-            for (int i = plugins.Count - 1; i >= 0; i--)
-            {
-                PluginInstance p = plugins[i];
-                if (!p.HandleInput())
-                    plugins.RemoveAtFast(i);
-            }
-        }
-
-        public void Dispose()
-        {
-            foreach (PluginInstance p in plugins)
-                p.Dispose();
-            plugins.Clear();
-
-            PlayerConsent.OnConsentChanged -= OnConsentChanged;
-            LogFile.Dispose();
-            Instance = null;
-        }
-
-        private void OnConsentChanged()
-        {
-            ConfigManager.Instance.UpdatePlayerStats();
-        }
-
-        private void OnException(object sender, FirstChanceExceptionEventArgs e)
-        {
-            try
-            {
-                MemberAccessException accessException =
-                    e.Exception as MemberAccessException
-                    ?? e.Exception?.InnerException as MemberAccessException;
-                if (accessException is not null)
+                if (!p.Init(gameInstance))
                 {
-                    foreach (PluginInstance plugin in plugins)
-                    {
-                        if (plugin.ContainsExceptionSite(accessException))
-                            return;
-                    }
+                    plugins.RemoveAtFast(i);
+                    if (ConfigManager.Instance.DebugCompileAll)
+                        debugCompileResults
+                            .Append(p.FriendlyName ?? "(null)")
+                            .Append(" - ")
+                            .Append(p.Id ?? "(null)")
+                            .Append(" by ")
+                            .Append(p.Author ?? "(null)")
+                            .AppendLine();
                 }
             }
-            catch { } // Do NOT throw exceptions inside this method!
         }
 
-        private void InstantiatePlugins()
+        init = true;
+
+        if (ConfigManager.Instance.DebugCompileAll)
         {
-            foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            {
-                PluginInstance.TryGet(data, assembly, out PluginInstance instance);
-                plugins.Add(instance);
-            }
-
-            for (int i = plugins.Count - 1; i >= 0; i--)
-            {
-                PluginInstance p = plugins[i];
-                if (!p.Instantiate())
-                    plugins.RemoveAtFast(i);
-            }
+            MessageBox.Show("All plugins compiled, log file will now open");
+            LogFile.WriteLine(debugCompileResults.ToString());
+            LogFile.Open();
         }
 
-        private static void ShowGame()
+        SplashManager.Instance?.SetText($"Updating workshop items...");
+        ProfilesConfig profiles = ConfigManager.Instance.Profiles;
+        SteamMods.Update(profiles.Current.Mods);
+
+        ShowGame();
+    }
+
+    public void Update()
+    {
+        if (!init)
+            return;
+
+        for (int i = plugins.Count - 1; i >= 0; i--)
         {
-            SplashManager.Instance?.Delete();
-            Patch.Patch_ShowAndFocus.Enabled = true;
-            MyVRage.Platform.Windows.Window.ShowAndFocus();
+            PluginInstance p = plugins[i];
+            if (!p.Update())
+                plugins.RemoveAtFast(i);
         }
+    }
+
+    public void HandleInput()
+    {
+        if (!init)
+            return;
+
+        for (int i = plugins.Count - 1; i >= 0; i--)
+        {
+            PluginInstance p = plugins[i];
+            if (!p.HandleInput())
+                plugins.RemoveAtFast(i);
+        }
+    }
+
+    public void Dispose()
+    {
+        foreach (PluginInstance p in plugins)
+            p.Dispose();
+        plugins.Clear();
+
+        PlayerConsent.OnConsentChanged -= OnConsentChanged;
+        LogFile.Dispose();
+        Instance = null;
+    }
+
+    private void OnConsentChanged()
+    {
+        ConfigManager.Instance.UpdatePlayerStats();
+    }
+
+    private void OnException(object sender, FirstChanceExceptionEventArgs e)
+    {
+        try
+        {
+            MemberAccessException accessException =
+                e.Exception as MemberAccessException
+                ?? e.Exception?.InnerException as MemberAccessException;
+            if (accessException is not null)
+            {
+                foreach (PluginInstance plugin in plugins)
+                {
+                    if (plugin.ContainsExceptionSite(accessException))
+                        return;
+                }
+            }
+        }
+        catch { } // Do NOT throw exceptions inside this method!
+    }
+
+    private void InstantiatePlugins()
+    {
+        foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
+        {
+            PluginInstance.TryGet(data, assembly, out PluginInstance instance);
+            plugins.Add(instance);
+        }
+
+        for (int i = plugins.Count - 1; i >= 0; i--)
+        {
+            PluginInstance p = plugins[i];
+            if (!p.Instantiate())
+                plugins.RemoveAtFast(i);
+        }
+    }
+
+    private static void ShowGame()
+    {
+        SplashManager.Instance?.Delete();
+        Patch.Patch_ShowAndFocus.Enabled = true;
+        MyVRage.Platform.Windows.Window.ShowAndFocus();
     }
 }

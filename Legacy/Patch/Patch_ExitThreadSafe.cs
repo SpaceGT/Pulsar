@@ -2,16 +2,15 @@
 using HarmonyLib;
 using Sandbox;
 
-namespace Pulsar.Legacy.Patch
+namespace Pulsar.Legacy.Patch;
+
+[HarmonyPatchCategory("Early")]
+[HarmonyPatch(typeof(MySandboxGame), "ExitThreadSafe")]
+public class Patch_ExitThreadSafe
 {
-    [HarmonyPatchCategory("Early")]
-    [HarmonyPatch(typeof(MySandboxGame), "ExitThreadSafe")]
-    public class Patch_ExitThreadSafe
+    public static bool Prefix()
     {
-        public static bool Prefix()
-        {
-            Process.GetCurrentProcess().Kill();
-            return false;
-        }
+        Process.GetCurrentProcess().Kill();
+        return false;
     }
 }

@@ -7,171 +7,170 @@ using System.Windows.Forms;
 using Mono.Cecil;
 using NLog;
 
-namespace Pulsar.Shared
+namespace Pulsar.Shared;
+
+public class Preloader
 {
-    public class Preloader
+    private const string ClassName = "Preloader";
+    private const string TargetName = "TargetDLLs";
+    private const string PatchName = "Patch";
+
+    public bool HasPatches => patches.Keys.Count > 0;
+
+    private readonly Dictionary<string, HashSet<Type>> patches = [];
+
+    public Preloader(IEnumerable<Assembly> assemblies)
     {
-        private const string ClassName = "Preloader";
-        private const string TargetName = "TargetDLLs";
-        private const string PatchName = "Patch";
+        foreach (Assembly assembly in assemblies)
+            AddPatch(assembly);
+    }
 
-        public bool HasPatches => patches.Keys.Count > 0;
+    public void Preload(string gameDir, string preloadDir)
+    {
+        var resolver = new DefaultAssemblyResolver();
+        resolver.AddSearchDirectory(gameDir);
 
-        private readonly Dictionary<string, HashSet<Type>> patches = [];
+        var readerParams = new ReaderParameters() { AssemblyResolver = resolver };
 
-        public Preloader(IEnumerable<Assembly> assemblies)
+        if (!Directory.Exists(preloadDir))
+            Directory.CreateDirectory(preloadDir);
+
+        foreach (var kvp in patches)
         {
-            foreach (Assembly assembly in assemblies)
-                AddPatch(assembly);
-        }
+            string dll = kvp.Key;
+            string seDll = Path.Combine(gameDir, dll);
+            HashSet<Type> patchClasses = kvp.Value;
 
-        public void Preload(string gameDir, string preloadDir)
-        {
-            var resolver = new DefaultAssemblyResolver();
-            resolver.AddSearchDirectory(gameDir);
-
-            var readerParams = new ReaderParameters() { AssemblyResolver = resolver };
-
-            if (!Directory.Exists(preloadDir))
-                Directory.CreateDirectory(preloadDir);
-
-            foreach (var kvp in patches)
+            if (IsAssemblyLoaded(dll))
             {
-                string dll = kvp.Key;
-                string seDll = Path.Combine(gameDir, dll);
-                HashSet<Type> patchClasses = kvp.Value;
-
-                if (IsAssemblyLoaded(dll))
-                {
-                    string message = $"Cannot preloader patch loaded '{dll}'";
-                    LogFile.Error(message);
-                    Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    continue;
-                }
-
-                AssemblyDefinition asmDef;
-
-                try
-                {
-                    asmDef = AssemblyDefinition.ReadAssembly(seDll, readerParams);
-                }
-                catch (FileNotFoundException)
-                {
-                    string message =
-                        $"Target '{dll}' for preloader plugin(s) "
-                        + string.Join(
-                            ", ",
-                            patchClasses.Select(x => "'" + x.Assembly.GetName().Name + "'")
-                        )
-                        + " could not be found";
-
-                    LogFile.Error(message);
-                    Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    continue;
-                }
-
-                foreach (Type patchClass in patchClasses)
-                    Patch(patchClass, ref asmDef);
-
-                // CLR does not respect pure in-memory refrences when resolving
-                string newDll = Path.Combine(preloadDir, dll);
-                asmDef.Write(newDll);
-                Assembly.LoadFrom(newDll);
-            }
-
-            foreach (string file in Directory.GetFiles(preloadDir))
-                if (!patches.ContainsKey(Path.GetFileName(file)))
-                    File.Delete(file);
-        }
-
-        public void AddPatch(Type patch)
-        {
-            IEnumerable<string> targets = GetTargets(patch);
-
-            if (targets is null)
-            {
-                string name = patch.Assembly.GetName().Name;
-                string message = $"Preloader plugin '{name}' does not define targets";
+                string message = $"Cannot preloader patch loaded '{dll}'";
                 LogFile.Error(message);
                 Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                continue;
             }
 
-            foreach (string dll in targets)
-            {
-                if (patches.ContainsKey(dll))
-                    patches[dll].Add(patch);
-                else
-                    patches[dll] = [patch];
-            }
-        }
-
-        private void AddPatch(Assembly assembly)
-        {
-            Type patch = assembly.GetType(ClassName);
-
-            if (patch is not null)
-                AddPatch(patch);
-        }
-
-        private static bool IsAssemblyLoaded(string simpleName)
-        {
-            return AppDomain
-                .CurrentDomain.GetAssemblies()
-                .Any(a =>
-                    string.Equals(a.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase)
-                );
-        }
-
-        private static IEnumerable<string> GetTargets(Type patch)
-        {
-            PropertyInfo prop = patch.GetProperty(
-                TargetName,
-                BindingFlags.Public | BindingFlags.Static
-            );
-
-            if (prop is null || prop.GetValue(null) is not IEnumerable<string> targets)
-                return null;
-
-            return targets;
-        }
-
-        private static bool Patch(Type patch, ref AssemblyDefinition definition)
-        {
-            MethodInfo patchMethod = patch.GetMethod(
-                PatchName,
-                BindingFlags.Public | BindingFlags.Static
-            );
-
-            if (patchMethod is null)
-            {
-                string name = patch.Assembly.GetName().Name;
-                string message = $"Preloader plugin '{name}' does not define a patch method";
-                LogFile.Error(message);
-                Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
-            }
-
-            bool reference = patchMethod.GetParameters()[0].ParameterType.IsByRef;
-            object[] args = [definition];
+            AssemblyDefinition asmDef;
 
             try
             {
-                patchMethod.Invoke(null, args);
+                asmDef = AssemblyDefinition.ReadAssembly(seDll, readerParams);
             }
-            catch (TargetInvocationException tie) when (tie.InnerException is not null)
+            catch (FileNotFoundException)
             {
-                string name = patch.Assembly.GetName().Name;
-                var message = $"Preloader plugin '{name}' had an exception:\n" + tie.InnerException;
+                string message =
+                    $"Target '{dll}' for preloader plugin(s) "
+                    + string.Join(
+                        ", ",
+                        patchClasses.Select(x => "'" + x.Assembly.GetName().Name + "'")
+                    )
+                    + " could not be found";
+
                 LogFile.Error(message);
                 Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return false;
+                continue;
             }
 
-            if (reference)
-                definition = (AssemblyDefinition)args[0];
+            foreach (Type patchClass in patchClasses)
+                Patch(patchClass, ref asmDef);
 
-            return true;
+            // CLR does not respect pure in-memory refrences when resolving
+            string newDll = Path.Combine(preloadDir, dll);
+            asmDef.Write(newDll);
+            Assembly.LoadFrom(newDll);
         }
+
+        foreach (string file in Directory.GetFiles(preloadDir))
+            if (!patches.ContainsKey(Path.GetFileName(file)))
+                File.Delete(file);
+    }
+
+    public void AddPatch(Type patch)
+    {
+        IEnumerable<string> targets = GetTargets(patch);
+
+        if (targets is null)
+        {
+            string name = patch.Assembly.GetName().Name;
+            string message = $"Preloader plugin '{name}' does not define targets";
+            LogFile.Error(message);
+            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return;
+        }
+
+        foreach (string dll in targets)
+        {
+            if (patches.ContainsKey(dll))
+                patches[dll].Add(patch);
+            else
+                patches[dll] = [patch];
+        }
+    }
+
+    private void AddPatch(Assembly assembly)
+    {
+        Type patch = assembly.GetType(ClassName);
+
+        if (patch is not null)
+            AddPatch(patch);
+    }
+
+    private static bool IsAssemblyLoaded(string simpleName)
+    {
+        return AppDomain
+            .CurrentDomain.GetAssemblies()
+            .Any(a =>
+                string.Equals(a.GetName().Name, simpleName, StringComparison.OrdinalIgnoreCase)
+            );
+    }
+
+    private static IEnumerable<string> GetTargets(Type patch)
+    {
+        PropertyInfo prop = patch.GetProperty(
+            TargetName,
+            BindingFlags.Public | BindingFlags.Static
+        );
+
+        if (prop is null || prop.GetValue(null) is not IEnumerable<string> targets)
+            return null;
+
+        return targets;
+    }
+
+    private static bool Patch(Type patch, ref AssemblyDefinition definition)
+    {
+        MethodInfo patchMethod = patch.GetMethod(
+            PatchName,
+            BindingFlags.Public | BindingFlags.Static
+        );
+
+        if (patchMethod is null)
+        {
+            string name = patch.Assembly.GetName().Name;
+            string message = $"Preloader plugin '{name}' does not define a patch method";
+            LogFile.Error(message);
+            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+
+        bool reference = patchMethod.GetParameters()[0].ParameterType.IsByRef;
+        object[] args = [definition];
+
+        try
+        {
+            patchMethod.Invoke(null, args);
+        }
+        catch (TargetInvocationException tie) when (tie.InnerException is not null)
+        {
+            string name = patch.Assembly.GetName().Name;
+            var message = $"Preloader plugin '{name}' had an exception:\n" + tie.InnerException;
+            LogFile.Error(message);
+            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
+
+        if (reference)
+            definition = (AssemblyDefinition)args[0];
+
+        return true;
     }
 }

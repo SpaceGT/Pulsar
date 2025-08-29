@@ -7,92 +7,91 @@ using Microsoft.CodeAnalysis;
 using Mono.Cecil;
 using NLog;
 
-namespace Pulsar.Compiler
+namespace Pulsar.Compiler;
+
+public class RoslynReferences
 {
-    public class RoslynReferences
+    public static RoslynReferences Instance = new();
+    public DefaultAssemblyResolver Resolver = new();
+
+    internal readonly Dictionary<string, MetadataReference> AllReferences = [];
+    private readonly HashSet<string> referenceBlacklist =
+    [
+        "System.ValueTuple",
+        "System.Private.ServiceModel",
+        "System.ServiceModel.Syndication",
+    ];
+
+    public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
     {
-        public static RoslynReferences Instance = new();
-        public DefaultAssemblyResolver Resolver = new();
+        if (AllReferences.Count > 0)
+            return;
 
-        internal readonly Dictionary<string, MetadataReference> AllReferences = [];
-        private readonly HashSet<string> referenceBlacklist =
-        [
-            "System.ValueTuple",
-            "System.Private.ServiceModel",
-            "System.ServiceModel.Syndication",
-        ];
+        StringBuilder sb = new("Assembly References:");
+        sb.AppendLine();
+        sb.Append(string.Join(", ", assemblies));
 
-        public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
+        LogLevel level = LogLevel.Info;
+        try
         {
-            if (AllReferences.Count > 0)
-                return;
-
-            StringBuilder sb = new("Assembly References:");
-            sb.AppendLine();
-            sb.Append(string.Join(", ", assemblies));
-
-            LogLevel level = LogLevel.Info;
-            try
-            {
-                LoadAssemblies(assemblies);
-            }
-            catch (Exception e)
-            {
-                sb.Append("Error: ").Append(e).AppendLine();
-                level = LogLevel.Error;
-            }
-
-            LogFile.WriteLine(sb.ToString(), level);
+            LoadAssemblies(assemblies);
+        }
+        catch (Exception e)
+        {
+            sb.Append("Error: ").Append(e).AppendLine();
+            level = LogLevel.Error;
         }
 
-        public void LoadReference(string name, bool recurse = true)
+        LogFile.WriteLine(sb.ToString(), level);
+    }
+
+    public void LoadReference(string name, bool recurse = true)
+    {
+        try
         {
-            try
-            {
-                LoadAssemblies([name], recurse);
-                LogFile.WriteLine("Reference added at runtime: " + name);
-            }
-            catch (IOException)
-            {
-                LogFile.Error("Unable to find the assembly '" + name + "'!");
-            }
+            LoadAssemblies([name], recurse);
+            LogFile.WriteLine("Reference added at runtime: " + name);
         }
-
-        private void LoadAssemblies(IEnumerable<string> names, bool recuse = true)
+        catch (IOException)
         {
-            Stack<string> toProcess = new(names);
-
-            while (toProcess.Count > 0)
-            {
-                string assembly = toProcess.Pop();
-
-                if (referenceBlacklist.Contains(assembly))
-                    continue;
-
-                if (AllReferences.ContainsKey(assembly))
-                    continue;
-
-                var (reference, dependencies) = LoadAssembly(assembly);
-                AllReferences[assembly] = reference;
-
-                if (recuse)
-                    foreach (string name in dependencies)
-                        toProcess.Push(name);
-            }
+            LogFile.Error("Unable to find the assembly '" + name + "'!");
         }
+    }
 
-        private (MetadataReference, IEnumerable<string>) LoadAssembly(string name)
+    private void LoadAssemblies(IEnumerable<string> names, bool recuse = true)
+    {
+        Stack<string> toProcess = new(names);
+
+        while (toProcess.Count > 0)
         {
-            AssemblyNameReference nameReference = new(name, null);
-            AssemblyDefinition definition = Resolver.Resolve(nameReference);
+            string assembly = toProcess.Pop();
 
-            var references = definition.MainModule.AssemblyReferences;
-            string fileName = definition.MainModule.FileName;
+            if (referenceBlacklist.Contains(assembly))
+                continue;
 
-            var reference = MetadataReference.CreateFromFile(fileName);
-            IEnumerable<string> dependencies = references.Select(x => x.Name);
+            if (AllReferences.ContainsKey(assembly))
+                continue;
 
-            return (reference, dependencies);
+            var (reference, dependencies) = LoadAssembly(assembly);
+            AllReferences[assembly] = reference;
+
+            if (recuse)
+                foreach (string name in dependencies)
+                    toProcess.Push(name);
         }
+    }
+
+    private (MetadataReference, IEnumerable<string>) LoadAssembly(string name)
+    {
+        AssemblyNameReference nameReference = new(name, null);
+        AssemblyDefinition definition = Resolver.Resolve(nameReference);
+
+        var references = definition.MainModule.AssemblyReferences;
+        string fileName = definition.MainModule.FileName;
+
+        var reference = MetadataReference.CreateFromFile(fileName);
+        IEnumerable<string> dependencies = references.Select(x => x.Name);
+
+        return (reference, dependencies);
     }
 }

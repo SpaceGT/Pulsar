@@ -7,140 +7,133 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
-namespace Pulsar.Shared
+namespace Pulsar.Shared;
+
+public class Launcher
 {
-    public class Launcher
+    private const int MutexTimeout = 1000; // ms
+
+    private bool newMutex;
+    private readonly Mutex mutex;
+    private readonly string sePath;
+    private readonly string dependencyDir;
+    private readonly string checksum;
+
+    public readonly string Location;
+
+    public Launcher(string sePath, string dependencyDir, string checksum)
     {
-        private const int MutexTimeout = 1000; // ms
+        string programGuid = GetCallerGuid();
 
-        private bool newMutex;
-        private readonly Mutex mutex;
-        private readonly string sePath;
-        private readonly string dependencyDir;
-        private readonly string checksum;
+        this.sePath = sePath;
+        this.checksum = checksum;
+        this.dependencyDir = dependencyDir;
 
-        public readonly string Location;
+        mutex = new Mutex(true, programGuid, out newMutex);
+        Location = Path.GetDirectoryName(Path.GetFullPath(Assembly.GetCallingAssembly().Location));
+    }
 
-        public Launcher(string sePath, string dependencyDir, string checksum)
+    public bool CanStart()
+    {
+        if (!IsSingleInstance())
         {
-            string programGuid = GetCallerGuid();
-
-            this.sePath = sePath;
-            this.checksum = checksum;
-            this.dependencyDir = dependencyDir;
-
-            mutex = new Mutex(true, programGuid, out newMutex);
-            Location = Path.GetDirectoryName(
-                Path.GetFullPath(Assembly.GetCallingAssembly().Location)
-            );
-        }
-
-        public bool CanStart()
-        {
-            if (!IsSingleInstance())
-            {
-                Tools.ShowMessageBox("Error: Space Engineers is already running!");
-                return false;
-            }
-
-            if (Tools.HasCommandArg("-plugin"))
-            {
-                Tools.ShowMessageBox(
-                    "ERROR: \"-plugin\" support has been dropped!\n"
-                        + "Use \"-sources\" add plugins there instead."
-                );
-                return false;
-            }
-
-            return true;
-        }
-
-        private bool IsSingleInstance()
-        {
-            // Check for other Pulsar instances
-            if (!newMutex)
-            {
-                try
-                {
-                    newMutex = mutex.WaitOne(MutexTimeout);
-                    if (!newMutex)
-                        return false;
-                }
-                catch (AbandonedMutexException) { } // Abandoned probably means that the process was killed or crashed
-            }
-
-            // Check for other Space Engineers instances
-            if (
-                Process
-                    .GetProcessesByName(Path.GetFileNameWithoutExtension(sePath))
-                    .Any(x =>
-                        x.MainModule.FileName.Equals(sePath, StringComparison.OrdinalIgnoreCase)
-                    )
-            )
-                return false;
-
-            return true;
-        }
-
-        public bool Verify(bool noUpdates = false)
-        {
-            if (VerifyFiles())
-                return true;
-
-            MessageBoxButtons buttons;
-            string message = "You have a broken Pulsar insallation!\n";
-
-            if (noUpdates)
-            {
-                message += "Please rebuild or manually redownload.";
-                buttons = MessageBoxButtons.OK;
-            }
-            else
-            {
-                message += "Attempt to download the latest version?";
-                buttons = MessageBoxButtons.YesNo;
-            }
-
-            DialogResult result = Tools.ShowMessageBox(message, buttons);
-
-            if (result != DialogResult.Yes)
-                Environment.Exit(1);
-
+            Tools.ShowMessageBox("Error: Space Engineers is already running!");
             return false;
         }
 
-        private bool VerifyFiles()
+        if (Tools.HasCommandArg("-plugin"))
         {
-            if (!Directory.Exists(dependencyDir))
-                return false;
+            Tools.ShowMessageBox(
+                "ERROR: \"-plugin\" support has been dropped!\n"
+                    + "Use \"-sources\" add plugins there instead."
+            );
+            return false;
+        }
 
-            if (checksum is not null && Tools.GetFolderHash(dependencyDir) != checksum)
-                return false;
+        return true;
+    }
 
-            string seFolder = Path.GetDirectoryName(sePath);
-            bool hasConfig = Tools.GetFiles(seFolder, ["*.config"], []).Any();
-            string configPath = Assembly.GetEntryAssembly().Location + ".config";
+    private bool IsSingleInstance()
+    {
+        // Check for other Pulsar instances
+        if (!newMutex)
+        {
+            try
+            {
+                newMutex = mutex.WaitOne(MutexTimeout);
+                if (!newMutex)
+                    return false;
+            }
+            catch (AbandonedMutexException) { } // Abandoned probably means that the process was killed or crashed
+        }
 
-            if (hasConfig && !File.Exists(configPath))
-                return false;
+        // Check for other Space Engineers instances
+        if (
+            Process
+                .GetProcessesByName(Path.GetFileNameWithoutExtension(sePath))
+                .Any(x => x.MainModule.FileName.Equals(sePath, StringComparison.OrdinalIgnoreCase))
+        )
+            return false;
 
+        return true;
+    }
+
+    public bool Verify(bool noUpdates = false)
+    {
+        if (VerifyFiles())
             return true;
-        }
 
-        public void ReleaseMutex()
+        MessageBoxButtons buttons;
+        string message = "You have a broken Pulsar insallation!\n";
+
+        if (noUpdates)
         {
-            if (newMutex)
-                mutex.Close();
+            message += "Please rebuild or manually redownload.";
+            buttons = MessageBoxButtons.OK;
         }
-
-        private static string GetCallerGuid()
+        else
         {
-            Assembly assembly = Assembly.GetCallingAssembly();
-            GuidAttribute attribute = assembly
-                .GetCustomAttributes<GuidAttribute>()
-                .FirstOrDefault();
-
-            return attribute?.Value ?? null;
+            message += "Attempt to download the latest version?";
+            buttons = MessageBoxButtons.YesNo;
         }
+
+        DialogResult result = Tools.ShowMessageBox(message, buttons);
+
+        if (result != DialogResult.Yes)
+            Environment.Exit(1);
+
+        return false;
+    }
+
+    private bool VerifyFiles()
+    {
+        if (!Directory.Exists(dependencyDir))
+            return false;
+
+        if (checksum is not null && Tools.GetFolderHash(dependencyDir) != checksum)
+            return false;
+
+        string seFolder = Path.GetDirectoryName(sePath);
+        bool hasConfig = Tools.GetFiles(seFolder, ["*.config"], []).Any();
+        string configPath = Assembly.GetEntryAssembly().Location + ".config";
+
+        if (hasConfig && !File.Exists(configPath))
+            return false;
+
+        return true;
+    }
+
+    public void ReleaseMutex()
+    {
+        if (newMutex)
+            mutex.Close();
+    }
+
+    private static string GetCallerGuid()
+    {
+        Assembly assembly = Assembly.GetCallingAssembly();
+        GuidAttribute attribute = assembly.GetCustomAttributes<GuidAttribute>().FirstOrDefault();
+
+        return attribute?.Value ?? null;
     }
 }
