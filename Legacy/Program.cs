@@ -31,34 +31,7 @@ static class Program
     {
         Application.EnableVisualStyles();
 
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        AssemblyName currentName = currentAssembly.GetName();
-
-        // Executable is re-launched by SE with this flag when displaying a
-        // crash report. Might allow plugins to edit this in the future.
-        if (Tools.HasCommandArg("-report") || Tools.HasCommandArg("-reporX"))
-        {
-            Game.StartSpaceEngineers(args);
-            return;
-        }
-
-        if (Tools.HasCommandArg("-debug"))
-            Debugger.Launch();
-
-        LogFile.WriteLine("Starting Pulsar v" + currentName.Version.ToString(3));
-
-        if (!Tools.HasCommandArg("-nosplash"))
-            SplashManager.Instance = new SplashManager();
-
-        SplashManager.Instance?.SetTitle("Pulsar");
-        SplashManager.Instance?.SetText("Starting Pulsar...");
-
-        string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
-        string pulsarDir = Path.Combine(currentDir, currentName.Name);
-        string libraryDir = Path.Combine(currentDir, "Libraries");
-        string dependencyDir = Path.Combine(libraryDir, currentName.Name);
         string bin64Dir = Folder.GetBin64();
-
         if (bin64Dir is null)
         {
             Tools.ShowMessageBox(
@@ -68,15 +41,44 @@ static class Program
             return;
         }
 
+        AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
+
+        // Executable is re-launched by SE with this flag when displaying a
+        // crash report. Should be replaced with a Pulsar crash screen in the future.
+        if (Tools.HasCommandArg("-report") || Tools.HasCommandArg("-reporX"))
+        {
+            string spaceEngineersPath = Path.Combine(bin64Dir, OriginalAssemblyFile);
+            Assembly spaceEngineers = Assembly.ReflectionOnlyLoadFrom(spaceEngineersPath);
+            Game.SetMainAssembly(spaceEngineers);
+            Game.StartSpaceEngineers(args);
+            return;
+        }
+
+        if (Tools.HasCommandArg("-debug"))
+            Debugger.Launch();
+
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        AssemblyName currentName = currentAssembly.GetName();
+
+        string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
+        string pulsarDir = Path.Combine(currentDir, currentName.Name);
+
+        LogFile.Init(pulsarDir);
+        LogFile.WriteLine("Starting Pulsar v" + currentName.Version.ToString(3));
+
+        if (!Tools.HasCommandArg("-nosplash"))
+            SplashManager.Instance = new SplashManager();
+
+        SplashManager.Instance?.SetTitle("Pulsar");
+        SplashManager.Instance?.SetText("Starting Pulsar...");
+
+        string libraryDir = Path.Combine(currentDir, "Libraries");
+        string dependencyDir = Path.Combine(libraryDir, currentName.Name);
         string modDir = Path.Combine(
             bin64Dir,
             @"..\..\..\workshop\content",
             Steam.AppId.ToString()
         );
-
-        AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
-
-        LogFile.Init(pulsarDir);
 
         Version seVersion = Game.GetGameVersion(bin64Dir);
 
