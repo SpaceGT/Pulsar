@@ -186,10 +186,10 @@ public abstract class PluginData : IEquatable<PluginData>
 
         if (LogFile.GameLog?.Exists() ?? false)
             msg +=
-                "See loader.log or the game log for details.\n\n"
+                "See info.log or the game log for details.\n\n"
                 + "Would you like to open the Space Engineers and Pulsar logs?";
         else
-            msg += "See loader.log for details.\n\nWould you like to open the Pulsar log?";
+            msg += "See info.log for details.\n\nWould you like to open the Pulsar log?";
 
         MessageBoxButtons buttons = MessageBoxButtons.YesNo;
         DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);

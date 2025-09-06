@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
@@ -131,11 +132,21 @@ public class ProfilesConfig(string folderPath)
 
                 if (File.Exists(file))
                 {
-                    File.Move(file, file + ".bak");
+                    int backupCount = Directory
+                        .EnumerateFiles(folderPath)
+                        .Where(file => Path.GetExtension(file).Contains(".bak"))
+                        .Count();
+
+                    string suffix = ".bak";
+                    if (backupCount > 0)
+                        suffix += backupCount;
+
+                    File.Move(file, file + suffix);
+
                     string message =
                         "The current profile could not be loaded!\n"
                         + "The list of enabled plugins has been reset.\n\n"
-                        + $"The original profile has been saved to Profiles\\{currentKey}.xml.bak";
+                        + $"The original profile has been saved to Profiles\\{currentKey}.xml{suffix}";
                     Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }
             }
