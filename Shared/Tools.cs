@@ -305,41 +305,6 @@ public static class Tools
             .Select(Path.GetFileNameWithoutExtension);
     }
 
-    public static string FriendlyPlatformName()
-    {
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            return "Windows";
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            return GetLinuxDistroName() ?? "Linux";
-        }
-
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            return "MacOS";
-
-        return null;
-    }
-
-    private static string GetLinuxDistroName()
-    {
-        const string path = @"Z:\etc\os-release";
-
-        if (!File.Exists(path))
-            return null;
-
-        foreach (string line in File.ReadAllLines(path))
-        {
-            if (line.StartsWith("NAME="))
-            {
-                var value = line.Split('=')[1].Trim('"');
-                return value;
-            }
-        }
-
-        return null;
-    }
-
     public static string CleanFileName(string name)
     {
         HashSet<char> invalid = [.. Path.GetInvalidFileNameChars()];
@@ -368,6 +333,9 @@ public static class Tools
             text = text.Replace(t, "");
         return text;
     }
+
+    public static bool IsNative() =>
+        Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
 
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);

@@ -69,6 +69,16 @@ public class PluginInstance
 
         try
         {
+            FieldInfo nativeFunc = AccessTools.DeclaredField(mainType, "IsNative");
+            nativeFunc?.SetValue(null, Tools.IsNative());
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find IsNative in {data} due to an error: {e}");
+        }
+
+        try
+        {
             plugin = (IPlugin)Activator.CreateInstance(mainType);
             inputPlugin = plugin as IHandleInputPlugin;
             LoadAssets();

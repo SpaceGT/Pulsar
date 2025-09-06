@@ -60,14 +60,17 @@ copy /y /b "%LICENSE%" "%PULSAR%\" >NUL 2>&1
 REM Get the library directory
 set SHARED_DIR=%PULSAR%\Libraries
 if not exist "%SHARED_DIR%" (
-    echo Creating "Pulsar\Libraries\" folder"
+    echo Creating "Pulsar\Libraries"
     mkdir "%SHARED_DIR%" >NUL 2>&1
 )
 set LIBRARY_DIR=%SHARED_DIR%\%NAME%
-if not exist "%LIBRARY_DIR%" (
-    echo Creating "Pulsar\Libraries\%NAME%" folder"
-    mkdir "%LIBRARY_DIR%" >NUL 2>&1
+if exist "%LIBRARY_DIR%" (
+    echo Clearing "Pulsar\Libraries\%NAME%"
+    rmdir /s /q "%LIBRARY_DIR%"
+) else (
+    echo Creating "Pulsar\Libraries\%NAME%"
 )
+mkdir "%LIBRARY_DIR%" >NUL 2>&1
 echo Switching to "Pulsar\Libraries\%NAME%"
 
 REM Copy Pulsar dependencies
@@ -93,14 +96,26 @@ copy /y /b "%SOURCE%\NLog.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "protobuf-net.dll"
 copy /y /b "%SOURCE%\protobuf-net.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
-echo Copying "Microsoft.CodeAnalysis.*.dll"
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.dll" "%LIBRARY_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
-
-echo Copying "System.*.dll"
-copy /y /b "%SOURCE%\System.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
-
 echo Copying "NuGet.*.dll"
 copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
+REM Get the compiler directory
+set COMPILER_DIR=%LIBRARY_DIR%\Compiler
+if not exist "%COMPILER_DIR%" (
+    echo Creating "Pulsar\Libraries\%NAME%\Compiler"
+    mkdir "%COMPILER_DIR%" >NUL 2>&1
+)
+echo Switching to "Pulsar\Libraries\%NAME%\Compiler"
+
+REM Copy compiler dependencies
+echo Copying "Microsoft.CodeAnalysis.*.dll"
+copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%COMPILER_DIR%\" >NUL 2>&1
+
+echo Copying "System.*.dll"
+copy /y /b "%SOURCE%\System.Collections.Immutable.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.Reflection.Metadata.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.ServiceModel.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.ServiceModel.Primitives.dll" "%COMPILER_DIR%\" >NUL 2>&1
 
 exit /b 0

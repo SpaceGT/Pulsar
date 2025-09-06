@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using Mono.Cecil;
+using Mono.Cecil.Cil;
 using Pulsar.Shared;
 using Sandbox;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
 using SpaceEngineers;
-using SpaceEngineers.Game;
 using VRage.FileSystem;
 using VRage.Plugins;
 using VRage.Utils;
@@ -91,33 +94,31 @@ internal static class Game
 
     public static Version GetGameVersion(string bin64Dir)
     {
-        // Version is fetched in an appdomain so that references can be unloaded
-        AppDomain domain = AppDomain.CreateDomain("GameVersion");
-        domain.SetData("GameDir", bin64Dir);
-        domain.DoCallBack(() =>
-        {
-            AppDomain domain = AppDomain.CurrentDomain;
-            string gameDir = (string)domain.GetData("GameDir");
-            domain.AssemblyResolve += GameAssemblyResolver(gameDir);
-        });
-        domain.DoCallBack(() =>
-        {
-            SpaceEngineersGame.SetupBasicGameInfo();
-            int? gameVersionInt = MyPerGameSettings.BasicGameInfo.GameVersion;
-            string gameVersionStr = null;
+        const string Assembly = "SpaceEngineers.Game.dll";
+        const string Method = "SetupBasicGameInfo";
+        const string ReferencedField = "GameVersion";
 
-            if (gameVersionInt.HasValue)
-                gameVersionStr = MyBuildNumbers.ConvertBuildNumberFromIntToStringFriendly(
-                    gameVersionInt.Value,
-                    "."
-                );
+        // We read the version directly from the DLL to avoid loading Keen assemblies.
+        // Originally an AppDomain was used but Mono could not unload them properly.
+        using var assembly = AssemblyDefinition.ReadAssembly(Path.Combine(bin64Dir, Assembly));
 
-            AppDomain.CurrentDomain.SetData("Version", gameVersionStr);
-        });
+        Instruction storeField = assembly
+            .MainModule.Types.SelectMany(type => type.Methods)
+            .Where(method => method.HasBody && method.Name == Method)
+            .SelectMany(method => method.Body.Instructions)
+            .FirstOrDefault(instruction =>
+                instruction.OpCode == OpCodes.Stfld
+                && instruction.Operand is FieldReference fr
+                && fr.Name == ReferencedField
+            );
 
-        string version = (string)domain.GetData("Version");
-        AppDomain.Unload(domain);
+        Instruction versionValue = storeField?.Previous?.Previous;
+        if (versionValue is null || versionValue.OpCode.Code != Code.Ldc_I4)
+            return null;
 
+        // 1234567 => "1.234.567"
+        string vStr = ((int)versionValue.Operand).ToString();
+        string version = string.Join(".", [vStr[0], vStr.Substring(1, 3), vStr.Substring(4, 3)]);
         return new Version(version);
     }
 
@@ -133,27 +134,19 @@ internal static class Game
 
     public static void CorrectExitText()
     {
-        string message;
-        string platform = Tools.FriendlyPlatformName();
-
-        if (platform is null)
-            message = "Exit Game";
-        else
-            message = MyCommonTexts
-                .ScreenMenuButtonExitToWindows.ToString()
-                .Replace("Windows", platform);
-
         FieldInfo exitTextField = typeof(MyCommonTexts).GetField(
             "ScreenMenuButtonExitToWindows",
             BindingFlags.Static | BindingFlags.Public
         );
 
+        string message = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
         exitTextField.SetValue(null, MyStringId.GetOrCompute(message));
     }
 
     public static float GetLoadProgress()
     {
         // No native function in Space Engineers does this but we can estimate
+        // FIXME: Does not work well with Preloaders or under Proton
         float expectedGrowth = 1100f * 1024 * 1024;
 
         Process process = Process.GetCurrentProcess();
@@ -164,11 +157,15 @@ internal static class Game
         return Math.Min(1f, Math.Max(0f, ratio));
     }
 
+    // Inlining causes Keen references to load prematurely
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ShowIntroVideo(bool enabled) =>
         MyPlatformGameSettings.ENABLE_LOGOS = enabled;
 
+    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void RunOnGameThread(Action action) =>
         MySandboxGame.Static.Invoke(action, "Pulsar");
 }

@@ -38,7 +38,7 @@ public class RoslynReferences
         }
         catch (Exception e)
         {
-            sb.Append("Error: ").Append(e).AppendLine();
+            sb.AppendLine().Append("Error: ").Append(e).AppendLine();
             level = LogLevel.Error;
         }
 

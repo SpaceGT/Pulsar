@@ -51,7 +51,6 @@ public class Loader
 
         GitHub.Init();
         LogEnabledPlugins();
-        splash?.SetText("Starting...");
 
         StatsClient.OverrideBaseUrl(config.StatsServerBaseUrl);
         ConfigManager.Instance.UpdatePlayerStats();

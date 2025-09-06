@@ -42,14 +42,13 @@ static class Program
         }
 
         AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
+        string originalLoaderPath = Path.Combine(bin64Dir, OriginalAssemblyFile);
 
-        // Executable is re-launched by SE with this flag when displaying a
-        // crash report. Should be replaced with a Pulsar crash screen in the future.
+        // Executable is re-launched by SE with this flag when displaying a crash report.
+        // TODO: Replace this with a Pulsar crash screen in the future.
         if (Tools.HasCommandArg("-report") || Tools.HasCommandArg("-reporX"))
         {
-            string spaceEngineersPath = Path.Combine(bin64Dir, OriginalAssemblyFile);
-            Assembly spaceEngineers = Assembly.ReflectionOnlyLoadFrom(spaceEngineersPath);
-            Game.SetMainAssembly(spaceEngineers);
+            Game.SetMainAssembly(Assembly.ReflectionOnlyLoadFrom(originalLoaderPath));
             Game.StartSpaceEngineers(args);
             return;
         }
@@ -82,7 +81,8 @@ static class Program
 
         Version seVersion = Game.GetGameVersion(bin64Dir);
 
-        // This must be called before using most of the Shared project
+        // The ConfigManager singleton is used by most of the
+        // shared project and must be initialized beforehand.
         new ConfigManager(
             pulsarDir,
             bin64Dir,
@@ -102,8 +102,7 @@ static class Program
         if (File.Exists(checkFile))
             checkSum = File.ReadAllText(checkFile);
 
-        string originalLoader = Path.Combine(bin64Dir, OriginalAssemblyFile);
-        var launcher = new SharedLauncher(originalLoader, libraryDir, checkSum);
+        var launcher = new SharedLauncher(originalLoaderPath, libraryDir, checkSum);
         if (!launcher.Verify(noUpdate))
         {
             updater.Update();
@@ -120,12 +119,17 @@ static class Program
 
         using (CompilerFactory compiler = new([bin64Dir, dependencyDir], bin64Dir, pulsarDir))
         {
+            // The AppDomain must be created ASAP if running under Mono
+            // as Mono does not isolate assemblies properly.
+            if (!Tools.IsNative())
+                compiler.Init();
+
             Tools.Init(new ExternalTools(), compiler);
             SharedLoader.Instance = new SharedLoader();
         }
 
         Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
-        if (preloader.HasPatches)
+        if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
             preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"));
@@ -133,10 +137,7 @@ static class Program
 
         LogFile.GameLog = new GameLog();
 
-        Assembly originalLauncher = Assembly.ReflectionOnlyLoadFrom(
-            Path.Combine(bin64Dir, "SpaceEngineers.exe")
-        );
-        Game.SetMainAssembly(originalLauncher);
+        Game.SetMainAssembly(Assembly.ReflectionOnlyLoadFrom(originalLoaderPath));
 
         new Harmony(currentName.Name + ".Early").PatchCategory("Early");
 
@@ -149,9 +150,10 @@ static class Program
         // This call is wrapped so that Keen references are not loaded prematurely
         ((Action)(() => Game.RegisterPlugin(new PluginLoader())))();
 
-        ProgressPollFactory().Start();
-
         SplashManager.Instance?.SetText("Launching Space Engineers...");
+        if (Tools.IsNative())
+            ProgressPollFactory().Start();
+
         try
         {
             Game.StartSpaceEngineers(args);
@@ -169,7 +171,7 @@ static class Program
             float progress = 0;
             SplashManager splash = SplashManager.Instance;
 
-            while (splash is not null && progress < 1)
+            while (SplashManager.Instance is not null && progress < 1)
             {
                 // FIXME: Does not work well with preloaded assemblies
                 progress = Game.GetLoadProgress();

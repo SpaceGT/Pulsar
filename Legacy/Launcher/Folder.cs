@@ -14,12 +14,13 @@ internal class Folder
     private static readonly HashSet<string> seFiles =
     [
         "SpaceEngineers.exe",
+        "SpaceEngineers.Game.dll",
         "VRage.dll",
         "Sandbox.Game.dll",
         "ProtoBuf.Net.dll",
     ];
 
-    public static string GetBin64() => FromArguments() ?? FromCurrentDir() ?? FromRegistry();
+    public static string GetBin64() => FromArguments() ?? FromRegistry();
 
     private static bool IsBin64(string path)
     {
@@ -55,28 +56,22 @@ internal class Folder
         return path;
     }
 
-    private static string FromCurrentDir()
-    {
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
-        string path = Path.Combine(currentDir, "..");
-
-        if (!IsBin64(path))
-            return null;
-
-        return path;
-    }
-
     private static string FromArguments()
     {
-        string rawPath = Tools.GetCommandArg("-bin64");
-        if (rawPath is null)
+        string path = Tools.GetCommandArg("-bin64");
+        if (path is null)
             return null;
 
-        string path = Path.GetFullPath(rawPath);
+        if (!Path.IsPathRooted(path))
+        {
+            string currentPath = Assembly.GetExecutingAssembly().Location;
+            string currentDir = Path.GetDirectoryName(currentPath);
+            path = Path.Combine(currentDir, path);
+        }
+
         if (!IsBin64(path))
             return null;
 
-        return path;
+        return Path.GetFullPath(path);
     }
 }

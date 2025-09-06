@@ -64,8 +64,12 @@ public class LocalFolderPlugin : PluginData
                 InstallDependencies(compiler);
 
             StringBuilder sb = new();
-            sb.Append("Compiling files from ").Append(Folder).Append(":").AppendLine();
-            foreach (var file in GetProjectFiles(Folder))
+            sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
+
+            IEnumerable<string> projectFiles = Tools.IsNative() ? GetProjectFilesGit(Folder) : null;
+            projectFiles ??= GetProjectFilesFallback(Folder);
+
+            foreach (var file in projectFiles)
             {
                 using FileStream fileStream = File.OpenRead(file);
                 hasFile = true;
@@ -135,7 +139,7 @@ public class LocalFolderPlugin : PluginData
         resolver.AddSourceFolder(binDir);
     }
 
-    private void InstallPackage(NuGetPackage package, ICompiler compiler, string binDir)
+    private static void InstallPackage(NuGetPackage package, ICompiler compiler, string binDir)
     {
         foreach (NuGetPackage.Item file in package.LibFiles)
         {
@@ -154,35 +158,38 @@ public class LocalFolderPlugin : PluginData
         }
     }
 
-    private IEnumerable<string> GetProjectFiles(string folder)
+    private IEnumerable<string> GetProjectFilesGit(string folder)
     {
         string gitError = null;
         try
         {
-            Process p = new();
+            ProcessStartInfo startInfo = new()
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+                FileName = "git",
+                Arguments = "ls-files --cached --others --exclude-standard",
+                WorkingDirectory = folder,
+            };
 
-            // Redirect the output stream of the child process.
-            p.StartInfo.UseShellExecute = false;
-            p.StartInfo.RedirectStandardOutput = true;
-            p.StartInfo.RedirectStandardError = true;
-            p.StartInfo.CreateNoWindow = true;
-            p.StartInfo.FileName = "git";
-            p.StartInfo.Arguments = "ls-files --cached --others --exclude-standard";
-            p.StartInfo.WorkingDirectory = folder;
-            p.Start();
+            using Process process = new();
+            process.StartInfo = startInfo;
+            process.Start();
 
             // Do not wait for the child process to exit before
             // reading to the end of its redirected stream.
             // Read the output stream first and then wait.
-            string gitOutput = p.StandardOutput.ReadToEnd();
-            gitError = p.StandardError.ReadToEnd();
-            if (!p.WaitForExit(GitTimeout))
+            string gitOutput = process.StandardOutput.ReadToEnd();
+            gitError = process.StandardError.ReadToEnd();
+            if (!process.WaitForExit(GitTimeout))
             {
-                p.Kill();
+                process.Kill();
                 throw new TimeoutException("Git operation timed out.");
             }
 
-            if (p.ExitCode == 0)
+            if (process.ExitCode == 0)
             {
                 string[] files = gitOutput.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
                 return files
@@ -220,6 +227,12 @@ public class LocalFolderPlugin : PluginData
             LogFile.WriteLine(sb.ToString());
         }
 
+        return null;
+    }
+
+    private IEnumerable<string> GetProjectFilesFallback(string folder)
+    {
+        LogFile.Warn("Using fallback search for project files!");
         char sep = Path.DirectorySeparatorChar;
         return Directory
             .EnumerateFiles(folder, "*.cs", SearchOption.AllDirectories)

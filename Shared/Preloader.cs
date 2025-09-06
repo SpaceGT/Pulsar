@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
 using Mono.Cecil;
-using NLog;
 
 namespace Pulsar.Shared;
 
