@@ -31,6 +31,12 @@ static class Program
     {
         Application.EnableVisualStyles();
 
+        if (SharedLauncher.IsOtherPulsarRunning())
+        {
+            Tools.ShowMessageBox("Error: Pulsar is already running!");
+            return;
+        }
+
         string bin64Dir = Folder.GetBin64();
         if (bin64Dir is null)
         {
@@ -154,14 +160,7 @@ static class Program
         if (Tools.IsNative())
             ProgressPollFactory().Start();
 
-        try
-        {
-            Game.StartSpaceEngineers(args);
-        }
-        finally
-        {
-            launcher.ReleaseMutex();
-        }
+        Game.StartSpaceEngineers(args);
     }
 
     private static Thread ProgressPollFactory()
