@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Gameloop.Vdf;
-using Gameloop.Vdf.JsonConverter;
 using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
 using Pulsar.Shared;
@@ -94,7 +93,7 @@ internal class Folder
         {
             using var libraryFolderVdfReader = File.OpenText(libaryFoldersVdfPath);
             VProperty libraryFoldersData = VdfConvert.Deserialize(libraryFolderVdfReader);
-            var libraryFolders = libraryFoldersData.Value.Select(i => ((VProperty)i).Value.ToJson().ToObject<LibraryFolder>());
+            var libraryFolders = libraryFoldersData.Value.Select(i => TryParseLibraryFolder(((VProperty)i).Value));
 
             if (libraryFolders is null)
                 return null;
@@ -120,6 +119,27 @@ internal class Folder
         }
 
         return null;
+
+        static LibraryFolder? TryParseLibraryFolder(VToken token)
+        {
+            try
+            {
+                return new LibraryFolder
+                {
+                    path = token.Value<string>("path") ?? null,
+                    label = token.Value<string>("label") ?? null,
+                    contentid = token.Value<ulong>("contentid"),
+                    totalsize = token.Value<ulong>("totalsize"),
+                    update_clean_bytes_tally = token.Value<ulong>("update_clean_bytes_tally"),
+                    time_last_update_verified = token.Value<ulong>("time_last_update_verified"),
+                    apps = token["apps"]?.Children<VProperty>()?.ToDictionary(k => ulong.Parse(k.Key), v => ulong.Parse(v.Value.ToString())),
+                };
+            }
+            catch
+            {
+                return null;
+            }
+        }
 
         static bool ValidateBin64Path(string path)
         {
