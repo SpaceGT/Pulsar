@@ -70,6 +70,8 @@
     <Reference Include="VRage.Scripting" HintPath="$(Bin64)\VRage.Scripting.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+    <PackageReference Include="Gameloop.Vdf.JsonConverter" Version="0.2.1" />
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
   </ItemGroup>
 </Project>

@@ -29,7 +29,7 @@ public static class Steam
             return;
         }
 
-        string path = GetSteamPath();
+        string path = GetSteamExePath();
 
         try
         {
@@ -56,7 +56,7 @@ public static class Steam
         Environment.Exit(1);
     }
 
-    private static string GetSteamPath()
+    private static string GetSteamExePath()
     {
         using var baseKey = RegistryKey.OpenBaseKey(
             RegistryHive.CurrentUser,
@@ -72,6 +72,12 @@ public static class Steam
             return null;
 
         return path;
+    }
+
+    public static string GetSteamPath()
+    {
+        string path = (string?)Registry.GetValue(@"HKEY_CURRENT_USER\SOFTWARE\Valve\Steam", "SteamPath", null);
+        return !String.IsNullOrWhiteSpace(path) ? path : null;
     }
 
     private static void ShowWarning()

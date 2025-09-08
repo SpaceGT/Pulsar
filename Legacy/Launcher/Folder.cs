@@ -1,8 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
+using Gameloop.Vdf;
+using Gameloop.Vdf.JsonConverter;
+using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
 using Pulsar.Shared;
+using Pulsar.Shared.Vdf.Steam;
 
 namespace Pulsar.Legacy.Launcher;
 
@@ -20,7 +25,7 @@ internal class Folder
         "ProtoBuf.Net.dll",
     ];
 
-    public static string GetBin64() => FromArguments() ?? FromRegistry();
+    public static string GetBin64() => FromArguments() ?? FromRegistry() ?? FromSteamLibraryFoldersVdf();
 
     private static bool IsBin64(string path)
     {
@@ -73,5 +78,62 @@ internal class Folder
             return null;
 
         return Path.GetFullPath(path);
+    }
+
+    private static string FromSteamLibraryFoldersVdf()
+    {
+        string steamInstallPath = Steam.GetSteamPath();
+        if (steamInstallPath is null)
+            return null;
+
+        string libaryFoldersVdfPath = Path.Combine(steamInstallPath, "steamapps", "libraryfolders.vdf");
+        if (!File.Exists(libaryFoldersVdfPath))
+            return null;
+
+        try
+        {
+            using var libraryFolderVdfReader = File.OpenText(libaryFoldersVdfPath);
+            VProperty libraryFoldersData = VdfConvert.Deserialize(libraryFolderVdfReader);
+            var libraryFolders = libraryFoldersData.Value.Select(i => ((VProperty)i).Value.ToJson().ToObject<LibraryFolder>());
+
+            if (libraryFolders is null)
+                return null;
+
+            foreach (LibraryFolder? folder in libraryFolders)
+            {
+                if (folder?.path is null || (folder?.apps?.Count ?? 0) is 0)
+                    continue;
+
+                foreach (ulong appId in folder!.apps.Keys)
+                {
+                    string bin64Location = Path.Combine(folder.path, "steamapps", "common", "SpaceEngineers", "Bin64");
+                    if (appId == 244850 && ValidateBin64Path(bin64Location))
+                    {
+                        return bin64Location;
+                    }
+                }
+            }
+        }
+        catch
+        {
+            return null;
+        }
+
+        return null;
+
+        static bool ValidateBin64Path(string path)
+        {
+            if (!Path.IsPathRooted(path))
+                return false;
+
+            if (!Directory.Exists(path))
+                return false;
+
+            string gameExePath = Path.Combine(path, "SpaceEngineers.exe");
+            if (!File.Exists(gameExePath))
+                return false;
+
+            return true;
+        }
     }
 }
