@@ -67,11 +67,13 @@ internal static class Game
         );
         mainAssemblyNameField.SetValue(null, assembly.GetName().Name);
 
-        var exePath = new FileInfo(assembly.Location).DirectoryName;
-        var rootPath = new FileInfo(exePath).Directory?.FullName ?? Path.GetFullPath(exePath);
+        var asmFolder = new FileInfo(assembly.Location).DirectoryName;
+        var seRoot = new FileInfo(asmFolder).Directory?.FullName ?? Path.GetFullPath(asmFolder);
 
-        MyFileSystem.ExePath = exePath;
-        MyFileSystem.RootPath = rootPath;
+        MyFileSystem.ExePath = asmFolder;
+        MyFileSystem.RootPath = seRoot;
+
+        Environment.CurrentDirectory = asmFolder;
     }
 
     public static ResolveEventHandler GameAssemblyResolver(string bin64Dir)

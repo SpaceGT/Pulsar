@@ -95,7 +95,7 @@
             this.pulsarText.Margin = new System.Windows.Forms.Padding(0);
             this.pulsarText.Name = "pulsarText";
             this.pulsarText.Size = new System.Drawing.Size(361, 284);
-            this.pulsarText.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.pulsarText.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.pulsarText.TabIndex = 3;
             this.pulsarText.TabStop = false;
             // 
@@ -108,7 +108,7 @@
             this.throbber.Margin = new System.Windows.Forms.Padding(0);
             this.throbber.Name = "throbber";
             this.throbber.Size = new System.Drawing.Size(294, 284);
-            this.throbber.SizeMode = System.Windows.Forms.PictureBoxSizeMode.CenterImage;
+            this.throbber.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
             this.throbber.TabIndex = 1;
             this.throbber.TabStop = false;
             // 

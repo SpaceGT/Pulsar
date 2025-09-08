@@ -43,6 +43,9 @@
     <ApplicationIcon>..\Shared\Splash\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+  <PropertyGroup>
     <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
     <StartProgram>$(Pulsar)\Legacy.exe</StartProgram>
