@@ -10,7 +10,7 @@ namespace Pulsar.Shared;
 
 public class Launcher(string sePath, string dependencyDir, string checksum)
 {
-    public static Mutex mutex;
+    public static Mutex Mutex { get; private set; }
 
     public bool CanStart()
     {
@@ -44,7 +44,7 @@ public class Launcher(string sePath, string dependencyDir, string checksum)
     public static bool IsOtherPulsarRunning()
     {
         string callerName = Assembly.GetEntryAssembly().GetName().Name;
-        mutex = new Mutex(true, "Pulsar" + callerName, out bool isOwner);
+        Mutex = new Mutex(true, "Pulsar" + callerName, out bool isOwner);
         return !isOwner;
     }
 
