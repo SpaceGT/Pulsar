@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using HarmonyLib;
@@ -105,7 +106,14 @@ static class Program
 
         string checkSum = null;
         string checkFile = Path.Combine(currentDir, "checksum.txt");
-        if (File.Exists(checkFile))
+
+        if (Tools.HasCommandArg("-mkcheck"))
+        {
+            UTF8Encoding encoding = new();
+            checkSum = Tools.GetFolderHash(libraryDir);
+            File.WriteAllText(checkFile, checkSum, encoding);
+        }
+        else if (File.Exists(checkFile))
             checkSum = File.ReadAllText(checkFile);
 
         var launcher = new SharedLauncher(originalLoaderPath, libraryDir, checkSum);
