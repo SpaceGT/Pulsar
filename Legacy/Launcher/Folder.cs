@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.Win32;
 using Pulsar.Shared;
@@ -11,16 +13,18 @@ internal class Folder
     private const string registryKey =
         @"SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App {0}";
     private const string registryName = "InstallLocation";
+
+    private const string seLauncher = "SpaceEngineers.exe";
     private static readonly HashSet<string> seFiles =
     [
-        "SpaceEngineers.exe",
+        seLauncher,
         "SpaceEngineers.Game.dll",
         "VRage.dll",
         "Sandbox.Game.dll",
         "ProtoBuf.Net.dll",
     ];
 
-    public static string GetBin64() => FromArguments() ?? FromRegistry();
+    public static string GetBin64() => FromOverride() ?? FromSteamArgs() ?? FromRegistry();
 
     private static bool IsBin64(string path)
     {
@@ -56,7 +60,7 @@ internal class Folder
         return path;
     }
 
-    private static string FromArguments()
+    private static string FromOverride()
     {
         string path = Tools.GetCommandArg("-bin64");
         if (path is null)
@@ -73,5 +77,22 @@ internal class Folder
             return null;
 
         return Path.GetFullPath(path);
+    }
+
+    private static string FromSteamArgs()
+    {
+        // The original command (which inlcudes a path to seLauncher) will
+        // be present if substituted in with Steam's %command% argument.
+
+        IEnumerable<string> sePaths = Environment
+            .GetCommandLineArgs()
+            .Where(arg => arg.Contains(@"Bin64\" + seLauncher))
+            .Select(Path.GetDirectoryName);
+
+        foreach (string path in sePaths)
+            if (IsBin64(path))
+                return path;
+
+        return null;
     }
 }
