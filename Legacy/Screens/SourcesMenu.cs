@@ -605,9 +605,9 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     {
         try
         {
-            string localPlugins = Path.Combine(LoaderTools.PulsarDir, "Local");
-            Directory.CreateDirectory(localPlugins);
-            Process.Start("explorer.exe", $"\"{localPlugins}\"");
+            string localPluginDir = Path.Combine(ConfigManager.Instance.PulsarDir, "Local");
+            Directory.CreateDirectory(localPluginDir);
+            Process.Start("explorer.exe", $"\"{localPluginDir}\"");
             MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
         }
         catch (Exception e)

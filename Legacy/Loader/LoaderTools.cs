@@ -26,9 +26,6 @@ namespace Pulsar.Legacy.Loader;
 
 public static class LoaderTools
 {
-    public static string PulsarDir =>
-        Path.GetFullPath(Path.Combine(MyFileSystem.ExePath, "Plugins"));
-
     public const string ContinueArg = "-continue";
     public const string DebugArg = "-debug";
 
