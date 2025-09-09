@@ -49,7 +49,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         return false;
     }
 
-    private DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
+    private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
     {
         StringBuilder prompt = new();
         prompt.Append($"An update is available for {PulsarName}:").AppendLine();
@@ -78,8 +78,6 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
 
         if (result == DialogResult.No)
             Environment.Exit(0);
-
-        GitHubPlugin.ClearGitHubCache();
     }
 
     private void ShowUpdateError()
@@ -128,7 +126,11 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         StartUpdater(lUpdaterPath, rPulsarPath, lPulsarPath);
     }
 
-    private bool TryGetUpdaterInfo(JObject json, out Version remoteVer, out string remotePath)
+    private static bool TryGetUpdaterInfo(
+        JObject json,
+        out Version remoteVer,
+        out string remotePath
+    )
     {
         remoteVer = null;
         remotePath = null;
@@ -157,7 +159,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         return true;
     }
 
-    private bool TryGetPulsarPath(JObject json, out string remotePath)
+    private static bool TryGetPulsarPath(JObject json, out string remotePath)
     {
         remotePath = null;
 
@@ -183,7 +185,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         return true;
     }
 
-    private Version GetLocalUpdaterVersion(string updaterPath)
+    private static Version GetLocalUpdaterVersion(string updaterPath)
     {
         if (!File.Exists(updaterPath))
             return null;
@@ -192,7 +194,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         return name.Version;
     }
 
-    private void DownloadUpdater(string remotePath, string localPath)
+    private static void DownloadUpdater(string remotePath, string localPath)
     {
         Uri uri = new(remotePath, UriKind.Absolute);
         using var stream = GitHub.GetStream(uri);
@@ -200,7 +202,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         stream.CopyTo(file);
     }
 
-    private void StartUpdater(string updaterPath, string remotePath, string localPath)
+    private static void StartUpdater(string updaterPath, string remotePath, string localPath)
     {
         string caller = $"\"{Assembly.GetEntryAssembly().Location}\"";
         remotePath = $"\"{remotePath}\"";
