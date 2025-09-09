@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Text;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -76,10 +77,9 @@ internal class AddMod(Action<ModConfig> onAdd) : PluginScreen(size: new Vector2(
                 idLabel.PositionX,
                 idLabel.PositionY + idLabel.Size.Y + GuiSpacing
             )
-        )
-        {
-            Type = MyGuiControlTextboxType.DigitsOnly,
-        };
+        );
+        IdInput.TextChanged += TextSanitizer;
+
         Controls.Add(idLabel);
         Controls.Add(IdInput);
 
@@ -93,6 +93,15 @@ internal class AddMod(Action<ModConfig> onAdd) : PluginScreen(size: new Vector2(
                 IdInput.Text = parts[2];
             }
         }
+    }
+
+    private void TextSanitizer(MyGuiControlTextbox textBox)
+    {
+        string text = textBox.Text;
+        if (text.All(c => char.IsDigit(c)))
+            return;
+
+        textBox.Text = string.Concat(text.Where(char.IsNumber));
     }
 
     private void OnAddClick()
