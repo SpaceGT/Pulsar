@@ -34,7 +34,7 @@ public class Loader
 
         splash = SplashManager.Instance;
 
-        if (Tools.EscapePressed())
+        if (Tools.IsKeyPressed(Keys.Escape))
         {
             DialogResult result = Tools.ShowMessageBox(
                 "Escape pressed. Start the game with all plugins disabled?",

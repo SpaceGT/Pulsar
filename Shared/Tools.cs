@@ -52,21 +52,6 @@ public static class Tools
         return sb.ToString();
     }
 
-    public static string FormatDateIso8601(DateTime dt) => dt.ToString("s").Substring(0, 10);
-
-    // FIXME: Replace this with the proper library call, I could not find one
-    public static string FormatUriQueryString(Dictionary<string, string> parameters)
-    {
-        var query = new StringBuilder();
-        foreach (var p in parameters)
-        {
-            if (query.Length > 0)
-                query.Append('&');
-            query.Append($"{Uri.EscapeDataString(p.Key)}={Uri.EscapeDataString(p.Value)}");
-        }
-        return query.ToString();
-    }
-
     public static string GetFolderHash(string folderPath, string glob = "*")
     {
         if (!Directory.Exists(folderPath))
@@ -267,13 +252,6 @@ public static class Tools
         );
     }
 
-    public static bool FilesEqual(string file1, string file2)
-    {
-        FileInfo fileInfo1 = new(file1);
-        FileInfo fileInfo2 = new(file2);
-        return fileInfo1.Length == fileInfo2.Length && GetFileHash(file1) == GetFileHash(file2);
-    }
-
     public static IEnumerable<string> GetFiles(
         string path,
         string[] includeGlobs,
@@ -328,5 +306,5 @@ public static class Tools
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
 
-    public static bool EscapePressed() => (GetAsyncKeyState(0x1B) & 0x8000) != 0;
+    public static bool IsKeyPressed(Keys key) => GetAsyncKeyState((int)key) < 0;
 }

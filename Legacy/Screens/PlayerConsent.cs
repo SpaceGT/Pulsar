@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Text;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -104,7 +105,7 @@ public static class PlayerConsent
         }
 
         var config = ConfigManager.Instance.Config;
-        config.DataHandlingConsentDate = Tools.FormatDateIso8601(DateTime.Today);
+        config.DataHandlingConsentDate = DateTime.UtcNow.ToString("dd-MM-yyyy");
         config.DataHandlingConsent = consent;
         config.Save();
 
