@@ -31,15 +31,14 @@ public static class Tools
 
     public static string GetFileHash(string file)
     {
-        using SHA256CryptoServiceProvider sha = new();
-        using FileStream fileStream = new(file, FileMode.Open);
-        using BufferedStream bufferedStream = new(fileStream);
-        return GetHash(bufferedStream, sha);
+        using var sha = SHA256.Create();
+        using FileStream fileStream = new(file, FileMode.Open, FileAccess.Read);
+        return GetHash(fileStream, sha);
     }
 
     public static string GetStringHash(string text)
     {
-        using SHA256CryptoServiceProvider sha = new();
+        using var sha = SHA256.Create();
         using MemoryStream memory = new(Encoding.UTF8.GetBytes(text));
         return GetHash(memory, sha);
     }
@@ -71,28 +70,17 @@ public static class Tools
     public static string GetFolderHash(string folderPath, string glob = "*")
     {
         if (!Directory.Exists(folderPath))
-            throw new DirectoryNotFoundException($"Folder not found: {folderPath}");
+            throw new DirectoryNotFoundException($"Cannot hash non-existent folder: {folderPath}");
 
-        List<string> files =
-        [
-            .. Directory
-                .GetFiles(folderPath, glob, SearchOption.AllDirectories)
-                .OrderBy(Path.GetFileName),
-        ];
-        StringBuilder timestamps = new("");
+        IEnumerable<string> files = Directory
+            .GetFiles(folderPath, glob, SearchOption.AllDirectories)
+            .OrderBy(Path.GetFileName);
 
+        StringBuilder hashBuilder = new();
         foreach (string path in files)
-        {
-            DateTime accessTimeUtc = File.GetLastWriteTimeUtc(path);
-            timestamps.Append(accessTimeUtc.Ticks.ToString());
-        }
+            hashBuilder.Append(GetFileHash(path));
 
-        using var md5 = MD5.Create();
-        byte[] inputBytes = new UTF8Encoding().GetBytes(timestamps.ToString());
-        byte[] hashBytes = md5.ComputeHash(inputBytes);
-
-        string hash = BitConverter.ToString(hashBytes);
-        return hash.Replace("-", "").ToLowerInvariant();
+        return GetStringHash(hashBuilder.ToString());
     }
 
     public static string GetClipboard()
