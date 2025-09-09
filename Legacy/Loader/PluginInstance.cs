@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
+using NLog;
 using Pulsar.Shared;
 using Pulsar.Shared.Data;
 using Sandbox.Game.World;
@@ -51,16 +52,31 @@ public class PluginInstance
 
     public bool Instantiate()
     {
+        DependencyInject();
+
+        try
+        {
+            plugin = (IPlugin)Activator.CreateInstance(mainType);
+            inputPlugin = plugin as IHandleInputPlugin;
+            LoadAssets();
+        }
+        catch (Exception e)
+        {
+            ThrowError($"Failed to instantiate {data} because of an error: {e}");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void DependencyInject()
+    {
         // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
 
         try
         {
             FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
-            if (pluginFunc is not null)
-            {
-                Delegate getConfigPath = new Func<string, string, string>(data.GetConfigPath);
-                pluginFunc.SetValue(null, getConfigPath);
-            }
+            pluginFunc?.SetValue(null, new Func<string, string, string>(data.GetConfigPath));
         }
         catch (Exception e)
         {
@@ -79,27 +95,22 @@ public class PluginInstance
 
         try
         {
-            plugin = (IPlugin)Activator.CreateInstance(mainType);
-            inputPlugin = plugin as IHandleInputPlugin;
-            LoadAssets();
+            FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "PulsarLog");
+            pluginFunc?.SetValue(null, new Action<string, LogLevel>(LogFile.WriteLine));
         }
         catch (Exception e)
         {
-            ThrowError($"Failed to instantiate {data} because of an error: {e}");
-            return false;
+            LogFile.Error($"Unable to find PulsarLog in {data} due to an error: {e}");
         }
 
         try
         {
-            openConfigDialog = AccessTools.DeclaredMethod(mainType, "OpenConfigDialog", []);
+            openConfigDialog = AccessTools.DeclaredMethod(mainType, "OpenConfigDialog");
         }
         catch (Exception e)
         {
             LogFile.Error($"Unable to find OpenConfigDialog() in {data} due to an error: {e}");
-            openConfigDialog = null;
         }
-
-        return true;
     }
 
     private void LoadAssets()

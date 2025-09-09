@@ -19,6 +19,7 @@ file static class References
         "0Harmony",
         "Newtonsoft.Json",
         "Mono.Cecil",
+        "NLog",
     ];
 
     private static readonly string[] nativeEnvironment =

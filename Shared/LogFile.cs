@@ -38,7 +38,7 @@ public static class LogFile
                 ),
             }
         );
-        logFactory = new LogFactory(config) { ThrowExceptions = false };
+        logFactory = new LogFactory() { ThrowExceptions = false, Configuration = config };
 
         try
         {
@@ -50,25 +50,22 @@ public static class LogFile
         }
     }
 
-    public static void Error(string text, bool gameLog = false)
+    public static void Error(string text)
     {
-        WriteLine(text, LogLevel.Error, gameLog);
+        WriteLine(text, LogLevel.Error);
     }
 
-    public static void Warn(string text, bool gameLog = false)
+    public static void Warn(string text)
     {
-        WriteLine(text, LogLevel.Warn, gameLog);
+        WriteLine(text, LogLevel.Warn);
     }
 
-    public static void WriteLine(string text, LogLevel level = null, bool gameLog = false)
+    public static void WriteLine(string text, LogLevel level = null)
     {
         try
         {
             level ??= LogLevel.Info;
             logger?.Log(level, text);
-
-            if (gameLog)
-                GameLog?.Write($"[Pulsar] [{level.Name}] {text}");
         }
         catch
         {
