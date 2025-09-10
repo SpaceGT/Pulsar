@@ -73,7 +73,7 @@ static class Program
         LogFile.Init(pulsarDir);
         LogFile.WriteLine("Starting Pulsar v" + currentName.Version.ToString(3));
 
-        if (!Tools.HasCommandArg("-nosplash"))
+        if (!Tools.HasCommandArg("-nosplash") && !Tools.HasCommandArg("-sesplash"))
             SplashManager.Instance = new SplashManager();
 
         SplashManager.Instance?.SetTitle("Pulsar");

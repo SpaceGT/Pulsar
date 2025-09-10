@@ -128,7 +128,8 @@ internal static class Game
     {
         typeof(MyFakes).TypeInitializer.Invoke(null, null);
 
-        MyFakes.ENABLE_SPLASHSCREEN = false;
+        // Note SpaceEngineers internally prioritises -nosplash over ENABLE_SPLASHSCREEN
+        MyFakes.ENABLE_SPLASHSCREEN = Tools.HasCommandArg("-sesplash");
 
         if (Tools.HasCommandArg("-f12menu"))
             MyFakes.ENABLE_F12_MENU = true;
