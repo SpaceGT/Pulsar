@@ -38,6 +38,18 @@ internal class Folder
         return true;
     }
 
+    private static string TryConvertUnix(string path)
+    {
+        // We assume paths in this context refer to the Unix system root
+        // rather then the current root of the Proton prefix.
+        // Windows can handle forward slashes in paths so all we need to
+        // do is point it to where the system root is mounted under.
+
+        if (!Tools.IsNative() && path.StartsWith("/"))
+            return "Z:" + path;
+        return path;
+    }
+
     private static string FromRegistry()
     {
         using var baseKey = RegistryKey.OpenBaseKey(
@@ -72,6 +84,8 @@ internal class Folder
             string currentDir = Path.GetDirectoryName(currentPath);
             path = Path.Combine(currentDir, path);
         }
+        else
+            path = TryConvertUnix(path);
 
         if (!IsBin64(path))
             return null;
@@ -86,7 +100,8 @@ internal class Folder
 
         IEnumerable<string> sePaths = Environment
             .GetCommandLineArgs()
-            .Where(arg => arg.Contains(@"Bin64\" + seLauncher))
+            .Where(arg => arg.Contains("Bin64") && arg.Contains(seLauncher))
+            .Select(TryConvertUnix)
             .Select(Path.GetDirectoryName);
 
         foreach (string path in sePaths)
