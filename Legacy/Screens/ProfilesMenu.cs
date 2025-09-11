@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -18,6 +19,7 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         btnRename,
         btnDelete;
     private readonly ProfilesConfig config = ConfigManager.Instance.Profiles;
+    private readonly PluginList list = ConfigManager.Instance.List;
 
     public override string GetFriendlyName()
     {
@@ -152,11 +154,13 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
                     p.Name,
                     onComplete: (name) =>
                     {
-                        if (config.Exists(Tools.CleanFileName(name)))
-                            return;
-
-                        config.Rename(p.Key, name);
-                        row.GetCell(0).Text.Clear().Append(name);
+                        if (!config.Exists(Tools.CleanFileName(name)))
+                        {
+                            config.Rename(p.Key, name);
+                            row.GetCell(0).Text.Clear().Append(name);
+                        }
+                        else
+                            ShowDuplicateWarning(name);
                     }
                 )
             );
@@ -172,21 +176,27 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
     private void OnUpdateClick(MyGuiControlButton btn)
     {
         MyGuiControlTable.Row row = profilesTable.SelectedRow;
-        if (row is null)
+        if (row is null) // New profile
         {
-            // New profile
-            MyScreenManager.AddScreen(
-                new TextInputDialog("Profile Name", onComplete: CreateProfile)
-            );
+            TextInputDialog textInput = new("Profile Name", onComplete: CreateProfile);
+            MyScreenManager.AddScreen(textInput);
         }
-        else if (row.UserData is Profile p)
+        else if (row.UserData is Profile profile) // Update profile
         {
-            // Update profile
-            foreach (string id in enabledPlugins)
-                p.Update(id);
+            string[] toDisable =
+            [
+                .. profile.GetPluginIDs().Where(x => !enabledPlugins.Contains(x)),
+            ];
 
-            row.GetCell(1).Text.Clear().Append(p.GetDescription());
-            config.Save(p.Key);
+            foreach (string pluginId in toDisable)
+                if (list.Contains(pluginId))
+                    profile.Remove(pluginId);
+
+            foreach (string id in enabledPlugins)
+                profile.Update(id);
+
+            row.GetCell(1).Text.Clear().Append(profile.GetDescription());
+            config.Save(profile.Key);
         }
     }
 
@@ -198,12 +208,28 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         Profile newProfile = new(name, [.. enabledPlugins]);
 
         if (config.Exists(newProfile.Key))
+        {
+            ShowDuplicateWarning(name);
             return;
+        }
 
         config.Add(newProfile);
         MyGuiControlTable.Row row = CreateProfileRow(newProfile);
         profilesTable.Add(row);
         profilesTable.SelectedRow = row;
         UpdateButtons();
+    }
+
+    private void ShowDuplicateWarning(string name)
+    {
+        string title = "Duplicate Profile";
+        string msg =
+            $"A profile called {name} already exists!\n" + "Please enter a different name.";
+
+        MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
+            messageText: new StringBuilder(msg),
+            messageCaption: new StringBuilder(title)
+        );
+        MyGuiSandbox.AddScreen(dialog);
     }
 }
