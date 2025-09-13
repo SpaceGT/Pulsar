@@ -54,10 +54,12 @@ static class Program
         if (Debugger.IsAttached)
             originalArgs.Add(DebugArg);
 
+        string cmdArgs = string.Join(" ", originalArgs.Select(a => $"\"{a}\""));
+
         ProcessStartInfo startInfo = new()
         {
             FileName = exe,
-            Arguments = string.Join(" ", originalArgs),
+            Arguments = cmdArgs,
             UseShellExecute = false,
         };
 

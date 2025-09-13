@@ -204,9 +204,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
 
     private static void StartUpdater(string updaterPath, string remotePath, string localPath)
     {
-        string caller = $"\"{Assembly.GetEntryAssembly().Location}\"";
-        remotePath = $"\"{remotePath}\"";
-        localPath = $"\"{localPath}\"";
+        string caller = Assembly.GetEntryAssembly().Location;
 
         List<string> args = ["-caller", caller, "-remote", remotePath, "-local", localPath];
         args.AddRange(Environment.GetCommandLineArgs().Skip(1));
@@ -215,12 +213,13 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         if (Debugger.IsAttached)
             args.Add(DebugArg);
 
+        string cmdArgs = string.Join(" ", args.Select(a => $"\"{a}\""));
+
         ProcessStartInfo startInfo = new()
         {
             FileName = updaterPath,
-            Arguments = string.Join(" ", args),
+            Arguments = cmdArgs,
             UseShellExecute = false,
-            CreateNoWindow = true,
         };
 
         Process.Start(startInfo);
