@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Gameloop.Vdf;
+using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
 using Pulsar.Shared;
 
@@ -24,7 +26,8 @@ internal class Folder
         "ProtoBuf.Net.dll",
     ];
 
-    public static string GetBin64() => FromOverride() ?? FromSteamArgs() ?? FromRegistry();
+    public static string GetBin64() =>
+        FromOverride() ?? FromSteamArgs() ?? FromSteamFiles() ?? FromRegistry();
 
     private static bool IsBin64(string path)
     {
@@ -107,6 +110,44 @@ internal class Folder
         foreach (string path in sePaths)
             if (IsBin64(path))
                 return path;
+
+        return null;
+    }
+
+    private static string FromSteamFiles()
+    {
+        // VDF files within Proton prefixes are unreliable.
+        if (!Tools.IsNative())
+            return null;
+
+        string steamPath = Steam.GetSteamPath();
+
+        if (steamPath is null)
+            return null;
+
+        string libraryPath = Path.Combine(steamPath, "steamapps", "libraryfolders.vdf");
+        VProperty libraries = VdfConvert.Deserialize(File.ReadAllText(libraryPath));
+
+        foreach (var library in libraries.Value.Children<VProperty>())
+        {
+            var data = (VObject)library.Value;
+            var apps = (VObject)data["apps"];
+
+            if (!apps.ContainsKey(Steam.AppId.ToString()))
+                continue;
+
+            string targetPath = data.Value<string>("path");
+            string bin64 = Path.Combine(
+                targetPath,
+                "steamapps",
+                "common",
+                "SpaceEngineers",
+                "Bin64"
+            );
+
+            if (IsBin64(bin64))
+                return bin64;
+        }
 
         return null;
     }

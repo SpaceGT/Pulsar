@@ -74,5 +74,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
+    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
   </ItemGroup>
 </Project>

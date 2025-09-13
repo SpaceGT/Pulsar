@@ -89,6 +89,9 @@ copy /y /b "%SOURCE%\Mono.Cecil.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "Newtonsoft.Json.dll"
 copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
+echo Copying "Gameloop.Vdf.dll"
+copy /y /b "%SOURCE%\Gameloop.Vdf.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
 echo Copying "NLog.dll"
 copy /y /b "%SOURCE%\NLog.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
