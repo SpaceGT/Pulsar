@@ -27,7 +27,7 @@ static class Program
 
     private const string OriginalAssemblyFile = "SpaceEngineers.exe";
     private const string PulsarRepo = "SpaceGT/Pulsar";
-    private const string SeVersion = "1.207.20";
+    private const string SeVersion = "1.207.21";
 
     static void Main(string[] args)
     {
