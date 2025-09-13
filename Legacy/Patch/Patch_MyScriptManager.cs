@@ -15,7 +15,7 @@ namespace Pulsar.Legacy.Patch;
 
 [HarmonyPatchCategory("Late")]
 [HarmonyPatch(typeof(MyScriptManager), "LoadData")]
-public static class Patch_MyScripManager
+public static class Patch_MyScriptManager
 {
     private static readonly Action<MyScriptManager, string, MyModContext> loadScripts;
     private static readonly FieldInfo conditionalSymbols;
@@ -24,7 +24,7 @@ public static class Patch_MyScripManager
     private static HashSet<string> ConditionalSymbols =>
         (HashSet<string>)conditionalSymbols.GetValue(MyScriptCompiler.Static);
 
-    static Patch_MyScripManager()
+    static Patch_MyScriptManager()
     {
         loadScripts =
             (Action<MyScriptManager, string, MyModContext>)

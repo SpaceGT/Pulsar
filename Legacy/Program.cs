@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
+using Pulsar.Legacy.Patch;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
@@ -32,9 +33,7 @@ static class Program
     {
         Application.EnableVisualStyles();
 
-        // Executable is re-launched by SE with this flag when displaying a crash report.
-        bool isCrashReport = Tools.HasCommandArg("-report") || Tools.HasCommandArg("-reporX");
-        if (!isCrashReport && SharedLauncher.IsOtherPulsarRunning())
+        if (SharedLauncher.IsOtherPulsarRunning())
         {
             Tools.ShowMessageBox("Error: Pulsar is already running!");
             return;
@@ -52,14 +51,7 @@ static class Program
 
         AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
         string originalLoaderPath = Path.Combine(bin64Dir, OriginalAssemblyFile);
-
-        if (isCrashReport)
-        {
-            // TODO: Replace this with a Pulsar crash screen in the future.
-            Game.SetMainAssembly(Assembly.ReflectionOnlyLoadFrom(originalLoaderPath));
-            Game.StartSpaceEngineers(args);
-            return;
-        }
+        Patch_PrepareCrashReport.SpaceEngineersPath = originalLoaderPath;
 
         if (Tools.HasCommandArg("-debug"))
             Debugger.Launch();
