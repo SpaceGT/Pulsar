@@ -105,7 +105,7 @@ public static class PlayerConsent
         }
 
         var config = ConfigManager.Instance.Config;
-        config.DataHandlingConsentDate = DateTime.UtcNow.ToString("dd-MM-yyyy");
+        config.DataHandlingConsentDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
         config.DataHandlingConsent = consent;
         config.Save();
 
