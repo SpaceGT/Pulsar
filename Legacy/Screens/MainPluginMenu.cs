@@ -324,6 +324,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
                 {
                     pluginList.UpdateRemoteList(force: true);
                     pluginList.UpdateLocalList();
+                    sources.Save();
                     // Prevent network spam from non-technical users
                     sourceButton.Enabled = false;
                 }

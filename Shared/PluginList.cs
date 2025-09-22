@@ -49,7 +49,7 @@ public class PluginList : IEnumerable<PluginData>
     public bool TryGetPlugin(string id, out PluginData pluginData) =>
         Plugins.TryGetValue(id, out pluginData);
 
-    public List<ISteamItem> GetSteamPlugins() => [.. Plugins.Values.OfType<ISteamItem>()];
+    public IEnumerable<ISteamItem> GetSteamPlugins() => Plugins.Values.OfType<ISteamItem>();
 
     public PluginList(string mainDirectory, SourcesConfig sources, ProfilesConfig profiles)
     {
@@ -72,6 +72,9 @@ public class PluginList : IEnumerable<PluginData>
 
         FindLocalPlugins();
         LogFile.WriteLine($"Found {Plugins.Count} plugins");
+
+        // Save changes from InitRemoteList() and FindLocalPlugins()
+        SourcesConfig.Save();
 
         FindPluginGroups();
         FindModDependencies();
@@ -537,7 +540,7 @@ public class PluginList : IEnumerable<PluginData>
         AddHubPluginData(ref localHubPlugins, list, source.Folder, source.Name);
     }
 
-    private bool TryReadHubFile(string file, out PluginData[] list)
+    private static bool TryReadHubFile(string file, out PluginData[] list)
     {
         list = null;
 
@@ -632,12 +635,12 @@ public class PluginList : IEnumerable<PluginData>
         return false;
     }
 
-    private bool TrySaveFile(string file, PluginData data)
+    private static bool TrySaveFile(string file, PluginData data)
     {
         return TrySaveFile(file, [data]);
     }
 
-    private bool TrySaveFile(string file, PluginData[] list)
+    private static bool TrySaveFile(string file, PluginData[] list)
     {
         try
         {
@@ -648,8 +651,6 @@ public class PluginList : IEnumerable<PluginData>
                 using Stream binFile = File.Create(file);
                 mem.WriteTo(binFile);
             }
-
-            SourcesConfig.Save();
 
             LogFile.WriteLine("Whitelist updated");
             return true;
@@ -693,7 +694,7 @@ public class PluginList : IEnumerable<PluginData>
         return false;
     }
 
-    private bool TryDownloadPluginFile(
+    private static bool TryDownloadPluginFile(
         string repoName,
         string branch,
         string infoFile,
@@ -781,7 +782,7 @@ public class PluginList : IEnumerable<PluginData>
         }
     }
 
-    private bool TryLoadLocalHub(string folder, out PluginData[] list)
+    private static bool TryLoadLocalHub(string folder, out PluginData[] list)
     {
         list = null;
         Dictionary<string, PluginData> newPlugins = [];

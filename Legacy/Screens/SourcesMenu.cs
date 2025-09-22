@@ -66,6 +66,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
                 // FIXME: Syncronise working copy and with real sources before refreshing
                 list.UpdateRemoteList(force: true);
                 list.UpdateLocalList();
+                Sources.Save();
                 RefreshSourcesLists();
             }
         );
