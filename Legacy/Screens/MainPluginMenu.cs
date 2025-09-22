@@ -308,18 +308,29 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         );
         AdvanceLayout(ref layout);
 
+        MyGuiControlButton sourceButton = null;
+
         if (Tools.HasCommandArg(SourcesArg))
-        {
-            layout.Add(
-                new MyGuiControlButton(
-                    text: new StringBuilder("Sources"),
-                    toolTip: "Add or remove plugin sources",
-                    onButtonClick: OnSourcesClick
-                ),
-                MyAlignH.Center
+            sourceButton = new MyGuiControlButton(
+                text: new StringBuilder("Sources"),
+                toolTip: "Add or remove plugin sources",
+                onButtonClick: OnSourcesClick
             );
-            AdvanceLayout(ref layout);
-        }
+        else
+            sourceButton = new MyGuiControlButton(
+                text: new StringBuilder("Refresh"),
+                toolTip: "Refresh all plugin sources",
+                onButtonClick: (x) =>
+                {
+                    pluginList.UpdateRemoteList(force: true);
+                    pluginList.UpdateLocalList();
+                    // Prevent network spam from non-technical users
+                    sourceButton.Enabled = false;
+                }
+            );
+
+        layout.Add(sourceButton, MyAlignH.Center);
+        AdvanceLayout(ref layout);
 
         consentBox = new MyGuiControlCheckbox(
             toolTip: "Consent to use your data for usage tracking",
