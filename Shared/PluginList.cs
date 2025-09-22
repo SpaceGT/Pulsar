@@ -172,6 +172,13 @@ public class PluginList : IEnumerable<PluginData>
         PluginData[] list;
         string hubFile = Path.Combine(HubSourceDir, source.Repo.Replace('/', '-') + ".bin");
 
+        // Invalidate the source if its file is deleted
+        if (!File.Exists(hubFile))
+        {
+            source.Hash = null;
+            source.LastCheck = null;
+        }
+
         if (
             source.LastCheck is not null
                 && DateTime.UtcNow - source.LastCheck
@@ -235,6 +242,10 @@ public class PluginList : IEnumerable<PluginData>
     {
         PluginData pluginData;
         string pluginFile = Path.Combine(PluginSourceDir, source.Repo.Replace('/', '-') + ".bin");
+
+        // Invalidate the source if its file is deleted
+        if (!File.Exists(pluginFile))
+            source.LastCheck = null;
 
         if (
             source.LastCheck is not null
