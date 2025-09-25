@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Pulsar.Shared;
@@ -81,7 +80,6 @@ internal static class Game
         return (sender, args) =>
         {
             string targetName = new AssemblyName(args.Name).Name;
-            string loaderBase = AppDomain.CurrentDomain.BaseDirectory;
             string targetPath = Path.Combine(bin64Dir, targetName);
 
             if (File.Exists(targetPath + ".dll"))
@@ -160,15 +158,11 @@ internal static class Game
         return Math.Min(1f, Math.Max(0f, ratio));
     }
 
-    // Inlining causes Keen references to load prematurely
-    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void ShowIntroVideo(bool enabled) =>
         MyPlatformGameSettings.ENABLE_LOGOS = enabled;
 
-    [MethodImpl(MethodImplOptions.NoInlining)]
     public static void RunOnGameThread(Action action) =>
         MySandboxGame.Static.Invoke(action, "Pulsar");
 }

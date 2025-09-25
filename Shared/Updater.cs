@@ -20,7 +20,7 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
 
     private Version remotePulsarVer;
 
-    public bool ShouldUpdate()
+    public void TryUpdate()
     {
         Assembly entryAssembly = Assembly.GetEntryAssembly();
         Version localPulsarVer = entryAssembly.GetName().Version;
@@ -35,12 +35,10 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
 
             DialogResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
             if (result == DialogResult.Yes)
-                return true;
+                Update();
             else if (result == DialogResult.Cancel)
                 Environment.Exit(0);
         }
-
-        return false;
     }
 
     private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
@@ -78,6 +76,30 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
         GitHubPlugin.ClearGitHubCache();
     }
 
+    public void ShowBitrotPrompt()
+    {
+        MessageBoxButtons buttons;
+        string message = "You have a broken Pulsar insallation!\n";
+
+        if (noUpdate)
+        {
+            message += "Please rebuild or manually redownload.";
+            buttons = MessageBoxButtons.OK;
+        }
+        else
+        {
+            message += "Attempt to download the latest version?";
+            buttons = MessageBoxButtons.YesNo;
+        }
+
+        DialogResult result = Tools.ShowMessageBox(message, buttons);
+
+        if (result == DialogResult.Yes)
+            Update();
+
+        Environment.Exit(1);
+    }
+
     private static void ShowUpdateError()
     {
         string prompt =
@@ -87,7 +109,7 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
         Tools.ShowMessageBox(prompt, MessageBoxButtons.OK);
     }
 
-    public void Update()
+    private void Update()
     {
         JObject json;
         try

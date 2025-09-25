@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 using System.Threading;
 using Microsoft.Win32;
 using Steamworks;
@@ -14,6 +15,7 @@ public static class Steam
     private const int SteamTimeout = 30; // seconds
     private const string registryKey = @"SOFTWARE\Valve\Steam";
     private const string registryName = "SteamPath";
+    private const string Steamworks = "Steamworks.NET";
 
     public static void SubscribeToItem(ulong id) =>
         SteamUGC.SubscribeItem(new PublishedFileId_t(id));
@@ -55,6 +57,22 @@ public static class Steam
 
         ShowWarning();
         Environment.Exit(1);
+    }
+
+    public static ResolveEventHandler SteamworksResolver(string baseDir)
+    {
+        return (sender, args) =>
+        {
+            string targetName = new AssemblyName(args.Name).Name;
+            if (targetName != Steamworks)
+                return null;
+
+            string targetPath = Path.Combine(baseDir, $"{Steamworks}.dll");
+            if (File.Exists(targetPath))
+                return Assembly.LoadFrom(targetPath);
+
+            return null;
+        };
     }
 
     public static string GetSteamPath()

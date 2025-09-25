@@ -25,8 +25,8 @@ static class Program
         public void OnMainThread(Action action) => Game.RunOnGameThread(action);
     }
 
-    private const string OriginalAssemblyFile = "SpaceEngineers.exe";
     private const string PulsarRepo = "SpaceGT/Pulsar";
+    private const string OldLauncher = "SpaceEngineers.exe";
 
     static void Main(string[] args)
     {
@@ -38,31 +38,29 @@ static class Program
             return;
         }
 
-        string bin64Dir = Folder.GetBin64();
-        if (bin64Dir is null)
-        {
-            Tools.ShowMessageBox(
-                $"Error: {OriginalAssemblyFile} not found!\n"
-                    + "You can specify a custom location with \"-bin64\""
-            );
-            return;
-        }
-
-        AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
-        string originalLoaderPath = Path.Combine(bin64Dir, OriginalAssemblyFile);
-        Patch_PrepareCrashReport.SpaceEngineersPath = originalLoaderPath;
-
         if (Tools.HasCommandArg("-debug"))
             Debugger.Launch();
 
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        AssemblyName currentName = currentAssembly.GetName();
+        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
-        string currentDir = Path.GetDirectoryName(Path.GetFullPath(currentAssembly.Location));
-        string pulsarDir = Path.Combine(currentDir, currentName.Name);
+        SetupCoreData(baseDir);
+        Updater updater = TryUpdate(baseDir);
+        SetupGameData(updater);
+        CheckCanStart(updater);
+        SetupSteam();
+        SetupPlugins(baseDir);
+        SetupGameResolver();
+        SetupGame(args);
+    }
+
+    private static void SetupCoreData(string baseDir)
+    {
+        var asmName = Assembly.GetExecutingAssembly().GetName();
+        string pulsarDir = Path.Combine(baseDir, asmName.Name);
 
         LogFile.Init(pulsarDir);
-        LogFile.WriteLine("Starting Pulsar v" + currentName.Version.ToString(3));
+        LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
 
         if (!Tools.HasCommandArg("-nosplash") && !Tools.HasCommandArg("-sesplash"))
             SplashManager.Instance = new SplashManager();
@@ -70,48 +68,21 @@ static class Program
         SplashManager.Instance?.SetTitle("Pulsar");
         SplashManager.Instance?.SetText("Starting Pulsar...");
 
-        string libraryDir = Path.Combine(currentDir, "Libraries");
-        string dependencyDir = Path.Combine(libraryDir, currentName.Name);
-        string modDir = Path.Combine(
-            bin64Dir,
-            @"..\..\..\workshop\content",
-            Steam.AppId.ToString()
-        );
+        ConfigManager.EarlyInit(pulsarDir, Tools.HasCommandArg("-debugCompileAll"));
+    }
 
-        // FIXME: Keen updates may break this causing an NRE
-        Version seVersion = Game.GetGameVersion(bin64Dir);
-
-        // The ConfigManager singleton is used by most of the
-        // shared project and must be initialized beforehand.
-        new ConfigManager(
-            pulsarDir,
-            bin64Dir,
-            modDir,
-            seVersion,
-            Tools.HasCommandArg("-debugCompileAll")
-        );
-
-        SplashManager.Instance?.SetText("Checking for Updates...");
+    private static Updater TryUpdate(string baseDir)
+    {
+        string libraryDir = Path.Combine(baseDir, "Libraries");
 
         bool noUpdate = Tools.HasCommandArg("-noupdate");
         bool preRelease = Tools.HasCommandArg("-prerelease");
+
         Updater updater = new(PulsarRepo, preRelease, noUpdate);
-        if (updater.ShouldUpdate())
-            updater.Update();
-
-        PluginConfig pluginConfig = ConfigManager.Instance.Config;
-        Version oldSeVersion = pluginConfig.GameVersion;
-        if (seVersion != oldSeVersion)
-        {
-            if (oldSeVersion is not null)
-                Updater.GameUpdatePrompt(oldSeVersion, seVersion);
-
-            pluginConfig.GameVersion = seVersion;
-            pluginConfig.Save();
-        }
+        updater.TryUpdate();
 
         string checkSum = null;
-        string checkFile = Path.Combine(currentDir, "checksum.txt");
+        string checkFile = Path.Combine(baseDir, "checksum.txt");
 
         if (Tools.HasCommandArg("-mkcheck"))
         {
@@ -122,20 +93,77 @@ static class Program
         else if (File.Exists(checkFile))
             checkSum = File.ReadAllText(checkFile);
 
-        var launcher = new SharedLauncher(originalLoaderPath, libraryDir, checkSum);
-        if (!launcher.Verify(noUpdate))
+        if (checkSum is not null && Tools.GetFolderHash(libraryDir) != checkSum)
+            updater.ShowBitrotPrompt();
+
+        return updater;
+    }
+
+    private static void SetupGameData(Updater updater)
+    {
+        string bin64Dir = Folder.GetBin64();
+        if (bin64Dir is null)
         {
-            updater.Update();
-            return;
+            Tools.ShowMessageBox(
+                $"Error: {OldLauncher} not found!\n"
+                    + "You can specify a custom location with \"-bin64\""
+            );
+            Environment.Exit(1);
         }
 
+        string modDir = Path.Combine(
+            bin64Dir,
+            @"..\..\..\workshop\content",
+            Steam.AppId.ToString()
+        );
+
+        Version seVersion = Game.GetGameVersion(bin64Dir);
+        if (seVersion is null) // Prevent NRE from Keen updates
+            updater.ShowBitrotPrompt();
+
+        ConfigManager.Init(bin64Dir, modDir, seVersion);
+
+        CoreConfig coreConfig = ConfigManager.Instance.Core;
+        Version oldSeVersion = coreConfig.GameVersion;
+        if (seVersion != oldSeVersion)
+        {
+            if (oldSeVersion is not null)
+                Updater.GameUpdatePrompt(oldSeVersion, seVersion);
+
+            coreConfig.GameVersion = seVersion;
+            coreConfig.Save();
+        }
+    }
+
+    private static void CheckCanStart(Updater updater)
+    {
+        string bin64Dir = ConfigManager.Instance.GameDir;
+        string originalLoaderPath = Path.Combine(bin64Dir, OldLauncher);
+        var launcher = new SharedLauncher(originalLoaderPath);
+        if (!launcher.VerifyConfig())
+            updater.ShowBitrotPrompt();
+
         if (!launcher.CanStart())
-            return;
+            Environment.Exit(1);
+    }
 
+    private static void SetupSteam()
+    {
         SplashManager.Instance?.SetText("Starting Steam...");
+        string bin64Dir = ConfigManager.Instance.GameDir;
+        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(bin64Dir);
         Steam.Init();
+    }
 
+    private static void SetupPlugins(string baseDir)
+    {
         SplashManager.Instance?.SetText("Getting Plugins...");
+
+        var asmName = Assembly.GetExecutingAssembly().GetName();
+        string dependencyDir = Path.Combine(baseDir, "Libraries", asmName.Name);
+
+        string pulsarDir = ConfigManager.Instance.PulsarDir;
+        string bin64Dir = ConfigManager.Instance.GameDir;
 
         using (CompilerFactory compiler = new([bin64Dir, dependencyDir], bin64Dir, pulsarDir))
         {
@@ -154,12 +182,26 @@ static class Program
             SplashManager.Instance?.SetText("Applying Preloaders...");
             preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"));
         }
+    }
+
+    private static void SetupGameResolver()
+    {
+        string bin64Dir = ConfigManager.Instance.GameDir;
+        AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
+    }
+
+    private static void SetupGame(string[] args)
+    {
+        string bin64Dir = ConfigManager.Instance.GameDir;
+        string originalLoaderPath = Path.Combine(bin64Dir, OldLauncher);
+        Patch_PrepareCrashReport.SpaceEngineersPath = originalLoaderPath;
 
         LogFile.GameLog = new GameLog();
 
         Game.SetMainAssembly(Assembly.ReflectionOnlyLoadFrom(originalLoaderPath));
 
-        new Harmony(currentName.Name + ".Early").PatchCategory("Early");
+        string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
+        new Harmony(assemblyName + ".Early").PatchCategory("Early");
 
         Game.SetupMyFakes();
         Game.CorrectExitText();
@@ -167,8 +209,7 @@ static class Program
         if (!Tools.HasCommandArg("-keepintro"))
             Game.ShowIntroVideo(false);
 
-        // This call is wrapped so that Keen references are not loaded prematurely
-        ((Action)(() => Game.RegisterPlugin(new PluginLoader())))();
+        Game.RegisterPlugin(new PluginLoader());
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
         if (Tools.IsNative())
@@ -179,7 +220,7 @@ static class Program
 
     private static Thread ProgressPollFactory()
     {
-        return new Thread(() =>
+        static void ProgressPoll()
         {
             float progress = 0;
             SplashManager splash = SplashManager.Instance;
@@ -194,10 +235,8 @@ static class Program
 
                 Thread.Sleep(250); // ms
             }
-        })
-        {
-            IsBackground = true,
-            Name = "ProgressPoll",
-        };
+        }
+
+        return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
 }

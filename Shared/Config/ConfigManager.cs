@@ -9,41 +9,43 @@ public class ConfigManager
 {
     public const string HarmonyVersion = "2.3.6.0";
 
-    public static ConfigManager Instance;
+    public static ConfigManager Instance { get; private set; }
 
-    public PluginList List { get; }
-    public PluginConfig Config { get; }
-    public SourcesConfig Sources { get; }
-    public ProfilesConfig Profiles { get; }
+    public PluginList List { get; private set; }
+    public CoreConfig Core { get; private set; }
+    public SourcesConfig Sources { get; private set; }
+    public ProfilesConfig Profiles { get; private set; }
     public PluginStats Stats { get; private set; }
-    public Version GameVersion { get; }
+    public Version GameVersion { get; private set; }
+
+    public bool DebugCompileAll { get; private set; }
+    public string PulsarDir { get; private set; }
+    public string GameDir { get; private set; }
+    public string ModDir { get; private set; }
+
     public bool SafeMode { get; set; }
     public bool HasLocal { get; set; }
-    public bool DebugCompileAll { get; }
-    public string PulsarDir { get; }
-    public string GameDir { get; }
-    public string ModDir { get; }
 
-    public ConfigManager(
-        string pulsarDir,
-        string gameDir,
-        string modDir,
-        Version gameVersion,
-        bool debugCompileAll = false
-    )
+    public static void EarlyInit(string pulsarDir, bool debugCompileAll)
     {
-        Instance = this;
-        SafeMode = false;
-        PulsarDir = pulsarDir;
-        GameDir = gameDir;
-        ModDir = modDir;
-        DebugCompileAll = debugCompileAll;
-        GameVersion = gameVersion;
+        Instance = new()
+        {
+            SafeMode = false,
+            PulsarDir = pulsarDir,
+            DebugCompileAll = debugCompileAll,
+            Core = CoreConfig.Load(pulsarDir),
+        };
+    }
 
-        Config = PluginConfig.Load(pulsarDir);
-        Sources = SourcesConfig.Load(pulsarDir);
-        Profiles = ProfilesConfig.Load(pulsarDir);
-        List = new PluginList(pulsarDir, Sources, Profiles);
+    public static void Init(string gameDir, string modDir, Version gameVersion)
+    {
+        ConfigManager i = Instance;
+        i.GameDir = gameDir;
+        i.ModDir = modDir;
+        i.GameVersion = gameVersion;
+        i.Profiles = ProfilesConfig.Load(i.PulsarDir);
+        i.Sources = SourcesConfig.Load(i.PulsarDir);
+        i.List = new PluginList(i.PulsarDir, i.Sources, i.Profiles);
     }
 
     public void UpdatePlayerStats()

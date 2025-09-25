@@ -4,11 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
-using System.Windows.Forms;
 
 namespace Pulsar.Shared;
 
-public class Launcher(string sePath, string dependencyDir, string checksum)
+public class Launcher(string sePath)
 {
     public static Mutex Mutex { get; private set; }
 
@@ -48,41 +47,8 @@ public class Launcher(string sePath, string dependencyDir, string checksum)
         return !isOwner;
     }
 
-    public bool Verify(bool noUpdates = false)
+    public bool VerifyConfig()
     {
-        if (VerifyFiles())
-            return true;
-
-        MessageBoxButtons buttons;
-        string message = "You have a broken Pulsar insallation!\n";
-
-        if (noUpdates)
-        {
-            message += "Please rebuild or manually redownload.";
-            buttons = MessageBoxButtons.OK;
-        }
-        else
-        {
-            message += "Attempt to download the latest version?";
-            buttons = MessageBoxButtons.YesNo;
-        }
-
-        DialogResult result = Tools.ShowMessageBox(message, buttons);
-
-        if (result != DialogResult.Yes)
-            Environment.Exit(1);
-
-        return false;
-    }
-
-    private bool VerifyFiles()
-    {
-        if (!Directory.Exists(dependencyDir))
-            return false;
-
-        if (checksum is not null && Tools.GetFolderHash(dependencyDir) != checksum)
-            return false;
-
         string seFolder = Path.GetDirectoryName(sePath);
         bool hasConfig = Tools.GetFiles(seFolder, ["*.config"], []).Any();
         string configPath = Assembly.GetEntryAssembly().Location + ".config";

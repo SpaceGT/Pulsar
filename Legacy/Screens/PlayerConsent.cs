@@ -47,9 +47,9 @@ public static class PlayerConsent
     }
 
     public static bool ConsentRequested =>
-        !string.IsNullOrEmpty(ConfigManager.Instance.Config.DataHandlingConsentDate);
+        !string.IsNullOrEmpty(ConfigManager.Instance.Core.DataHandlingConsentDate);
 
-    public static bool ConsentGiven => ConfigManager.Instance.Config.DataHandlingConsent;
+    public static bool ConsentGiven => ConfigManager.Instance.Core.DataHandlingConsent;
 
     private static void GetConfirmation(
         MyGuiScreenMessageBox.ResultEnum result,
@@ -104,7 +104,7 @@ public static class PlayerConsent
             return;
         }
 
-        var config = ConfigManager.Instance.Config;
+        var config = ConfigManager.Instance.Core;
         config.DataHandlingConsentDate = DateTime.UtcNow.ToString("yyyy-MM-dd");
         config.DataHandlingConsent = consent;
         config.Save();

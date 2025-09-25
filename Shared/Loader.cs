@@ -21,14 +21,14 @@ public class Loader
 
     private readonly bool debugCompileAll;
 
-    private readonly PluginConfig config;
+    private readonly CoreConfig config;
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
 
     public Loader()
     {
         ConfigManager manager = ConfigManager.Instance;
-        config = manager.Config;
+        config = manager.Core;
         profiles = manager.Profiles;
         debugCompileAll = manager.DebugCompileAll;
 
@@ -99,7 +99,7 @@ public class Loader
 
     private void ReportEnabledPlugins()
     {
-        if (!ConfigManager.Instance.Config.DataHandlingConsent)
+        if (!ConfigManager.Instance.Core.DataHandlingConsent)
             return;
 
         splash?.SetText("Reporting plugin usage...");

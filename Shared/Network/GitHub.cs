@@ -34,7 +34,7 @@ public static class GitHub
         HttpWebRequest request = WebRequest.CreateHttp(uri);
         request.UserAgent = "Pulsar";
         request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-        PluginConfig config = ConfigManager.Instance.Config;
+        CoreConfig config = ConfigManager.Instance.Core;
         request.Timeout = config.NetworkTimeout;
         if (!config.AllowIPv6)
             request.ServicePoint.BindIPEndPointDelegate = BlockIPv6;

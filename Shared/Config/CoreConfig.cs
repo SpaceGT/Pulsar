@@ -5,7 +5,7 @@ using System.Xml.Serialization;
 
 namespace Pulsar.Shared.Config;
 
-public class PluginConfig
+public class CoreConfig
 {
     private const string fileName = "config.xml";
     private string filePath;
@@ -27,14 +27,14 @@ public class PluginConfig
         set => GameVersion = string.IsNullOrWhiteSpace(value) ? null : new Version(value);
     }
 
-    public PluginConfig() { }
+    public CoreConfig() { }
 
     public void Save()
     {
         try
         {
             LogFile.WriteLine("Saving config");
-            XmlSerializer serializer = new(typeof(PluginConfig));
+            XmlSerializer serializer = new(typeof(CoreConfig));
             if (File.Exists(filePath))
                 File.Delete(filePath);
             FileStream fs = File.OpenWrite(filePath);
@@ -48,17 +48,17 @@ public class PluginConfig
         }
     }
 
-    public static PluginConfig Load(string mainDirectory)
+    public static CoreConfig Load(string mainDirectory)
     {
         string path = Path.Combine(mainDirectory, fileName);
         if (File.Exists(path))
         {
             try
             {
-                XmlSerializer serializer = new(typeof(PluginConfig));
-                PluginConfig config;
+                XmlSerializer serializer = new(typeof(CoreConfig));
+                CoreConfig config;
                 using (FileStream fs = File.OpenRead(path))
-                    config = (PluginConfig)serializer.Deserialize(fs);
+                    config = (CoreConfig)serializer.Deserialize(fs);
                 config.filePath = path;
                 return config;
             }
@@ -68,6 +68,6 @@ public class PluginConfig
             }
         }
 
-        return new PluginConfig { filePath = path };
+        return new CoreConfig { filePath = path };
     }
 }
