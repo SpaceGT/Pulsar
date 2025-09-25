@@ -226,7 +226,7 @@ public partial class GitHubPlugin : PluginData
     )
     {
         ICompiler compiler = Tools.Compiler.Create();
-        using (Stream s = GitHub.DownloadRepo(Id, commit))
+        using (Stream s = GitHub.GetRepoArchive(Id, commit))
         using (ZipArchive zip = new(s))
         {
             callback?.Invoke(0);

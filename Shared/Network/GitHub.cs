@@ -9,9 +9,9 @@ namespace Pulsar.Shared.Network;
 public static class GitHub
 {
     private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
-    private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases/latest";
-    private const string GetRepo = "https://github.com/{0}/archive/{1}.zip";
-    private const string GetFile = "https://raw.githubusercontent.com/{0}/{1}/";
+    private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases";
+    private const string FetchRepo = "https://github.com/{0}/archive/{1}.zip";
+    private const string FetchFile = "https://raw.githubusercontent.com/{0}/{1}/";
 
     public static void Init()
     {
@@ -59,29 +59,32 @@ public static class GitHub
         throw new InvalidOperationException("No IPv4 address");
     }
 
-    public static Stream DownloadRepo(string name, string branch)
+    public static Stream GetRepoArchive(string repo, string reference)
     {
-        Uri uri = new(string.Format(GetRepo, name, branch), UriKind.Absolute);
+        Uri uri = new(string.Format(FetchRepo, repo, reference), UriKind.Absolute);
         LogFile.WriteLine("Downloading " + uri);
         return GetStream(uri);
     }
 
-    public static Stream DownloadFile(string name, string branch, string path)
+    public static Stream GetRepoFile(string repo, string reference, string file)
     {
-        Uri uri = new(string.Format(GetFile, name, branch) + path.TrimStart('/'), UriKind.Absolute);
+        Uri uri = new(
+            string.Format(FetchFile, repo, reference) + file.TrimStart('/'),
+            UriKind.Absolute
+        );
         LogFile.WriteLine("Downloading " + uri);
         return GetStream(uri);
     }
 
-    public static bool GetRepoHash(string name, string branch, out string hash)
+    public static bool GetRepoHash(string repo, string reference, out string hash)
     {
         hash = null;
-        LogFile.WriteLine("Hashing " + name + "/" + branch);
+        LogFile.WriteLine("Hashing " + repo + "/" + reference);
 
         try
         {
-            JObject json = GetRepoJson(string.Format(CommitInfo, name, branch));
-            hash = json["sha"].ToString();
+            string text = GetText(string.Format(CommitInfo, repo, reference));
+            hash = JObject.Parse(text)["sha"].ToString();
         }
         catch (Exception e)
         {
@@ -92,32 +95,46 @@ public static class GitHub
         return true;
     }
 
-    public static bool GetRepoVersion(string name, out Version version)
+    public static bool GetReleaseVersion(string repo, out Version version, bool beta = false)
     {
         version = null;
-        LogFile.WriteLine("Checking version of " + name);
+        LogFile.WriteLine("Checking version of " + repo);
 
         try
         {
-            JObject json = GetRepoJson(string.Format(ReleaseInfo, name));
-            string strVersion = json["tag_name"].ToString().TrimStart('v');
-            version = new Version(strVersion);
+            string text = GetText(string.Format(ReleaseInfo, repo));
+            foreach (JToken item in JArray.Parse(text))
+            {
+                if (!beta && (bool)item["prerelease"])
+                    continue;
+
+                string strVersion = item["tag_name"].ToString().TrimStart('v');
+                version = new Version(strVersion);
+
+                return true;
+            }
         }
         catch (Exception e)
         {
-            LogFile.Error("Error while fetching repository version: " + e);
+            LogFile.Error("Error while fetching version: " + e);
             return false;
         }
 
-        return true;
+        LogFile.Error("Could not find version in JSON! ");
+        return false;
     }
 
-    public static JObject GetRepoJson(string url)
+    public static JObject GetReleaseJson(string repo, string tag)
+    {
+        string url = string.Format(ReleaseInfo, repo) + "/tags/" + tag;
+        return JObject.Parse(GetText(url));
+    }
+
+    private static string GetText(string url)
     {
         Uri uri = new(url, UriKind.Absolute);
         using Stream stream = GetStream(uri);
         using StreamReader reader = new(stream);
-        string text = reader.ReadToEnd();
-        return JObject.Parse(text);
+        return reader.ReadToEnd();
     }
 }

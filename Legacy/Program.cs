@@ -27,7 +27,6 @@ static class Program
 
     private const string OriginalAssemblyFile = "SpaceEngineers.exe";
     private const string PulsarRepo = "SpaceGT/Pulsar";
-    private const string SeVersion = "1.207.21";
 
     static void Main(string[] args)
     {
@@ -79,6 +78,7 @@ static class Program
             Steam.AppId.ToString()
         );
 
+        // FIXME: Keen updates may break this causing an NRE
         Version seVersion = Game.GetGameVersion(bin64Dir);
 
         // The ConfigManager singleton is used by most of the
@@ -91,11 +91,24 @@ static class Program
             Tools.HasCommandArg("-debugCompileAll")
         );
 
-        bool seMismatch = seVersion != new Version(SeVersion);
+        SplashManager.Instance?.SetText("Checking for Updates...");
+
         bool noUpdate = Tools.HasCommandArg("-noupdate");
-        Updater updater = new(PulsarRepo, seMismatch, noUpdate);
+        bool preRelease = Tools.HasCommandArg("-prerelease");
+        Updater updater = new(PulsarRepo, preRelease, noUpdate);
         if (updater.ShouldUpdate())
             updater.Update();
+
+        PluginConfig pluginConfig = ConfigManager.Instance.Config;
+        Version oldSeVersion = pluginConfig.GameVersion;
+        if (seVersion != oldSeVersion)
+        {
+            if (oldSeVersion is not null)
+                Updater.GameUpdatePrompt(oldSeVersion, seVersion);
+
+            pluginConfig.GameVersion = seVersion;
+            pluginConfig.Save();
+        }
 
         string checkSum = null;
         string checkFile = Path.Combine(currentDir, "checksum.txt");

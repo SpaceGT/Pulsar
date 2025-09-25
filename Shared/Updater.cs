@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using Pulsar.Shared.Config;
@@ -13,15 +12,13 @@ using Pulsar.Shared.Network;
 
 namespace Pulsar.Shared;
 
-public class Updater(string repoName, bool seMismatch, bool noUpdate)
+public class Updater(string repoName, bool preRelease, bool noUpdate)
 {
-    // Stub file for a simple updater and loader for the Updater project
-    // Launcher is responsible for the initial version checking
-
-    private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases/latest";
     private const string UpdaterName = "Updater";
     private const string PulsarName = "Pulsar";
     private const string DebugArg = "-debug";
+
+    private Version remotePulsarVer;
 
     public bool ShouldUpdate()
     {
@@ -30,11 +27,11 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
 
         if (
             !noUpdate
-            && GitHub.GetRepoVersion(repoName, out Version remotePulsarVer)
+            && GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
             && localPulsarVer < remotePulsarVer
         )
         {
-            LogFile.WriteLine("An update is available to " + remotePulsarVer);
+            LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
 
             DialogResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
             if (result == DialogResult.Yes)
@@ -43,53 +40,51 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
                 Environment.Exit(0);
         }
 
-        if (seMismatch)
-            ShowMismatchWarning();
-
         return false;
     }
 
     private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
     {
-        StringBuilder prompt = new();
-        prompt.Append($"An update is available for {PulsarName}:").AppendLine();
-        prompt.Append(localVer.ToString(3)).Append(" -> ").Append(remoteVer).AppendLine();
-        prompt.Append("Would you like to update now?");
+        string prompt =
+            $"An update is available for {PulsarName}:\n"
+            + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
+            + "Would you like to update now?";
 
-        DialogResult result = Tools.ShowMessageBox(
-            prompt.ToString(),
-            MessageBoxButtons.YesNoCancel
-        );
-
-        return result;
+        return Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNoCancel);
     }
 
-    private void ShowMismatchWarning()
+    public static void GameUpdatePrompt(Version oldVersion, Version newVersion)
     {
-        StringBuilder message = new();
-        message.Append("Space Engineers has been updated!\n");
-        if (noUpdate)
-            message.Append($"Please rebuild {PulsarName} for the current version.\n\n");
-        else
-            message.Append($"Please wait for {PulsarName} to update!\n\n");
-        message.Append("Do you want to launch anyway? (expect instability)");
+        string change = (newVersion > oldVersion ? "up" : "down") + "graded";
+        string prompt =
+            $"Space Engineers has been {change}! "
+            + $"({oldVersion.ToString(3)} -> {newVersion.ToString(3)})\n"
+            + "All plugins must be rebuilt to target the new version.\n\n"
+            + "Plugin build errors are NOT a Pulsar issue.\n"
+            + "Authors of broken plugins have been notified: be patient.\n\n"
+            + "If Pulsar causes instability report this on Discord or GitHub.\n"
+            + "ONLY report an issue if:\n"
+            + "- It does not happen without Pulsar loaded.\n"
+            + "- It still happens with no plugins or mods loaded.\n"
+            + "- It can be reproduced / you know what caused it.\n\n"
+            + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
+            + "Do you wish to continue?";
 
-        DialogResult result = Tools.ShowMessageBox(message.ToString(), MessageBoxButtons.YesNo);
+        DialogResult result = Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNo);
 
         if (result == DialogResult.No)
             Environment.Exit(0);
+
+        GitHubPlugin.ClearGitHubCache();
     }
 
-    private void ShowUpdateError()
+    private static void ShowUpdateError()
     {
-        StringBuilder prompt = new();
-        prompt.Append("An error occurred while updating!").AppendLine();
-        prompt.Append("Please check the log for more information!");
+        string prompt =
+            $"An error occurred while updating {PulsarName}!\n"
+            + "Please check the log for more information!";
 
-        Tools.ShowMessageBox(prompt.ToString(), MessageBoxButtons.OK);
-
-        if (seMismatch)
-            ShowMismatchWarning();
+        Tools.ShowMessageBox(prompt, MessageBoxButtons.OK);
     }
 
     public void Update()
@@ -97,7 +92,7 @@ public class Updater(string repoName, bool seMismatch, bool noUpdate)
         JObject json;
         try
         {
-            json = GitHub.GetRepoJson(string.Format(ReleaseInfo, repoName));
+            json = GitHub.GetReleaseJson(repoName, $"v{remotePulsarVer.ToString(3)}");
         }
         catch (Exception e)
         {

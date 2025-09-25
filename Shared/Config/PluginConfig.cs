@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
 using System.Xml.Serialization;
 
@@ -7,33 +8,24 @@ namespace Pulsar.Shared.Config;
 public class PluginConfig
 {
     private const string fileName = "config.xml";
-
     private string filePath;
 
-    // Base URL for the statistics server, change to http://localhost:5000 in config.xml for local development
-    // ReSharper disable once UnassignedGetOnlyAutoProperty
     public string StatsServerBaseUrl { get; }
-
-    // User consent to use the StatsServer
     public bool DataHandlingConsent { get; set; }
     public string DataHandlingConsentDate { get; set; }
-
-    private int networkTimeout = 5000;
-    public int NetworkTimeout
-    {
-        get { return networkTimeout; }
-        set
-        {
-            if (value < 100)
-                networkTimeout = 100;
-            else if (value > 60000)
-                networkTimeout = 60000;
-            else
-                networkTimeout = value;
-        }
-    }
-
     public bool AllowIPv6 { get; set; } = true;
+    public int NetworkTimeout { get; set; } = 5000;
+
+    [XmlIgnore]
+    public Version GameVersion { get; set; }
+
+    [XmlElement("GameVersion")]
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string GameVersionString
+    {
+        get => GameVersion?.ToString();
+        set => GameVersion = string.IsNullOrWhiteSpace(value) ? null : new Version(value);
+    }
 
     public PluginConfig() { }
 

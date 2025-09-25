@@ -595,7 +595,7 @@ public class PluginList : IEnumerable<PluginData>
 
         try
         {
-            using (Stream zipFileStream = GitHub.DownloadRepo(repoName, branch))
+            using (Stream zipFileStream = GitHub.GetRepoArchive(repoName, branch))
             using (ZipArchive zipFile = new(zipFileStream))
             {
                 XmlSerializer xml = new(typeof(PluginData));
@@ -707,7 +707,7 @@ public class PluginList : IEnumerable<PluginData>
 
         try
         {
-            using (Stream dataStream = GitHub.DownloadFile(repoName, branch, infoFile))
+            using (Stream dataStream = GitHub.GetRepoFile(repoName, branch, infoFile))
             using (StreamReader dataStreamReader = new(dataStream))
             {
                 try
