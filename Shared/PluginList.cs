@@ -275,6 +275,7 @@ public class PluginList : IEnumerable<PluginData>
                 return;
         }
 
+        LoadPluginData(pluginData);
         pluginData.Source = "GitHub";
         purePlugins[pluginData.Id] = pluginData;
     }
@@ -323,11 +324,9 @@ public class PluginList : IEnumerable<PluginData>
         )
             return;
 
-        if (pluginData is not null)
-        {
-            pluginData.Source = "GitHub";
-            purePlugins[pluginData.Id] = pluginData;
-        }
+        LoadPluginData(pluginData);
+        pluginData.Source = "GitHub";
+        purePlugins[pluginData.Id] = pluginData;
     }
 
     private void AddMod(ModConfig source)
@@ -728,6 +727,9 @@ public class PluginList : IEnumerable<PluginData>
                     return false;
                 }
             }
+
+            if (data is null)
+                return false;
 
             return TrySaveFile(saveFile, data);
         }
