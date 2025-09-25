@@ -30,6 +30,8 @@ internal static class PluginDataExtensions
             localPlugin.Show();
         else if (pluginData is GitHubPlugin gitHubPlugin)
             gitHubPlugin.Show();
+        else if (pluginData is ModPlugin modPlugin)
+            modPlugin.Show();
     }
 
     public static void GetDescriptionText(
