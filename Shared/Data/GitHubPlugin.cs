@@ -165,7 +165,8 @@ public partial class GitHubPlugin : PluginData
             manifest.Commit = selectedCommit;
             manifest.ClearAssets();
             string name = assemblyName + '_' + Path.GetRandomFileName();
-            byte[] data = CompileFromSource(selectedCommit, name, lbl.SetBarValue);
+            Action<float> setBarValue = lbl is not null ? lbl.SetBarValue : null;
+            byte[] data = CompileFromSource(selectedCommit, name, setBarValue);
             File.WriteAllBytes(manifest.DllFile, data);
             manifest.DeleteUnknownFiles();
             manifest.Save();
