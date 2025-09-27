@@ -13,8 +13,6 @@ namespace Pulsar.Legacy.Screens;
 
 public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: new Vector2(1, 0.9f))
 {
-    const string SourcesArg = "-sources";
-
     private readonly PluginList pluginList = configManager.List;
     private List<PluginData> Plugins => [.. pluginList.OrderBy(x => x.FriendlyName)];
     private readonly ProfilesConfig profiles = configManager.Profiles;
@@ -310,7 +308,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
         MyGuiControlButton sourceButton = null;
 
-        if (Tools.HasCommandArg(SourcesArg))
+        if (Flags.CustomSources)
             sourceButton = new MyGuiControlButton(
                 text: new StringBuilder("Sources"),
                 toolTip: "Add or remove plugin sources",

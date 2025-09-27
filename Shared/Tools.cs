@@ -105,30 +105,6 @@ public static class Tools
         return $"{time.Days} days ago";
     }
 
-    public static bool HasCommandArg(string argument)
-    {
-        foreach (string arg in Environment.GetCommandLineArgs())
-            if (arg.Equals(argument, StringComparison.InvariantCultureIgnoreCase))
-                return true;
-
-        return false;
-    }
-
-    public static string GetCommandArg(string argument)
-    {
-        string[] args = Environment.GetCommandLineArgs();
-
-        for (int i = 0; i < args.Length - 1; i++)
-        {
-            if (!args[i].Equals(argument, StringComparison.InvariantCultureIgnoreCase))
-                continue;
-
-            return args[i + 1];
-        }
-
-        return null;
-    }
-
     public static void OpenFileDialog(
         string title,
         string directory,

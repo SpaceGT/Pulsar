@@ -64,7 +64,7 @@ public static class Patch_CreateMainMenu
             ___m_continueButton is not null
             && ___m_continueButton.Visible
             && !usedAutoRejoin
-            && Tools.HasCommandArg(LoaderTools.ContinueArg)
+            && Flags.ContinueGame
         )
         {
             ___m_continueButton.PressButton();

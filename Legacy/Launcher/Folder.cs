@@ -77,10 +77,16 @@ internal class Folder
 
     private static string FromOverride()
     {
-        string path = Tools.GetCommandArg("-bin64");
-        if (path is null)
+        string[] args = Environment.GetCommandLineArgs();
+        int index = Array.FindIndex(
+            args,
+            arg => arg.Equals("-bin64", StringComparison.OrdinalIgnoreCase)
+        );
+
+        if (index < 0 || index >= args.Length - 1)
             return null;
 
+        string path = args[index + 1];
         if (!Path.IsPathRooted(path))
         {
             string currentPath = Assembly.GetExecutingAssembly().Location;

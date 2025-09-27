@@ -19,8 +19,6 @@ public class Loader
     public static Loader Instance;
     public readonly List<(PluginData, Assembly)> Plugins = [];
 
-    private readonly bool debugCompileAll;
-
     private readonly CoreConfig config;
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
@@ -30,7 +28,6 @@ public class Loader
         ConfigManager manager = ConfigManager.Instance;
         config = manager.Core;
         profiles = manager.Profiles;
-        debugCompileAll = manager.DebugCompileAll;
 
         splash = SplashManager.Instance;
 
@@ -67,7 +64,7 @@ public class Loader
         LogFile.WriteLine("Instantiating plugins");
 
         StringBuilder debugCompileResults = new();
-        if (debugCompileAll)
+        if (Flags.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
         //TODO: Compile in parallel
@@ -79,7 +76,7 @@ public class Loader
                 if (data.IsLocal)
                     ConfigManager.Instance.HasLocal = true;
             }
-            else if (debugCompileAll && data is not ModPlugin)
+            else if (Flags.CheckAllPlugins && data is not ModPlugin)
             {
                 debugCompileResults
                     .Append(data.FriendlyName ?? "(null)")
@@ -91,7 +88,7 @@ public class Loader
             }
         }
 
-        if (debugCompileAll)
+        if (Flags.CheckAllPlugins)
             LogFile.WriteLine(debugCompileResults.ToString());
 
         Task.Run(ReportEnabledPlugins);
@@ -133,7 +130,7 @@ public class Loader
             string id = plugin.Id;
             bool enabled = profiles.Current.Contains(id);
 
-            if (enabled || (debugCompileAll && !plugin.IsLocal && plugin.IsCompiled))
+            if (enabled || (Flags.CheckAllPlugins && !plugin.IsLocal && plugin.IsCompiled))
                 yield return plugin;
         }
     }

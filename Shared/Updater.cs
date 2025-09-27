@@ -12,7 +12,7 @@ using Pulsar.Shared.Network;
 
 namespace Pulsar.Shared;
 
-public class Updater(string repoName, bool preRelease, bool noUpdate)
+public class Updater(string repoName)
 {
     private const string UpdaterName = "Updater";
     private const string PulsarName = "Pulsar";
@@ -25,8 +25,10 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
         Assembly entryAssembly = Assembly.GetEntryAssembly();
         Version localPulsarVer = entryAssembly.GetName().Version;
 
+        bool preRelease = Flags.UpdateType == UpdateType.Tester;
+
         if (
-            !noUpdate
+            Flags.UpdateType != UpdateType.None
             && GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
             && localPulsarVer < remotePulsarVer
         )
@@ -81,7 +83,7 @@ public class Updater(string repoName, bool preRelease, bool noUpdate)
         MessageBoxButtons buttons;
         string message = "You have a broken Pulsar insallation!\n";
 
-        if (noUpdate)
+        if (Flags.UpdateType == UpdateType.None)
         {
             message += "Please rebuild or manually redownload.";
             buttons = MessageBoxButtons.OK;

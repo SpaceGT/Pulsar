@@ -38,13 +38,13 @@ static class Program
             return;
         }
 
-        if (Tools.HasCommandArg("-debug"))
+        if (Flags.ExternalDebug)
             Debugger.Launch();
 
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
-        SetupCoreData(baseDir);
+        SetupCoreData(args, baseDir);
         Updater updater = TryUpdate(baseDir);
         SetupGameData(updater);
         CheckCanStart(updater);
@@ -54,7 +54,7 @@ static class Program
         SetupGame(args);
     }
 
-    private static void SetupCoreData(string baseDir)
+    private static void SetupCoreData(string[] args, string baseDir)
     {
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string pulsarDir = Path.Combine(baseDir, asmName.Name);
@@ -62,29 +62,27 @@ static class Program
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
 
-        if (!Tools.HasCommandArg("-nosplash") && !Tools.HasCommandArg("-sesplash"))
+        Flags.LogFlags();
+
+        if (Flags.SplashType == SplashType.Pulsar)
             SplashManager.Instance = new SplashManager();
 
         SplashManager.Instance?.SetTitle("Pulsar");
         SplashManager.Instance?.SetText("Starting Pulsar...");
 
-        ConfigManager.EarlyInit(pulsarDir, Tools.HasCommandArg("-debugCompileAll"));
+        ConfigManager.EarlyInit(pulsarDir);
     }
 
     private static Updater TryUpdate(string baseDir)
     {
-        string libraryDir = Path.Combine(baseDir, "Libraries");
-
-        bool noUpdate = Tools.HasCommandArg("-noupdate");
-        bool preRelease = Tools.HasCommandArg("-prerelease");
-
-        Updater updater = new(PulsarRepo, preRelease, noUpdate);
+        Updater updater = new(PulsarRepo);
         updater.TryUpdate();
 
         string checkSum = null;
         string checkFile = Path.Combine(baseDir, "checksum.txt");
+        string libraryDir = Path.Combine(baseDir, "Libraries");
 
-        if (Tools.HasCommandArg("-mkcheck"))
+        if (Flags.MakeCheckFile)
         {
             UTF8Encoding encoding = new();
             checkSum = Tools.GetFolderHash(libraryDir);
@@ -205,10 +203,7 @@ static class Program
 
         Game.SetupMyFakes();
         Game.CorrectExitText();
-
-        if (!Tools.HasCommandArg("-keepintro"))
-            Game.ShowIntroVideo(false);
-
+        Game.ShowIntroVideo(Flags.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");

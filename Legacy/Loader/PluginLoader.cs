@@ -73,7 +73,7 @@ public class PluginLoader : IHandleInputPlugin
             LogFile.WriteLine($"Initializing {plugins.Count} plugins");
             SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 
-            if (ConfigManager.Instance.DebugCompileAll)
+            if (Flags.CheckAllPlugins)
                 debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
             for (int i = plugins.Count - 1; i >= 0; i--)
@@ -82,7 +82,7 @@ public class PluginLoader : IHandleInputPlugin
                 if (!p.Init(gameInstance))
                 {
                     plugins.RemoveAtFast(i);
-                    if (ConfigManager.Instance.DebugCompileAll)
+                    if (Flags.CheckAllPlugins)
                         debugCompileResults
                             .Append(p.FriendlyName ?? "(null)")
                             .Append(" - ")
@@ -96,7 +96,7 @@ public class PluginLoader : IHandleInputPlugin
 
         init = true;
 
-        if (ConfigManager.Instance.DebugCompileAll)
+        if (Flags.CheckAllPlugins)
         {
             MessageBox.Show("All plugins compiled, log file will now open");
             LogFile.WriteLine(debugCompileResults.ToString());

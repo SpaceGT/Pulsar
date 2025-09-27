@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -17,7 +16,6 @@ using Sandbox.Game.World;
 using Sandbox.Graphics.GUI;
 using VRage;
 using VRage.Audio;
-using VRage.FileSystem;
 using VRage.Input;
 using VRage.Plugins;
 using VRage.Utils;
@@ -26,8 +24,8 @@ namespace Pulsar.Legacy.Loader;
 
 public static class LoaderTools
 {
-    public const string ContinueArg = "-continue";
-    public const string DebugArg = "-debug";
+    private const string ContinueArg = "-continue";
+    private const string DebugArg = "-debug";
 
     public static void AskToRestart()
     {

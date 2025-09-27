@@ -19,7 +19,7 @@ public class Launcher(string sePath)
             return false;
         }
 
-        if (Tools.HasCommandArg("-plugin"))
+        if (Environment.GetCommandLineArgs().Contains("-plugin"))
         {
             Tools.ShowMessageBox(
                 "ERROR: \"-plugin\" support has been dropped!\n"

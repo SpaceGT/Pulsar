@@ -177,7 +177,7 @@ public abstract class PluginData : IEquatable<PluginData>
     public void Error(string msg = null)
     {
         Status = PluginStatus.Error;
-        if (ConfigManager.Instance.DebugCompileAll)
+        if (Flags.CheckAllPlugins)
             return;
         msg ??=
             $"The plugin '{this}' caused an error. "

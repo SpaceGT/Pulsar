@@ -18,7 +18,6 @@ public class ConfigManager
     public PluginStats Stats { get; private set; }
     public Version GameVersion { get; private set; }
 
-    public bool DebugCompileAll { get; private set; }
     public string PulsarDir { get; private set; }
     public string GameDir { get; private set; }
     public string ModDir { get; private set; }
@@ -26,13 +25,12 @@ public class ConfigManager
     public bool SafeMode { get; set; }
     public bool HasLocal { get; set; }
 
-    public static void EarlyInit(string pulsarDir, bool debugCompileAll)
+    public static void EarlyInit(string pulsarDir)
     {
         Instance = new()
         {
             SafeMode = false,
             PulsarDir = pulsarDir,
-            DebugCompileAll = debugCompileAll,
             Core = CoreConfig.Load(pulsarDir),
         };
     }
