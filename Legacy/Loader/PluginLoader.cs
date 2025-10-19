@@ -56,6 +56,15 @@ public class PluginLoader : IHandleInputPlugin
             plugin.RegisterSession(MySession.Static);
     }
 
+    public void RegisterEntityScripts(MyScriptManager scriptManager)
+    {
+        LogFile.WriteLine($"Registering plugin entity scripts");
+        foreach (var plugin in plugins)
+        {
+            plugin.RegisterEntityScripts(scriptManager);
+        }
+    }
+
     public void Init(object gameInstance)
     {
         StringBuilder debugCompileResults = new();

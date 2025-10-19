@@ -8,6 +8,7 @@ using NLog;
 using Pulsar.Shared;
 using Pulsar.Shared.Data;
 using Sandbox.Game.World;
+using VRage.Game;
 using VRage.Game.Components;
 using VRage.Plugins;
 
@@ -183,6 +184,42 @@ public class PluginInstance
         catch (Exception e)
         {
             ThrowError($"Failed to register {data} because of an error: {e}");
+        }
+    }
+
+    private static readonly Action<MyScriptManager, MyModContext, Assembly> tryAddEntityScripts =
+        (Action<MyScriptManager, MyModContext, Assembly>)Delegate.CreateDelegate(
+            typeof(Action<MyScriptManager, MyModContext, Assembly>),
+            typeof(MyScriptManager).GetMethod(
+                "TryAddEntityScripts",
+                BindingFlags.Instance | BindingFlags.NonPublic
+            )
+        );
+
+    public void RegisterEntityScripts(MyScriptManager scriptManager)
+    {
+        if (plugin is null)
+            return;
+
+        int entityScriptCount = scriptManager.EntityScripts.Count;
+        int subEntityScriptCount = scriptManager.SubEntityScripts.Count;
+
+        try
+        {
+            tryAddEntityScripts(scriptManager, MyModContext.UnknownContext, mainAssembly);
+
+            int addedEntityScriptCount = scriptManager.EntityScripts.Count - entityScriptCount;
+            int addedSubEntityScriptCount = scriptManager.SubEntityScripts.Count - subEntityScriptCount;
+            if (addedEntityScriptCount > 0 || addedSubEntityScriptCount > 0)
+            {
+                LogFile.WriteLine(
+                    $"Registered {addedEntityScriptCount} entity scripts and {addedSubEntityScriptCount} sub entity scripts from: {mainAssembly.FullName}"
+                );
+            }
+        }
+        catch (Exception e)
+        {
+            ThrowError($"Failed to register entity scripts from {data} because of an error: {e}");
         }
     }
 
