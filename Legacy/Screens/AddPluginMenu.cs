@@ -206,10 +206,12 @@ public class AddPluginMenu : PluginScreen
         if (string.IsNullOrWhiteSpace(filter))
             return plugins.Where(x => !x.Hidden);
         string[] splitFilter = filter.Split([' '], StringSplitOptions.RemoveEmptyEntries);
-        // Plugin name must contain every item from the filter
+        // Plugin name, author, or description must contain every item from the filter
         return plugins.Where(plugin =>
             splitFilter.All(arg =>
-                plugin.FriendlyName.Contains(arg, StringComparison.OrdinalIgnoreCase)
+                plugin.FriendlyName.Contains(arg, StringComparison.OrdinalIgnoreCase) ||
+                (plugin.Author?.Contains(arg, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                (plugin.Description?.Contains(arg, StringComparison.OrdinalIgnoreCase) ?? false)
             )
         );
     }
