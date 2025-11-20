@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
+using Pulsar.Shared.Dialogs;
 
 namespace Pulsar.Shared;
 
@@ -165,13 +166,13 @@ public static class Tools
         try
         {
             // Get the file path via prompt
-            using FolderBrowserDialog openFileDialog = new();
-            openFileDialog.Description = title;
+            using OpenFolderDialog openFolderDialog = new();
+            openFolderDialog.Title = title;
 
             Form form = new() { TopMost = true, TopLevel = true };
 
-            DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string selectedPath = openFileDialog.SelectedPath;
+            DialogResult dialogResult = openFolderDialog.ShowDialog(form);
+            string selectedPath = openFolderDialog.FolderName;
 
             form.Close();
 
