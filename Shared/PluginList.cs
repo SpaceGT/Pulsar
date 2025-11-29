@@ -107,6 +107,18 @@ public class PluginList : IEnumerable<PluginData>
         plugin.LoadData(config);
     }
 
+    /// <summary>
+    /// Refreshes plugin configurations from the current profile.
+    /// This should be called after loading a profile to update plugin settings like DataFile paths.
+    /// </summary>
+    public void RefreshPluginConfigurations()
+    {
+        foreach (PluginData plugin in Plugins.Values)
+        {
+            LoadPluginData(plugin);
+        }
+    }
+
     private void FindPluginGroups()
     {
         int groups = 0;

@@ -110,6 +110,30 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         enabledPlugins.Clear();
         foreach (PluginData plugin in p.GetPlugins())
             enabledPlugins.Add(plugin.Id);
+        
+        // Update the current profile with the loaded profile's data
+        // This ensures that plugin configurations (like DataFile) are preserved
+        Profile current = config.Current;
+        current.GitHub.Clear();
+        current.DevFolder.Clear();
+        current.Local.Clear();
+        current.Mods.Clear();
+        
+        foreach (var item in p.GitHub)
+            current.GitHub.Add(item);
+        foreach (var item in p.DevFolder)
+            current.DevFolder.Add(item);
+        foreach (var item in p.Local)
+            current.Local.Add(item);
+        foreach (var item in p.Mods)
+            current.Mods.Add(item);
+        
+        // Save the updated current profile
+        config.Save();
+        
+        // Refresh plugin configurations to apply the loaded settings
+        list.RefreshPluginConfigurations();
+        
         CloseScreen();
     }
 
