@@ -15,6 +15,6 @@ public static class Patch_ComponentRegistered
     public static void Prefix(Assembly assembly)
     {
         if (assembly == MyPlugins.GameAssembly)
-            PluginLoader.Instance?.RegisterComponents();
+            PluginLoader.Instance?.RegisterSessionComponents();
     }
 }
