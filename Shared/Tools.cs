@@ -124,9 +124,9 @@ public static class Tools
         Action<string> onOk
     )
     {
+        // Prompt the user to select a file.
         try
         {
-            // Get the file path via prompt
             using OpenFileDialog openFileDialog = new();
             if (Directory.Exists(directory))
                 openFileDialog.InitialDirectory = directory;
@@ -162,18 +162,37 @@ public static class Tools
 
     private static void OpenFolderDialogThread(string title, Action<string> onOk)
     {
+        // Prompt the user to select a folder.
+        // Net Core - FolderBrowserDialog supports the modern Vista-style dialog.
+        // Net Framework - We must hack OpenFileDialog to set some internal flags.
+
         try
         {
-            // Get the file path via prompt
-            using FolderBrowserDialog openFileDialog = new();
-            openFileDialog.Description = title;
+#if NETCOREAPP
+            using FolderBrowserDialog openFolderDialog = new();
+            openFolderDialog.Description = title;
+
+            Form form = new() { TopMost = true, TopLevel = true };
+
+            DialogResult dialogResult = openFolderDialog.ShowDialog(form);
+            string selectedPath = openFolderDialog.SelectedPath;
+
+            form.Close();
+#else
+            using OpenFileDialog openFileDialog = new();
+            openFileDialog.Title = title;
+            openFileDialog.CheckFileExists = false;
+            openFileDialog.CheckPathExists = true;
+            openFileDialog.RestoreDirectory = true;
+            openFileDialog.Filter = "Folders (*.*)|*.*";
 
             Form form = new() { TopMost = true, TopLevel = true };
 
             DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string selectedPath = openFileDialog.SelectedPath;
+            string selectedPath = openFileDialog.FileName;
 
             form.Close();
+#endif
 
             if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(selectedPath))
             {
