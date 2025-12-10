@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -8,7 +9,9 @@ using NLog;
 using Pulsar.Shared;
 using Pulsar.Shared.Data;
 using Sandbox.Game.World;
+using VRage.Game;
 using VRage.Game.Components;
+using VRage.ObjectBuilders;
 using VRage.Plugins;
 
 namespace Pulsar.Legacy.Loader;
@@ -160,30 +163,84 @@ public class PluginInstance
         }
     }
 
-    public void RegisterSession(MySession session)
+    public void RegisterSessionComponents(MySession session)
     {
         if (plugin is null)
             return;
 
+        Type descType = typeof(MySessionComponentDescriptor);
+        int count = 0;
+
         try
         {
-            Type descType = typeof(MySessionComponentDescriptor);
-            int count = 0;
             foreach (Type t in mainAssembly.GetTypes().Where(t => Attribute.IsDefined(t, descType)))
             {
                 MySessionComponentBase comp = (MySessionComponentBase)Activator.CreateInstance(t);
                 session.RegisterComponent(comp, comp.UpdateOrder, comp.Priority);
                 count++;
             }
+
             if (count > 0)
-                LogFile.WriteLine(
-                    $"Registered {count} session components from: {mainAssembly.FullName}"
-                );
+                LogFile.WriteLine($"Registered {count} session components from {data}");
         }
         catch (Exception e)
         {
-            ThrowError($"Failed to register {data} because of an error: {e}");
+            ThrowError($"Failed to register {data} session components because of an error: {e}");
         }
+    }
+
+    public void RegisterEntityComponents(MyScriptManager sm)
+    {
+        if (plugin is null)
+            return;
+
+        int count = 0;
+        var components = mainAssembly
+            .GetTypes()
+            .Where(t =>
+                Attribute.IsDefined(t, typeof(MyEntityComponentDescriptor))
+                && typeof(MyGameLogicComponent).IsAssignableFrom(t)
+            );
+
+        try
+        {
+            foreach (Type type in components)
+            {
+                var desc = type.GetCustomAttribute<MyEntityComponentDescriptor>(inherit: false);
+                if (!typeof(MyObjectBuilder_Base).IsAssignableFrom(desc.EntityBuilderType))
+                    continue;
+
+                sm.TypeToModMap.Add(type, MyModContext.UnknownContext);
+                count++;
+
+                if (desc.EntityBuilderSubTypeNames.IsNullOrEmpty())
+                {
+                    AddEntityScript(sm.EntityScripts, desc.EntityBuilderType, type);
+                    continue;
+                }
+
+                foreach (string item in desc.EntityBuilderSubTypeNames)
+                {
+                    Tuple<Type, string> key = new(desc.EntityBuilderType, item);
+                    AddEntityScript(sm.SubEntityScripts, key, type);
+                }
+            }
+
+            if (count > 0)
+                LogFile.WriteLine($"Registered {count} entity components from {data}");
+        }
+        catch (Exception e)
+        {
+            ThrowError($"Failed to register {data} entity components because of an error: {e}");
+        }
+    }
+
+    private void AddEntityScript<T>(Dictionary<T, HashSet<Type>> scriptDict, T key, Type value)
+    {
+        if (scriptDict.ContainsKey(key))
+            scriptDict[key].Add(value);
+        else
+            scriptDict.Add(key, [value]);
     }
 
     public bool Update()

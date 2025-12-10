@@ -49,11 +49,16 @@ public class PluginLoader : IHandleInputPlugin
         return false;
     }
 
-    public void RegisterComponents()
+    public void RegisterSessionComponents()
     {
-        LogFile.WriteLine($"Registering {plugins.Count} components");
         foreach (PluginInstance plugin in plugins)
-            plugin.RegisterSession(MySession.Static);
+            plugin.RegisterSessionComponents(MySession.Static);
+    }
+
+    public void RegisterEntityComponents()
+    {
+        foreach (PluginInstance plugin in plugins)
+            plugin.RegisterEntityComponents(MyScriptManager.Static);
     }
 
     public void Init(object gameInstance)
