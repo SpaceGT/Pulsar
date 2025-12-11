@@ -137,9 +137,26 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         MyGuiControlTable.Row row = profilesTable.SelectedRow;
         if (row?.UserData is Profile p)
         {
-            config.Remove(p.Key);
-            profilesTable.Remove(row);
-            UpdateButtons();
+            string caption = "Delete Profile";
+            string message = $"Are you sure you want to delete \"{p.Name}\"?";
+
+            MyGuiScreenMessageBox confirmationDialog = MyGuiSandbox.CreateMessageBox(
+                styleEnum: MyMessageBoxStyleEnum.Info,
+                buttonType: MyMessageBoxButtonsType.YES_NO,
+                messageCaption: new StringBuilder(caption),
+                messageText: new StringBuilder(message),
+                callback: DialogCallback);
+            MyGuiSandbox.AddScreen(confirmationDialog);
+
+            void DialogCallback(MyGuiScreenMessageBox.ResultEnum result)
+            {
+                if (result is MyGuiScreenMessageBox.ResultEnum.YES)
+                {
+                    config.Remove(p.Key);
+                    profilesTable.Remove(row);
+                    UpdateButtons();
+                }
+            }
         }
     }
 
