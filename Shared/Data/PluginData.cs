@@ -5,6 +5,7 @@ using System.Net;
 using System.Reflection;
 using System.Windows.Forms;
 using System.Xml.Serialization;
+using FuzzySharp;
 using ProtoBuf;
 using Pulsar.Shared.Config;
 
@@ -201,6 +202,28 @@ public abstract class PluginData : IEquatable<PluginData>
             LogFile.GameLog.Open();
 
         LogFile.Open();
+    }
+
+    public int FuzzyRank(string query)
+    {
+        string[] terms = query.Split([';'], StringSplitOptions.RemoveEmptyEntries);
+
+        int nameScore = 0;
+        if (FriendlyName is not null)
+            foreach (string term in terms)
+                nameScore += Fuzz.PartialRatio(term, FriendlyName);
+
+        int authorScore = 0;
+        if (Author is not null)
+            foreach (string term in terms)
+                authorScore += Fuzz.Ratio(term, Author);
+
+        int tooltipScore = 0;
+        if (Tooltip is not null)
+            foreach (string term in terms)
+                tooltipScore += Fuzz.TokenSetRatio(term, Tooltip);
+
+        return nameScore + authorScore + tooltipScore;
     }
 
     public virtual bool UpdateEnabledPlugins(HashSet<string> enabledPlugins, bool enable)

@@ -43,6 +43,7 @@
     <Reference Include="Steamworks.NET" HintPath="$(Steamworks)" Private="False" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

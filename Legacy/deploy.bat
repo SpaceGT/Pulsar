@@ -98,6 +98,9 @@ copy /y /b "%SOURCE%\NLog.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "protobuf-net.dll"
 copy /y /b "%SOURCE%\protobuf-net.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
+echo Copying "FuzzySharp.dll"
+copy /y /b "%SOURCE%\FuzzySharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
 echo Copying "NuGet.*.dll"
 copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
