@@ -9,7 +9,7 @@ internal static class LocalPluginExtensions
 {
     public static void Show(this LocalPlugin localPlugin)
     {
-        string file = Path.GetFullPath(localPlugin.Id);
+        string file = Path.GetFullPath(localPlugin.Dll);
         if (File.Exists(file))
             Process.Start("explorer.exe", $"/select, \"{file}\"");
     }
