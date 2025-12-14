@@ -18,7 +18,7 @@ using VRageRender;
 
 namespace Pulsar.Legacy.Patch;
 
-//[HarmonyPatchCategory("Late")]
+//[HarmonyPatchCategory("Early")]
 //[HarmonyPatch("VRage.Platform.Windows.Render.MyPlatformRender", "CreateRenderDevice")]
 public static class Patch_MyWindowsRender_CreateRenderDevice
 {
@@ -26,8 +26,6 @@ public static class Patch_MyWindowsRender_CreateRenderDevice
     public static unsafe void Postfix(Form window, object deviceInstance)
     {
         ImGui.CreateContext();
-        ImGuiIOPtr io = ImGui.GetIO();
-        io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
         ImGui.StyleColorsDark();
 
@@ -45,7 +43,7 @@ public static class Patch_MyRender11
     static bool init = false;
 
     static bool show_demo_window = true;
-    static bool show_another_window = false;
+    static bool show_another_window = true;
     static Vector4 clear_color = new Vector4(0.45f, 0.55f, 0.60f, 1.00f);
 
     static Device1 Device;
@@ -56,7 +54,11 @@ public static class Patch_MyRender11
     {
         Device = swapchain.GetDevice<Device1>();
         Backbuffer = swapchain.GetBackBuffer<Texture2D>(0);
-        BackbufferRtv = new RenderTargetView(Device, Backbuffer);
+        BackbufferRtv = new RenderTargetView(Device, Backbuffer, new RenderTargetViewDescription
+        {
+            Format = SharpDX.DXGI.Format.R8G8B8A8_UNorm,
+            Dimension = RenderTargetViewDimension.Texture2D,
+        });
     }
 
     [HarmonyPatch("VRageRender.MyRender11", "Present")]
@@ -83,40 +85,40 @@ public static class Patch_MyRender11
             ImGui.ShowDemoWindow(ref showDemoWindow);
         }
 
-        //// 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        //{
-        //    float f = 0.0f;
-        //    int counter = 0;
-        //
-        //    ImGui.Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
-        //
-        //    ImGui.Text("This is some useful text.");               // Display some text (you can use a format strings too)
-        //    ImGui.Checkbox("Demo Window", ref show_demo_window);      // Edit bools storing our window open/close state
-        //    ImGui.Checkbox("Another Window", ref show_another_window);
-        //
-        //    ImGui.SliderFloat("float", ref f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-        //    ImGui.ColorEdit3("clear color", ref Unsafe.As<Vector4, Vector3>(ref clear_color)); // Edit 3 floats representing a color
-        //
-        //    if (ImGui.Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
-        //        counter++;
-        //    ImGui.SameLine();
-        //    ImGui.Text($"counter = {counter}");
-        //
-        //    ImGuiIOPtr io = ImGui.GetIO();
-        //    ImGui.Text($"Application average {1000.0f / io.Framerate:.000} ms/frame ({io.Framerate:.0} FPS)");
-        //    ImGui.End();
-        //}
-
-        //// 3. Show another simple window.
-        //if (show_another_window)
-        //{
-        //    ImGui.Begin("Another Window", ref show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
-        //    ImGui.Text("Hello from another window!");
-        //    if (ImGui.Button("Close Me"))
-        //        show_another_window = false;
-        //    ImGui.End();
-        //}
+        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
+        {
+            float f = 0.0f;
+            int counter = 0;
         
+            ImGui.Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
+        
+            ImGui.Text("This is some useful text.");               // Display some text (you can use a format strings too)
+            ImGui.Checkbox("Demo Window", ref show_demo_window);      // Edit bools storing our window open/close state
+            ImGui.Checkbox("Another Window", ref show_another_window);
+        
+            ImGui.SliderFloat("float", ref f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
+            ImGui.ColorEdit3("clear color", ref Unsafe.As<Vector4, Vector3>(ref clear_color)); // Edit 3 floats representing a color
+        
+            if (ImGui.Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
+                counter++;
+            ImGui.SameLine();
+            ImGui.Text($"counter = {counter}");
+        
+            ImGuiIOPtr io = ImGui.GetIO();
+            ImGui.Text($"Application average {1000.0f / io.Framerate:.000} ms/frame ({io.Framerate:.0} FPS)");
+            ImGui.End();
+        }
+
+        // 3. Show another simple window.
+        if (show_another_window)
+        {
+            ImGui.Begin("Another Window", ref show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
+            ImGui.Text("Hello from another window!");
+            if (ImGui.ColorButton("Close Me", new Vector4(0.5f, 0.5f, 0.5f, 1)))
+                show_another_window = false;
+            ImGui.End();
+        }
+
         // Rendering
         ImGui.Render();
 
@@ -126,9 +128,6 @@ public static class Patch_MyRender11
         Device.ImmediateContext.ClearState();
         Device.ImmediateContext.OutputMerger.SetRenderTargets(BackbufferRtv);
         ImGui_ImplDX11.RenderDrawData(ImGui.GetDrawData());
-
-        //ImGui.UpdatePlatformWindows();
-        //ImGui.RenderPlatformWindowsDefault();
     }
 
     [HarmonyPrefix, HarmonyPatch(typeof(SharpDX.DXGI.SwapChain), nameof(SharpDX.DXGI.SwapChain.Present), [typeof(int), typeof(SharpDX.DXGI.PresentFlags)])]

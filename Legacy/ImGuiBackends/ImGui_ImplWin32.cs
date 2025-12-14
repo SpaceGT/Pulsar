@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using VRage.Input;
 using ImVec2 = System.Numerics.Vector2;
 
 namespace Pulsar.Legacy.ImGuiBackends;
@@ -80,13 +81,19 @@ public static class ImGui_ImplWin32
 
         // Setup display size (every frame to accommodate for window resizing)
         Rectangle rect = Window.ClientRectangle;
-        io.DisplaySize = new ImVec2(rect.Right - rect.Left, rect.Bottom - rect.Top);
+        io.DisplaySize = new ImVec2(Window.ClientSize.Width, Window.ClientSize.Height);
+        io.DisplayFramebufferScale = new ImVec2(1);
+        io.DeltaTime = 1f / 60f; // seconds
 
-        // Setup time step
-        long current_time = 0;
-        //::QueryPerformanceCounter((LARGE_INTEGER*)&current_time);
-        //io.DeltaTime = (float)(current_time - bd->Time) / bd->TicksPerSecond;
-        io.DeltaTime = 1f / 120f;
+        // input
+        var mouse = MyInput.Static.ActualMouseState;
+        io.AddMousePosEvent(mouse.X, mouse.Y);
+        io.AddMouseButtonEvent(0, mouse.LeftButton);
+        io.AddMouseButtonEvent(1, mouse.RightButton);
+        io.AddMouseButtonEvent(2, mouse.MiddleButton);
+        io.AddMouseButtonEvent(3, mouse.XButton1);
+        io.AddMouseButtonEvent(4, mouse.XButton2);
+        io.AddMouseWheelEvent(0, MyInput.Static.DeltaMouseScrollWheelValue());
 
         // Update OS mouse position
         //UpdateMouseData(io);
