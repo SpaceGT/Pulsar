@@ -16,6 +16,8 @@ using Buffer = SharpDX.Direct3D11.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 using ImVec2 = System.Numerics.Vector2;
 using ImDrawIdx = System.UInt16;
+using SharpDX.DirectInput;
+using VRageRender;
 
 namespace Pulsar.Legacy.ImGuiBackends;
 
@@ -73,8 +75,15 @@ float4 main(PS_INPUT input) : SV_Target
     static Form _gameWindow;
     static Device _device;
     static Texture2D _backbuffer;
+    static ImVec2 _backbufferSize;
     static RenderTargetView _backbufferRtv;
 
+    // input
+    static DirectInput _input;
+    static Mouse _mouse;
+    static MouseState _mouseState;
+
+    // device resources
     static Buffer VB;
     static Buffer IB;
     static int VBSize = 5000;
@@ -103,22 +112,38 @@ float4 main(PS_INPUT input) : SV_Target
         _gameWindow = gameWindow;
         _device = swapChain.GetDevice<Device>();
         _backbuffer = swapChain.GetBackBuffer<Texture2D>(0);
+        _backbufferSize = new ImVec2(_backbuffer.Description.Width, _backbuffer.Description.Height);
         _backbufferRtv = new RenderTargetView(_device, _backbuffer, new RenderTargetViewDescription
         {
             Format = Format.R8G8B8A8_UNorm,
             Dimension = RenderTargetViewDimension.Texture2D,
         });
 
+        _input = new DirectInput();
+        _mouse = new Mouse(_input);
+        _mouseState = new MouseState();
+
         ImGui.CreateContext();
         CreateDeviceResources();
 
         ImGuiIOPtr io = ImGui.GetIO();
         io.BackendFlags |= ImGuiBackendFlags.RendererHasVtxOffset;
-        io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard | ImGuiConfigFlags.DockingEnable;
+        io.BackendFlags |= ImGuiBackendFlags.HasMouseCursors | ImGuiBackendFlags.HasSetMousePos | ImGuiBackendFlags.HasMouseHoveredViewport;
+        io.ConfigFlags |= ImGuiConfigFlags.NavEnableKeyboard;
 
         ImGuiViewportPtr main_viewport = ImGui.GetMainViewport();
         main_viewport.PlatformHandle = _gameWindow.Handle;
         main_viewport.PlatformHandleRaw = _gameWindow.Handle;
+
+        _gameWindow.MouseMove += OnMouseMove;
+    }
+
+    private static void OnMouseMove(object sender, MouseEventArgs e)
+    {
+        ImGuiIOPtr io = ImGui.GetIO();
+        io.AddMouseSourceEvent(ImGuiMouseSource.Mouse);
+        ImVec2 posScale = _backbufferSize / new ImVec2(_gameWindow.ClientSize.Width, _gameWindow.ClientSize.Height);
+        io.AddMousePosEvent(e.X * posScale.X, e.Y * posScale.Y);
     }
 
     public static void NewFrame(float deltaSeconds)
@@ -129,13 +154,42 @@ float4 main(PS_INPUT input) : SV_Target
         }
 
         ImGuiIOPtr io = ImGui.GetIO();
-        io.DisplaySize = new ImVec2(_gameWindow.ClientSize.Width, _gameWindow.ClientSize.Height);
+        var clientRect = new ImVec2(_gameWindow.ClientSize.Width, _gameWindow.ClientSize.Height);
+        io.DisplaySize = clientRect;
         io.DisplayFramebufferScale = ImVec2.One;
         io.DeltaTime = deltaSeconds;
 
+        ImGuiPlatformIOPtr pio = ImGui.GetPlatformIO();
+
         // TODO: input handling
+        UpdateMouse();
 
         ImGui.NewFrame();
+    }
+
+    private static void UpdateMouse()
+    {
+        try
+        {
+            _mouse.Acquire();
+            _mouse.GetCurrentState(ref _mouseState);
+            _mouse.Poll();
+        }
+        catch (SharpDXException)
+        {
+            _mouseState.X = 0;
+            _mouseState.Y = 0;
+            _mouseState.Z = 0;
+            Array.Clear(_mouseState.Buttons, 0, _mouseState.Buttons.Length);
+        }
+
+        ImGuiIOPtr io = ImGui.GetIO();
+        io.AddMouseSourceEvent(ImGuiMouseSource.Mouse);
+        io.AddMouseButtonEvent(0, _mouseState.Buttons[0]);
+        io.AddMouseButtonEvent(1, _mouseState.Buttons[1]);
+        io.AddMouseButtonEvent(2, _mouseState.Buttons[2]);
+        io.AddMouseButtonEvent(3, _mouseState.Buttons[3]);
+        io.AddMouseButtonEvent(4, _mouseState.Buttons[4]);
     }
 
     public static void Render()

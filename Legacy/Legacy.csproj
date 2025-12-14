@@ -68,6 +68,7 @@
     <Reference Include="SharpDX" HintPath="$(Bin64)\SharpDX.dll" Private="False" />
     <Reference Include="SharpDX.D3DCompiler" HintPath="$(Bin64)\SharpDX.D3DCompiler.dll" Private="False" />
     <Reference Include="SharpDX.Direct3D11" HintPath="$(Bin64)\SharpDX.Direct3D11.dll" Private="False" />
+    <Reference Include="SharpDX.DirectInput" HintPath="$(Bin64)\SharpDX.DirectInput.dll" Private="False" />
     <Reference Include="SharpDX.DXGI" HintPath="$(Bin64)\SharpDX.DXGI.dll" Private="False" />
     <Reference Include="VRage" HintPath="$(Bin64)\VRage.dll" Private="False" />
     <Reference Include="VRage.Game" HintPath="$(Bin64)\VRage.Game.dll" Private="False" />
