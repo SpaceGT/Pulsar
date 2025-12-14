@@ -19,7 +19,7 @@ public static class Patch_MyRender11
 
     static bool show_demo_window = true;
     static bool show_another_window = true;
-    static Vector4 clear_color = new Vector4(0.45f, 0.55f, 0.60f, 1.00f);
+    static Vector3 clear_color = new Vector3(0.45f, 0.55f, 0.60f);
     static float f = 0;
     static int counter = 0;
 
@@ -49,8 +49,8 @@ public static class Patch_MyRender11
 
         sw.Stop();
         float deltaSeconds = sw.ElapsedTicks / (float)Stopwatch.Frequency;
-        ImGuiImpl.NewFrame(deltaSeconds);
         sw.Restart();
+        ImGuiImpl.NewFrame(deltaSeconds);
 
         // 1. Show the big demo window (Most of the sample code is in ImGui.ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
@@ -67,7 +67,7 @@ public static class Patch_MyRender11
             ImGui.Checkbox("Another Window", ref show_another_window);
         
             ImGui.SliderFloat("float", ref f, 0.0f, 1.0f);            // Edit 1 float using a slider from 0.0f to 1.0f
-            ImGui.ColorEdit3("clear color", ref Unsafe.As<Vector4, Vector3>(ref clear_color)); // Edit 3 floats representing a color
+            ImGui.ColorEdit3("clear color", ref clear_color); // Edit 3 floats representing a color
         
             if (ImGui.Button("Button"))                            // Buttons return true when clicked (most widgets return true when edited/activated)
                 counter++;
@@ -87,6 +87,10 @@ public static class Patch_MyRender11
             if (ImGui.Button("Close Me"))
                 show_another_window = false;
             ImGui.End();
+        }
+
+        {
+            // submit render commands here
         }
 
         // Rendering
