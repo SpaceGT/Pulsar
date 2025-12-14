@@ -3,14 +3,9 @@ using ImGuiNET;
 using Pulsar.Legacy.ImGuiBackends;
 using SharpDX.DXGI;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
-using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using VRage;
 
@@ -89,4 +84,12 @@ public static class Patch_MyRender11
         // Rendering
         ImGuiImpl.Render();
     }
+
+    [HarmonyPatch("VRageRender.MyRender11", "ResizeSwapchain")]
+    [HarmonyPrefix]
+    public static void ResizeSwapchain_Prefix() => ImGuiImpl.DestroyBackbufferResources();
+
+    [HarmonyPatch("VRageRender.MyRender11", "ResizeSwapchain")]
+    [HarmonyPostfix]
+    public static void ResizeSwapchain_Postfix(SwapChain ___m_swapchain) => ImGuiImpl.CreateBackbufferResources(___m_swapchain);
 }

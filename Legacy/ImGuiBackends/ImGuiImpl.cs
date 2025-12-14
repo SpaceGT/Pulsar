@@ -3,21 +3,18 @@ using SharpDX;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
+using SharpDX.DirectInput;
 using SharpDX.DXGI;
 using SharpDX.Mathematics.Interop;
 using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using Buffer = SharpDX.Direct3D11.Buffer;
 using Device = SharpDX.Direct3D11.Device;
 using ImVec2 = System.Numerics.Vector2;
 using ImDrawIdx = System.UInt16;
-using SharpDX.DirectInput;
-using VRageRender;
 
 namespace Pulsar.Legacy.ImGuiBackends;
 
@@ -50,7 +47,8 @@ PS_INPUT main(VS_INPUT input)
     output.col = input.col;
     output.uv = input.uv;
     return output;
-}";
+}
+";
 
     const string PS_SOURCE = @"
 struct PS_INPUT
@@ -111,13 +109,7 @@ float4 main(PS_INPUT input) : SV_Target
 
         _gameWindow = gameWindow;
         _device = swapChain.GetDevice<Device>();
-        _backbuffer = swapChain.GetBackBuffer<Texture2D>(0);
-        _backbufferSize = new ImVec2(_backbuffer.Description.Width, _backbuffer.Description.Height);
-        _backbufferRtv = new RenderTargetView(_device, _backbuffer, new RenderTargetViewDescription
-        {
-            Format = Format.R8G8B8A8_UNorm,
-            Dimension = RenderTargetViewDimension.Texture2D,
-        });
+        CreateBackbufferResources(swapChain);
 
         _input = new DirectInput();
         _mouse = new Mouse(_input);
@@ -489,6 +481,24 @@ float4 main(PS_INPUT input) : SV_Target
         Destroy(ref VertexShader);
     }
 
+    public static void CreateBackbufferResources(SwapChain swapChain)
+    {
+        _backbuffer = swapChain.GetBackBuffer<Texture2D>(0);
+        _backbufferSize = new ImVec2(_backbuffer.Description.Width, _backbuffer.Description.Height);
+        _backbufferRtv = new RenderTargetView(_device, _backbuffer, new RenderTargetViewDescription
+        {
+            Format = Format.R8G8B8A8_UNorm,
+            Dimension = RenderTargetViewDimension.Texture2D,
+        });
+    }
+
+    public static void DestroyBackbufferResources()
+    {
+        Destroy(ref _backbuffer);
+        _backbufferSize = default;
+        Destroy(ref _backbufferRtv);
+    }
+
     public static void Shutdown()
     {
         if (!_initialized)
@@ -507,8 +517,8 @@ float4 main(PS_INPUT input) : SV_Target
 
         _gameWindow = null;
         Destroy(ref _device);
-        Destroy(ref _backbuffer);
-        Destroy(ref _backbufferRtv);
+        DestroyBackbufferResources();
+
         Destroy(ref _input);
         Destroy(ref _mouse);
         _mouseState = null;
