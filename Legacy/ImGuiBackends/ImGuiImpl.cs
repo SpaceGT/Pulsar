@@ -237,7 +237,7 @@ float4 main(PS_INPUT input) : SV_Target
                 {
                     // Apply scissor/clipping rectangle
                     Vector4 clipRect = pcmd.ClipRect;
-                    device.Rasterizer.SetScissorRectangle((int)clipRect.X, (int)clipRect.Y, (int)(clipRect.Z - clipRect.X), (int)(clipRect.W - clipRect.Y));
+                    device.Rasterizer.SetScissorRectangle((int)clipRect.X, (int)clipRect.Y, (int)clipRect.Z, (int)clipRect.W);
 
                     // Bind texture
                     IntPtr texId = pcmd.GetTexID();
