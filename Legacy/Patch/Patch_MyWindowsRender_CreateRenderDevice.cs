@@ -1,88 +1,55 @@
 ﻿using HarmonyLib;
 using ImGuiNET;
 using Pulsar.Legacy.ImGuiBackends;
-using SharpDX;
-using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using VRage;
-using VRageRender;
 
 namespace Pulsar.Legacy.Patch;
-
-//[HarmonyPatchCategory("Early")]
-//[HarmonyPatch("VRage.Platform.Windows.Render.MyPlatformRender", "CreateRenderDevice")]
-public static class Patch_MyWindowsRender_CreateRenderDevice
-{
-    [HarmonyPostfix]
-    public static unsafe void Postfix(Form window, object deviceInstance)
-    {
-        ImGui.CreateContext();
-
-        ImGui.StyleColorsDark();
-
-        ImGui_ImplWin32.Init(window);
-
-        Device device = (Device)deviceInstance;
-        ImGui_ImplDX11.Init(device, device.ImmediateContext);
-    }
-}
 
 [HarmonyPatchCategory("Late")]
 [HarmonyPatch]
 public static class Patch_MyRender11
 {
-    static bool init = false;
-
     static bool show_demo_window = true;
     static bool show_another_window = true;
     static Vector4 clear_color = new Vector4(0.45f, 0.55f, 0.60f, 1.00f);
 
-    static Device1 Device;
-    static Texture2D Backbuffer;
-    static RenderTargetView BackbufferRtv;
+    static readonly Stopwatch sw = new();
 
-    static void Init(SharpDX.DXGI.SwapChain swapchain)
+    static Form GetGameWindow()
     {
-        Device = swapchain.GetDevice<Device1>();
-        Backbuffer = swapchain.GetBackBuffer<Texture2D>(0);
-        BackbufferRtv = new RenderTargetView(Device, Backbuffer, new RenderTargetViewDescription
-        {
-            Format = SharpDX.DXGI.Format.R8G8B8A8_UNorm,
-            Dimension = RenderTargetViewDimension.Texture2D,
-        });
+        IVRageWindows windows = MyVRage.Platform.Windows;
+        return (Form)AccessTools.Field(windows.GetType(), "m_form").GetValue(windows);
     }
 
     [HarmonyPatch("VRageRender.MyRender11", "Present")]
     [HarmonyPrefix]
-    public static unsafe void Present_Prefix(SharpDX.DXGI.SwapChain ___m_swapchain)
+    public static unsafe void Present_Prefix(SwapChain ___m_swapchain)
     {
-        if (!init)
+        if (!ImGuiImpl.Initialized)
         {
-            Init(___m_swapchain);
-            IVRageWindows windows = MyVRage.Platform.Windows;
-            Form form = (Form)AccessTools.Field(windows.GetType(), "m_form").GetValue(windows);
-            Patch_MyWindowsRender_CreateRenderDevice.Postfix(form, Device);
-            init = true;
+            ImGuiImpl.Init(GetGameWindow(), ___m_swapchain);
         }
 
-        ImGui_ImplWin32.NewFrame();
-        ImGui_ImplDX11.NewFrame();
-        ImGui.NewFrame();
+        sw.Stop();
+        float deltaSeconds = sw.ElapsedTicks / (float)Stopwatch.Frequency;
+        ImGuiImpl.NewFrame(deltaSeconds);
+        sw.Restart();
 
         // 1. Show the big demo window (Most of the sample code is in ImGui.ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
         if (show_demo_window)
         {
-            bool showDemoWindow = true;
-            ImGui.ShowDemoWindow(ref showDemoWindow);
+            ImGui.ShowDemoWindow(ref show_demo_window);
         }
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
@@ -120,21 +87,6 @@ public static class Patch_MyRender11
         }
 
         // Rendering
-        ImGui.Render();
-
-        //float[] clear_color_with_alpha = { clear_color.X * clear_color.W, clear_color.Y * clear_color.W, clear_color.Z * clear_color.W, clear_color.W };
-        //g_pd3dDeviceContext->OMSetRenderTargets(1, &g_mainRenderTargetView, nullptr);
-        //g_pd3dDeviceContext->ClearRenderTargetView(g_mainRenderTargetView, clear_color_with_alpha);
-        Device.ImmediateContext.ClearState();
-        Device.ImmediateContext.OutputMerger.SetRenderTargets(BackbufferRtv);
-        ImGui_ImplDX11.RenderDrawData(ImGui.GetDrawData());
-    }
-
-    [HarmonyPrefix, HarmonyPatch(typeof(SharpDX.DXGI.SwapChain), nameof(SharpDX.DXGI.SwapChain.Present), [typeof(int), typeof(SharpDX.DXGI.PresentFlags)])]
-    public static bool SwapChain_Present(SharpDX.DXGI.SwapChain __instance, ref Result __result, int syncInterval, SharpDX.DXGI.PresentFlags flags)
-    {
-        __result = __instance.TryPresent(syncInterval, flags);
-        __result.CheckError();
-        return false;
+        ImGuiImpl.Render();
     }
 }
