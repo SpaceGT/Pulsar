@@ -17,6 +17,7 @@
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
@@ -64,15 +65,22 @@
     <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)\Sandbox.Graphics.dll" Private="False" />
     <Reference Include="SpaceEngineers" HintPath="$(Bin64)\SpaceEngineers.exe" Private="False" />
     <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)\SpaceEngineers.Game.dll" Private="False" />
+    <Reference Include="SharpDX" HintPath="$(Bin64)\SharpDX.dll" Private="False" />
+    <Reference Include="SharpDX.D3DCompiler" HintPath="$(Bin64)\SharpDX.D3DCompiler.dll" Private="False" />
+    <Reference Include="SharpDX.Direct3D11" HintPath="$(Bin64)\SharpDX.Direct3D11.dll" Private="False" />
+    <Reference Include="SharpDX.DXGI" HintPath="$(Bin64)\SharpDX.DXGI.dll" Private="False" />
     <Reference Include="VRage" HintPath="$(Bin64)\VRage.dll" Private="False" />
     <Reference Include="VRage.Game" HintPath="$(Bin64)\VRage.Game.dll" Private="False" />
     <Reference Include="VRage.Input" HintPath="$(Bin64)\VRage.Input.dll" Private="False" />
     <Reference Include="VRage.Library" HintPath="$(Bin64)\VRage.Library.dll" Private="False" />
     <Reference Include="VRage.Math" HintPath="$(Bin64)\VRage.Math.dll" Private="False" />
     <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)\VRage.Platform.Windows.dll" Private="False" />
+    <Reference Include="VRage.Render" HintPath="$(Bin64)\VRage.Render.dll" Private="False" />
+    <Reference Include="VRage.Render11" HintPath="$(Bin64)\VRage.Render11.dll" Private="False" />
     <Reference Include="VRage.Scripting" HintPath="$(Bin64)\VRage.Scripting.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="ImGui.NET" Version="1.91.6.1" />
     <PackageReference Include="Lib.Harmony" Version="2.3.6" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
   </ItemGroup>

@@ -104,6 +104,12 @@ copy /y /b "%SOURCE%\FuzzySharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "NuGet.*.dll"
 copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
+echo Copying "cimgui.dll"
+copy /y /b "%SOURCE%\cimgui.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
+echo Copying "ImGui.NET.dll"
+copy /y /b "%SOURCE%\ImGui.NET.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
 REM Get the compiler directory
 set COMPILER_DIR=%LIBRARY_DIR%\Compiler
 if not exist "%COMPILER_DIR%" (
