@@ -13,15 +13,17 @@ public class Preloader
     private const string ClassName = "Preloader";
     private const string TargetName = "TargetDLLs";
     private const string PatchName = "Patch";
+    private const string HookName = "Hook";
 
     public bool HasPatches => patches.Keys.Count > 0;
 
     private readonly Dictionary<string, HashSet<Type>> patches = [];
+    private readonly HashSet<Type> hooks = [];
 
     public Preloader(IEnumerable<Assembly> assemblies)
     {
         foreach (Assembly assembly in assemblies)
-            AddPatch(assembly);
+            AddPreloader(assembly);
     }
 
     public void Preload(string gameDir, string preloadDir)
@@ -81,6 +83,9 @@ public class Preloader
         foreach (string file in Directory.GetFiles(preloadDir))
             if (!patches.ContainsKey(Path.GetFileName(file)))
                 File.Delete(file);
+
+        foreach (Type hook in hooks)
+            RunHook(hook);
     }
 
     public void AddPatch(Type patch)
@@ -105,12 +110,14 @@ public class Preloader
         }
     }
 
-    private void AddPatch(Assembly assembly)
+    private void AddPreloader(Assembly assembly)
     {
         Type patch = assembly.GetType(ClassName);
+        if (patch is null)
+            return;
 
-        if (patch is not null)
-            AddPatch(patch);
+        AddPatch(patch);
+        hooks.Add(patch);
     }
 
     private static bool IsAssemblyLoaded(string simpleName)
@@ -169,6 +176,37 @@ public class Preloader
 
         if (reference)
             definition = (AssemblyDefinition)args[0];
+
+        return true;
+    }
+
+    private static bool RunHook(Type patch)
+    {
+        MethodInfo hookMethod = patch.GetMethod(
+            HookName,
+            BindingFlags.Public | BindingFlags.Static
+        );
+
+        if (hookMethod is null)
+        {
+            string name = patch.Assembly.GetName().Name;
+            string message = $"Preloader plugin '{name}' does not define a hook method";
+            LogFile.Error(message);
+            return false;
+        }
+
+        try
+        {
+            hookMethod.Invoke(null, []);
+        }
+        catch (TargetInvocationException tie) when (tie.InnerException is not null)
+        {
+            string name = patch.Assembly.GetName().Name;
+            var message = $"Preloader plugin '{name}' had an exception:\n" + tie.InnerException;
+            LogFile.Error(message);
+            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            return false;
+        }
 
         return true;
     }
