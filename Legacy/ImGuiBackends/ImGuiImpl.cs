@@ -509,6 +509,9 @@ float4 main(PS_INPUT input) : SV_Target
         Destroy(ref _device);
         Destroy(ref _backbuffer);
         Destroy(ref _backbufferRtv);
+        Destroy(ref _input);
+        Destroy(ref _mouse);
+        _mouseState = null;
     }
 
     // utils
