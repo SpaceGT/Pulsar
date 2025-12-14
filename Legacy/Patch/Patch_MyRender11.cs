@@ -15,9 +15,13 @@ namespace Pulsar.Legacy.Patch;
 [HarmonyPatch]
 public static class Patch_MyRender11
 {
+    static bool _firstInit = false;
+
     static bool show_demo_window = true;
     static bool show_another_window = true;
     static Vector4 clear_color = new Vector4(0.45f, 0.55f, 0.60f, 1.00f);
+    static float f = 0;
+    static int counter = 0;
 
     static readonly Stopwatch sw = new();
 
@@ -27,13 +31,20 @@ public static class Patch_MyRender11
         return (Form)AccessTools.Field(windows.GetType(), "m_form").GetValue(windows);
     }
 
-    [HarmonyPatch("VRageRender.MyRender11", "Present")]
-    [HarmonyPrefix]
-    public static unsafe void Present_Prefix(SwapChain ___m_swapchain)
+    [HarmonyPatch("VRageRender.MyRender11", "Draw")]
+    [HarmonyPostfix]
+    public static unsafe void Draw_Postfix(SwapChain ___m_swapchain)
     {
+        if (!_firstInit)
+        {
+            // TODO: move to postfix preloader for VRage.Platform.Windows.Render.MyPlatformRender.CreateRenderDevice
+            ImGuiImpl.Init(GetGameWindow(), ___m_swapchain);
+            _firstInit = true;
+        }
+
         if (!ImGuiImpl.Initialized)
         {
-            ImGuiImpl.Init(GetGameWindow(), ___m_swapchain);
+            return;
         }
 
         sw.Stop();
@@ -49,9 +60,6 @@ public static class Patch_MyRender11
 
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
-            float f = 0.0f;
-            int counter = 0;
-        
             ImGui.Begin("Hello, world!");                          // Create a window called "Hello, world!" and append into it.
         
             ImGui.Text("This is some useful text.");               // Display some text (you can use a format strings too)
@@ -76,7 +84,7 @@ public static class Patch_MyRender11
         {
             ImGui.Begin("Another Window", ref show_another_window);   // Pass a pointer to our bool variable (the window will have a closing button that will clear the bool when clicked)
             ImGui.Text("Hello from another window!");
-            if (ImGui.ColorButton("Close Me", new Vector4(0.5f, 0.5f, 0.5f, 1)))
+            if (ImGui.Button("Close Me"))
                 show_another_window = false;
             ImGui.End();
         }
@@ -92,4 +100,8 @@ public static class Patch_MyRender11
     [HarmonyPatch("VRageRender.MyRender11", "ResizeSwapchain")]
     [HarmonyPostfix]
     public static void ResizeSwapchain_Postfix(SwapChain ___m_swapchain) => ImGuiImpl.CreateBackbufferResources(___m_swapchain);
+
+    [HarmonyPatch("VRageRender.MyRender11", "OnDeviceEnd")]
+    [HarmonyPostfix]
+    public static void OnDeviceEnd_Postfix(SwapChain ___m_swapchain) => ImGuiImpl.Shutdown();
 }
