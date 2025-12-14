@@ -177,6 +177,7 @@ float4 main(PS_INPUT input) : SV_Target
 
         ImGuiIOPtr io = ImGui.GetIO();
         io.AddMouseSourceEvent(ImGuiMouseSource.Mouse);
+        io.AddMouseWheelEvent(0f, _mouseState.Z / 100f);
         io.AddMouseButtonEvent(0, _mouseState.Buttons[0]);
         io.AddMouseButtonEvent(1, _mouseState.Buttons[1]);
         io.AddMouseButtonEvent(2, _mouseState.Buttons[2]);
@@ -507,6 +508,8 @@ float4 main(PS_INPUT input) : SV_Target
         }
 
         _initialized = false;
+
+        _gameWindow.MouseMove -= OnMouseMove;
 
         ImGuiIOPtr io = ImGui.GetIO();
         io.BackendFlags = ImGuiBackendFlags.None;
