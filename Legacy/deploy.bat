@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 REM Check if the required parameters are passed
 REM (3rd param will be blank if there are not enough)
-if "%~3" == "" (
+if "%~4" == "" (
     echo ERROR: Missing required parameters
     exit /b 1
 )
@@ -12,8 +12,10 @@ REM Extract locations from parameters
 for %%F in ("%~1") do set "SOURCE=%%~dpF"
 for %%F in ("%~1") do set "LAUNCHER=%%~nxF"
 for %%F in ("%~1") do set "NAME=%%~nF"
+
 set PULSAR=%~2
 set LICENSE=%~3
+set FRAMEWORK=%~4
 
 REM Remove trailing backslash if applicable
 if "%SOURCE:~-1%"=="\" set SOURCE=%SOURCE:~0,-1%
@@ -32,14 +34,21 @@ REM Copy launcher into Pulsar directory
 echo Copying "%LAUNCHER%"
 
 for /l %%i in (1, 1, 10) do (
-    copy /y /b "%SOURCE%\%LAUNCHER%" "%PULSAR%\" >NUL 2>&1
+    copy /y /b "%SOURCE%\%NAME%.exe" "%PULSAR%\" >NUL 2>&1
 
     if !ERRORLEVEL! NEQ 0 (
         REM "timeout" requires input redirection which is not supported,
         REM so we use ping as a way to delay the script between retries.
         ping -n 2 127.0.0.1 >NUL 2>&1
     ) else (
-        copy /y /b "%SOURCE%\%LAUNCHER%.config" "%PULSAR%\" >NUL 2>&1
+        if "%FRAMEWORK%"==".NETCoreApp" (
+            copy /y /b "%SOURCE%\%NAME%.dll" "%PULSAR%\" >NUL 2>&1
+            copy /y /b "%SOURCE%\%NAME%.runtimeconfig.json" "%PULSAR%\" >NUL 2>&1
+            copy /y /b "%SOURCE%\%NAME%.deps.json" "%PULSAR%\" >NUL 2>&1
+        ) else (
+            copy /y /b "%SOURCE%\%NAME%.exe.config" "%PULSAR%\" >NUL 2>&1
+        )
+
         goto BREAK_LOOP
     )
 )
@@ -77,7 +86,9 @@ copy /y /b "%SOURCE%\Pulsar.Shared.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "Pulsar.Compiler.dll"
 copy /y /b "%SOURCE%\Pulsar.Compiler.dll" "%LIBRARY_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\Pulsar.Compiler.dll.config" "%LIBRARY_DIR%\" >NUL 2>&1
+if "%FRAMEWORK%"==".NETFramework" (
+    copy /y /b "%SOURCE%\Pulsar.Compiler.dll.config" "%LIBRARY_DIR%\" >NUL 2>&1
+)
 
 REM Copy other dependencies
 echo Copying "0Harmony.dll"
