@@ -153,14 +153,14 @@ public static class Tools
         }
     }
 
-    public static void OpenFolderDialog(string title, Action<string> onOk)
+    public static void OpenFolderDialog(Action<string> onOk)
     {
-        Thread t = new(new ThreadStart(() => OpenFolderDialogThread(title, onOk)));
+        Thread t = new(new ThreadStart(() => OpenFolderDialogThread(onOk)));
         t.SetApartmentState(ApartmentState.STA);
         t.Start();
     }
 
-    private static void OpenFolderDialogThread(string title, Action<string> onOk)
+    private static void OpenFolderDialogThread(Action<string> onOk)
     {
         // Prompt the user to select a folder.
         // Net Core - FolderBrowserDialog supports the modern Vista-style dialog.
@@ -170,8 +170,6 @@ public static class Tools
         {
 #if NETCOREAPP
             using FolderBrowserDialog openFolderDialog = new();
-            openFolderDialog.Description = title;
-
             Form form = new() { TopMost = true, TopLevel = true };
 
             DialogResult dialogResult = openFolderDialog.ShowDialog(form);
@@ -180,7 +178,6 @@ public static class Tools
             form.Close();
 #else
             using OpenFileDialog openFileDialog = new();
-            openFileDialog.Title = title;
             openFileDialog.CheckFileExists = false;
             openFileDialog.CheckPathExists = true;
             openFileDialog.RestoreDirectory = true;

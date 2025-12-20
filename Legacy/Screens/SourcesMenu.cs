@@ -529,7 +529,6 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     {
         MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
         Tools.OpenFolderDialog(
-            "Open the root of your project",
             (folder) =>
             {
                 bool exists = LocalHubSources.Any(p =>
@@ -580,7 +579,6 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     public static void PromptFolder(Action<string> onComplete)
     {
         Tools.OpenFolderDialog(
-            "Open the root of your project",
             (folder) =>
             {
                 if (ConfigManager.Instance.List.Contains(folder))
