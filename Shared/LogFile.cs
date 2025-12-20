@@ -76,7 +76,7 @@ public static class LogFile
     public static void Open()
     {
         if (file is not null)
-            Process.Start(file);
+            Process.Start(new ProcessStartInfo(file) { UseShellExecute = true });
     }
 
     public static void Dispose()

@@ -33,7 +33,7 @@ internal class GameLog : IGameLog
         if (!File.Exists(file) || !file.EndsWith(".log"))
             return false;
 
-        Process.Start(file);
+        Process.Start(new ProcessStartInfo(file) { UseShellExecute = true });
         return true;
     }
 

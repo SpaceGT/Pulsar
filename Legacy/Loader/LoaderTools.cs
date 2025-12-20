@@ -155,11 +155,12 @@ public static class LoaderTools
         if (debugger)
             args.Add(DebugArg);
 
-        ProcessStartInfo currentStartInfo = Process.GetCurrentProcess().StartInfo;
-        currentStartInfo.FileName = Application.ExecutablePath;
-        currentStartInfo.Arguments = string.Join(" ", args.Select(a => $"\"{a}\""));
+        ProcessStartInfo startInfo = new(
+            fileName: Application.ExecutablePath,
+            arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
+        );
 
-        Process.Start(currentStartInfo);
+        Process.Start(startInfo);
         Process.GetCurrentProcess().Kill();
     }
 
