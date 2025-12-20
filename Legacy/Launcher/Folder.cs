@@ -23,7 +23,6 @@ internal class Folder
         "SpaceEngineers.Game.dll",
         "VRage.dll",
         "Sandbox.Game.dll",
-        "ProtoBuf.Net.dll",
     ];
 
     public static string GetBin64() =>

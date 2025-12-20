@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if NETFRAMEWORK
+using System;
 using System.Windows.Forms;
 using HarmonyLib;
 
@@ -29,3 +30,4 @@ internal static class Patch_FileDialog
         return __instance.Filter != TargetFilter;
     }
 }
+#endif

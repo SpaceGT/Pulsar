@@ -52,44 +52,15 @@ internal static class Game
         m_plugins.Add(plugin);
     }
 
-    public static void SetMainAssembly(Assembly assembly)
+    public static void SetMainAssembly(string assemblyPath)
     {
-        FieldInfo mainAssemblyField = typeof(MyFileSystem).GetField(
-            "m_mainAssembly",
-            BindingFlags.Static | BindingFlags.NonPublic
-        );
-        mainAssemblyField.SetValue(null, assembly);
-
-        FieldInfo mainAssemblyNameField = typeof(MyFileSystem).GetField(
-            "MainAssemblyName",
-            BindingFlags.Static | BindingFlags.Public
-        );
-        mainAssemblyNameField.SetValue(null, assembly.GetName().Name);
-
-        var asmFolder = new FileInfo(assembly.Location).DirectoryName;
-        var seRoot = new FileInfo(asmFolder).Directory?.FullName ?? Path.GetFullPath(asmFolder);
+        string asmFolder = new FileInfo(assemblyPath).DirectoryName;
+        string seRoot = new FileInfo(asmFolder).Directory.FullName;
 
         MyFileSystem.ExePath = asmFolder;
         MyFileSystem.RootPath = seRoot;
 
         Environment.CurrentDirectory = asmFolder;
-    }
-
-    public static ResolveEventHandler GameAssemblyResolver(string bin64Dir)
-    {
-        return (sender, args) =>
-        {
-            string targetName = new AssemblyName(args.Name).Name;
-            string targetPath = Path.Combine(bin64Dir, targetName);
-
-            if (File.Exists(targetPath + ".dll"))
-                return Assembly.LoadFrom(targetPath + ".dll");
-
-            if (File.Exists(targetPath + ".exe"))
-                return Assembly.LoadFrom(targetPath + ".exe");
-
-            return null;
-        };
     }
 
     public static Version GetGameVersion(string bin64Dir)
@@ -130,17 +101,6 @@ internal static class Game
         // Note SpaceEngineers internally prioritises -nosplash over ENABLE_SPLASHSCREEN
         // (therefore SplashType.Native and SplashType.None are mutually exclusive)
         MyFakes.ENABLE_SPLASHSCREEN = Flags.SplashType == SplashType.Native;
-    }
-
-    public static void CorrectExitText()
-    {
-        FieldInfo exitTextField = typeof(MyCommonTexts).GetField(
-            "ScreenMenuButtonExitToWindows",
-            BindingFlags.Static | BindingFlags.Public
-        );
-
-        string message = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
-        exitTextField.SetValue(null, MyStringId.GetOrCompute(message));
     }
 
     public static float GetLoadProgress()

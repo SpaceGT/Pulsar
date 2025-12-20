@@ -16,6 +16,9 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
+#if NETCOREAPP
+using System.Runtime.InteropServices;
+#endif
 
 namespace Pulsar.Legacy;
 
@@ -27,10 +30,29 @@ static class Program
     }
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
-    private const string OldLauncher = "SpaceEngineers.exe";
+    private const string OldLauncher =
+#if NETFRAMEWORK
+        "SpaceEngineers.exe";
+#else
+        "SpaceEngineers.dll";
+#endif
 
     static void Main(string[] args)
     {
+#if NETCOREAPP
+
+        string baseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+        string libraryDir = Path.Combine(baseDir, "Libraries", "Interim");
+        string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
+
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir]);
+
+        PulsarMain(args);
+    }
+
+    static void PulsarMain(string[] args)
+    {
+#endif
         Application.EnableVisualStyles();
 
         if (SharedLauncher.IsOtherPulsarRunning())
@@ -139,8 +161,11 @@ static class Program
         string bin64Dir = ConfigManager.Instance.GameDir;
         string originalLoaderPath = Path.Combine(bin64Dir, OldLauncher);
         var launcher = new SharedLauncher(originalLoaderPath);
+
+#if NETFRAMEWORK
         if (!launcher.VerifyConfig())
             updater.ShowBitrotPrompt();
+#endif
 
         if (!launcher.CanStart())
             Environment.Exit(1);
@@ -186,7 +211,28 @@ static class Program
     private static void SetupGameResolver()
     {
         string bin64Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += Game.GameAssemblyResolver(bin64Dir);
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([bin64Dir]);
+    }
+
+    private static ResolveEventHandler AssemblyResolver(string[] probeDirs)
+    {
+        return (sender, args) =>
+        {
+            string targetName = new AssemblyName(args.Name).Name;
+
+            foreach (string probeDir in probeDirs)
+            {
+                string targetPath = Path.Combine(probeDir, targetName);
+
+                if (File.Exists(targetPath + ".dll"))
+                    return Assembly.LoadFrom(targetPath + ".dll");
+
+                if (File.Exists(targetPath + ".exe"))
+                    return Assembly.LoadFrom(targetPath + ".exe");
+            }
+
+            return null;
+        };
     }
 
     private static void SetupGame(string[] args)
@@ -197,13 +243,12 @@ static class Program
 
         LogFile.GameLog = new GameLog();
 
-        Game.SetMainAssembly(Assembly.ReflectionOnlyLoadFrom(originalLoaderPath));
+        Game.SetMainAssembly(originalLoaderPath);
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");
 
         Game.SetupMyFakes();
-        Game.CorrectExitText();
         Game.ShowIntroVideo(Flags.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 

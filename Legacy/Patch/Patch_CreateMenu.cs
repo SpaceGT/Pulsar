@@ -1,6 +1,5 @@
 ﻿using System.Text;
 using HarmonyLib;
-using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
 using Sandbox.Graphics.GUI;
@@ -21,7 +20,8 @@ public static class Patch_CreateMainMenu
         MyGuiScreenMainMenu __instance,
         Vector2 leftButtonPositionOrigin,
         ref Vector2 lastButtonPosition,
-        MyGuiControlButton ___m_continueButton
+        MyGuiControlButton ___m_continueButton,
+        MyGuiControlButton ___m_exitGameButton
     )
     {
         MyGuiControlButton lastBtn = null;
@@ -60,6 +60,8 @@ public static class Patch_CreateMainMenu
         };
         __instance.Controls.Add(openBtn);
 
+        ___m_exitGameButton?.Text = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+
         if (
             ___m_continueButton is not null
             && ___m_continueButton.Visible
@@ -87,6 +89,7 @@ public static class Patch_CreateInGameMenu
             __instance,
             leftButtonPositionOrigin,
             ref lastButtonPosition,
+            null,
             null
         );
     }
