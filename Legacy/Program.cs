@@ -7,6 +7,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using HarmonyLib;
+using Pulsar.Legacy.Compiler;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Patch;

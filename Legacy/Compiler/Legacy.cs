@@ -1,60 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿#if NETFRAMEWORK
+using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using Pulsar.Compiler;
 using Pulsar.Shared;
 
-namespace Pulsar.Legacy;
-
-file static class References
-{
-    private static readonly string[] baseEnvironment =
-    [
-        "System.Xaml",
-        "System.Windows.Forms",
-        "System.Windows.Forms.DataVisualization",
-        "Microsoft.CSharp",
-        "0Harmony",
-        "Newtonsoft.Json",
-        "Mono.Cecil",
-        "NLog",
-    ];
-
-    private static readonly string[] nativeEnvironment =
-    [
-        "System.Windows.Controls.Ribbon",
-        "PresentationCore",
-        "PresentationFramework",
-        "WindowsBase",
-    ];
-
-    private static readonly string[] includeGlobs =
-    [
-        "SpaceEngineers*.dll",
-        "VRage*.dll",
-        "Sandbox*.dll",
-        "ProtoBuf*.dll",
-    ];
-
-    private static readonly string[] excludeGlobs = ["VRage.Native.dll"];
-
-    public static IEnumerable<string> GetReferences(string exeLocation, bool native = true)
-    {
-        foreach (string name in Tools.GetFiles(exeLocation, includeGlobs, excludeGlobs))
-            yield return name;
-
-        foreach (string name in baseEnvironment)
-            yield return name;
-
-        if (native)
-            foreach (string name in nativeEnvironment)
-                yield return name;
-        else
-            Shared.LogFile.Warn("Ignoring Windows-only references!");
-    }
-}
+namespace Pulsar.Legacy.Compiler;
 
 internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir) : ICompilerFactory
 {
@@ -89,7 +41,7 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
         var isNative = (bool)AppDomain.CurrentDomain.GetData("isNative");
         var logDir = (string)AppDomain.CurrentDomain.GetData("logDir");
 
-        Compiler.LogFile.Init(logDir);
+        Pulsar.Compiler.LogFile.Init(logDir);
 
         foreach (string dir in probeDirs)
             RoslynReferences.Instance.Resolver.AddSearchDirectory(dir);
@@ -142,3 +94,4 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
             AppDomain.Unload(appDomain);
     }
 }
+#endif

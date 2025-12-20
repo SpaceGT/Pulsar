@@ -17,9 +17,17 @@ public class RoslynReferences
     internal readonly Dictionary<string, MetadataReference> AllReferences = [];
     private readonly HashSet<string> referenceBlacklist =
     [
+        // Net Framework Blacklist
         "System.ValueTuple",
         "System.Private.ServiceModel",
         "System.ServiceModel.Syndication",
+        // Net Core Blacklist
+        "System.ServiceProcess.ServiceController",
+        "System.Runtime.Serialization.Schema",
+        "System.IO.Ports",
+        "System.Data.OleDb",
+        "System.Data.Odbc",
+        "System.Data.SqlClient",
     ];
 
     public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)

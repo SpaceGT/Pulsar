@@ -12,14 +12,14 @@ namespace Pulsar.Compiler;
 public interface ICompilerFactory : IDisposable
 {
     void Init();
-    public ICompiler Create(bool debugBuild = false);
+    ICompiler Create(bool debugBuild = false);
 }
 
 public interface ICompiler
 {
     void Load(Stream s, string name);
-    public byte[] Compile(string assemblyName, out byte[] symbols);
-    public void TryAddDependency(string dll);
+    byte[] Compile(string assemblyName, out byte[] symbols);
+    void TryAddDependency(string dll);
 }
 
 public class RoslynCompiler : MarshalByRefObject, ICompiler
