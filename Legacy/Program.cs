@@ -67,7 +67,7 @@ static class Program
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
-        SetupCoreData(args, baseDir);
+        SetupCoreData(baseDir);
         Updater updater = TryUpdate(baseDir);
         SetupGameData(updater);
         CheckCanStart(updater);
@@ -77,10 +77,11 @@ static class Program
         SetupGame(args);
     }
 
-    private static void SetupCoreData(string[] args, string baseDir)
+    private static void SetupCoreData(string baseDir)
     {
         var asmName = Assembly.GetExecutingAssembly().GetName();
-        string pulsarDir = Path.Combine(baseDir, asmName.Name);
+        string folderName = asmName.Name == "Modern" ? "Modern" : "Legacy";
+        string pulsarDir = Path.Combine(baseDir, folderName);
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");

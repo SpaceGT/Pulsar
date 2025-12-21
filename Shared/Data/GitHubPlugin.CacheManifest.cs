@@ -84,7 +84,11 @@ public partial class GitHubPlugin
                 ConfigManager.Instance.PulsarDir,
                 "GitHub",
                 userName,
+#if NETFRAMEWORK
                 repoName
+#else
+                $"{repoName}-core"
+#endif
             );
             Directory.CreateDirectory(cacheDir);
 

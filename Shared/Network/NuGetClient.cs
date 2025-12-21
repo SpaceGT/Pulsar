@@ -20,7 +20,12 @@ namespace Pulsar.Shared.Network;
 public class NuGetClient
 {
     const string NugetServiceIndex = "https://api.nuget.org/v3/index.json";
-    private static readonly NuGetFramework ProjectFramework = NuGetFramework.Parse("net48");
+    private static readonly NuGetFramework ProjectFramework =
+#if NETFRAMEWORK
+    NuGetFramework.Parse("net48");
+#else
+    NuGetFramework.Parse("net8.0-windows");
+#endif
 
     private static readonly ILogger logger = new NuGetLogger();
 
