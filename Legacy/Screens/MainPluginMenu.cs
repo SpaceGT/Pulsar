@@ -30,8 +30,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     {
         var configManager = ConfigManager.Instance;
         MainPluginMenu menu = new(configManager);
-        configManager.List.UpdateRemoteList();
-        configManager.List.UpdateLocalList();
         MyGuiSandbox.AddScreen(menu);
     }
 
