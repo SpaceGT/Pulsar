@@ -1,7 +1,9 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
+using Mono.Cecil;
 
 namespace Pulsar.Shared.Data;
 
@@ -22,8 +24,23 @@ public class LocalPlugin : PluginData
         Id = Path.GetFileName(dll);
         FriendlyName = Path.GetFileNameWithoutExtension(dll);
         Status = PluginStatus.None;
+        Runtimes = GetRuntimes(dll);
 
         TryLoadDataFile(Dll + ".xml");
+    }
+
+    private static string GetRuntimes(string dll)
+    {
+        using var assembly = AssemblyDefinition.ReadAssembly(dll);
+        var references = assembly.MainModule.AssemblyReferences;
+
+        if (references.Any(r => r.Name == "System.Private.CoreLib"))
+            return "NETCoreApp";
+
+        if (references.Any(r => r.Name == "mscorlib"))
+            return "NETFramework";
+
+        return null;
     }
 
     public override Assembly GetAssembly()
