@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -25,6 +26,7 @@ public interface ICompiler
 public class RoslynCompiler : MarshalByRefObject, ICompiler
 {
     public bool DebugBuild;
+    public string[] Flags;
 
     private readonly List<Source> source = [];
     private readonly PublicizedAssemblies publicizedAssemblies = new();
@@ -53,7 +55,9 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
             )
             .Concat(customReferences);
 
-        var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp13);
+        var options = CSharpParseOptions
+            .Default.WithLanguageVersion(LanguageVersion.CSharp13)
+            .WithPreprocessorSymbols(Flags);
 
         CSharpCompilation compilation = CSharpCompilation.Create(
             assemblyName,

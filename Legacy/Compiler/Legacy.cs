@@ -31,6 +31,10 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
             );
 
         instance.DebugBuild = debugBuild;
+        instance.Flags = debugBuild
+            ? ["NETFRAMEWORK", "TRACE", "DEBUG"]
+            : ["NETFRAMEWORK", "TRACE"];
+
         return instance;
     }
 

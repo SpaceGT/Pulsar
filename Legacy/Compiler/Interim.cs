@@ -13,9 +13,10 @@ file class CompilerWrapper : ICompiler
 {
     private readonly dynamic instance;
 
-    public CompilerWrapper(dynamic compiler, bool debugBuild)
+    public CompilerWrapper(dynamic compiler, bool debugBuild, string[] flags)
     {
         compiler.DebugBuild = debugBuild;
+        compiler.Flags = flags;
         instance = compiler;
     }
 
@@ -62,8 +63,10 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
         if (loadContext is null)
             Init();
 
+        string[] flags = debugBuild ? ["NETCOREAPP", "TRACE", "DEBUG"] : ["NETCOREAPP", "TRACE"];
+
         Type type = compilerAsm.GetType(typeof(RoslynCompiler).FullName, throwOnError: true);
-        return new CompilerWrapper(Activator.CreateInstance(type), debugBuild);
+        return new CompilerWrapper(Activator.CreateInstance(type), debugBuild, flags);
     }
 
     private void SetupLoadContext(string[] assemblies)
