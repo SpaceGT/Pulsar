@@ -21,17 +21,17 @@ public class LocalFolderPlugin : PluginData
     private string[] sourceDirectories;
     private GitHubPlugin github;
     private AssemblyResolver resolver;
+    private LocalFolderConfig settings;
 
     public string Folder;
-    public LocalFolderConfig FolderSettings { get; private set; }
 
     public LocalFolderPlugin(string folder)
     {
         Id = Path.GetFileName(folder.TrimEnd('\\'));
         Folder = folder;
         Status = PluginStatus.None;
-        FolderSettings = new LocalFolderConfig() { Id = Id };
         FriendlyName = Id;
+        settings = new() { Id = Id };
     }
 
     public override string ToString() => Id;
@@ -49,54 +49,52 @@ public class LocalFolderPlugin : PluginData
         else
             file = folderConfig.DataFile;
 
-        FolderSettings = folderConfig;
+        settings = Tools.DeepCopy(folderConfig);
         DeserializeFile(file);
     }
 
     public override Assembly GetAssembly()
     {
-        if (Directory.Exists(Folder))
+        if (!Directory.Exists(Folder))
+            throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
+
+        ICompiler compiler = Tools.Compiler.Create(settings.DebugBuild);
+        bool hasFile = false;
+
+        if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
+            InstallDependencies(compiler);
+
+        StringBuilder sb = new();
+        sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
+
+        IEnumerable<string> projectFiles = Tools.IsNative() ? GetProjectFilesGit(Folder) : null;
+        projectFiles ??= GetProjectFilesFallback(Folder);
+
+        foreach (var file in projectFiles)
         {
-            ICompiler compiler = Tools.Compiler.Create(FolderSettings.DebugBuild);
-            bool hasFile = false;
-
-            if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
-                InstallDependencies(compiler);
-
-            StringBuilder sb = new();
-            sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
-
-            IEnumerable<string> projectFiles = Tools.IsNative() ? GetProjectFilesGit(Folder) : null;
-            projectFiles ??= GetProjectFilesFallback(Folder);
-
-            foreach (var file in projectFiles)
-            {
-                using FileStream fileStream = File.OpenRead(file);
-                hasFile = true;
-                string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
-                sb.Append(name).Append(", ");
-                compiler.Load(fileStream, file);
-            }
-
-            if (hasFile)
-            {
-                sb.Length -= 2;
-                LogFile.WriteLine(sb.ToString());
-            }
-            else
-            {
-                throw new IOException("No files were found in the directory specified.");
-            }
-
-            string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
-            byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
-            resolver?.AddAllowedAssemblyName(assemblyName);
-            Assembly a = Assembly.Load(data, symbols);
-            Version = a.GetName().Version;
-            return a;
+            using FileStream fileStream = File.OpenRead(file);
+            hasFile = true;
+            string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
+            sb.Append(name).Append(", ");
+            compiler.Load(fileStream, file);
         }
 
-        throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
+        if (hasFile)
+        {
+            sb.Length -= 2;
+            LogFile.WriteLine(sb.ToString());
+        }
+        else
+        {
+            throw new IOException("No files were found in the directory specified.");
+        }
+
+        string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
+        byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
+        resolver?.AddAllowedAssemblyName(assemblyName);
+        Assembly a = Assembly.Load(data, symbols);
+        Version = a.GetName().Version;
+        return a;
     }
 
     private void InstallDependencies(ICompiler compiler)
@@ -256,7 +254,17 @@ public class LocalFolderPlugin : PluginData
         return false;
     }
 
-    public void LoadNewDataFile(Action onComplete = null)
+    public override void UpdateProfile(Profile draft, bool enabled)
+    {
+        base.UpdateProfile(draft, enabled);
+
+        if (!enabled)
+            return;
+
+        draft.DevFolder.Add(new() { Id = Id });
+    }
+
+    public void LoadNewDataFile(Action<string> onComplete = null)
     {
         Tools.OpenFileDialog(
             "Open an xml data file",
@@ -265,7 +273,7 @@ public class LocalFolderPlugin : PluginData
             (file) =>
             {
                 DeserializeFile(file);
-                onComplete?.Invoke();
+                onComplete?.Invoke(settings.DataFile);
             }
         );
     }
@@ -276,7 +284,7 @@ public class LocalFolderPlugin : PluginData
         {
             github = null;
             FriendlyName = Id;
-            FolderSettings.DataFile = null;
+            settings.DataFile = null;
             Tooltip = null;
             Author = null;
             Description = null;
@@ -308,9 +316,9 @@ public class LocalFolderPlugin : PluginData
                 .ToArray();
 
             if (file.Contains(Folder))
-                FolderSettings.DataFile = file.Replace(Folder, "").TrimStart('\\');
+                settings.DataFile = file.Replace(Folder, "").TrimStart('\\');
             else
-                FolderSettings.DataFile = file;
+                settings.DataFile = file;
 
             this.github = github;
         }

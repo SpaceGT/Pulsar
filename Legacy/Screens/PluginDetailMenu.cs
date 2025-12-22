@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using Pulsar.Legacy.Extensions;
 using Pulsar.Legacy.Loader;
 using Pulsar.Shared.Config;
@@ -16,24 +14,18 @@ namespace Pulsar.Legacy.Screens;
 
 public class PluginDetailMenu : PluginScreen
 {
-    private readonly HashSet<string> enabledPlugins;
     private readonly PluginData plugin;
     private readonly PluginInstance pluginInstance;
     private PluginStat stats;
     private MyGuiControlParent votingPanel;
 
-    /// <summary>
-    /// Called when a development folder plugin is removed
-    /// </summary>
-    public event Action<PluginData> OnPluginRemoved;
+    internal readonly Profile draft;
 
-    public event Action OnRestartRequired;
-
-    public PluginDetailMenu(PluginData plugin, HashSet<string> enabledPlugins)
+    public PluginDetailMenu(PluginData plugin, Profile draft)
         : base(size: new Vector2(0.5f, 0.8f))
     {
         this.plugin = plugin;
-        this.enabledPlugins = enabledPlugins;
+        this.draft = draft;
         if (PluginLoader.Instance.TryGetPluginInstance(plugin.Id, out PluginInstance instance))
             pluginInstance = instance;
         PluginStats stats = ConfigManager.Instance.Stats ?? new PluginStats();
@@ -119,7 +111,7 @@ public class PluginDetailMenu : PluginScreen
 
         MyGuiControlCheckbox enabledCheckbox = new(
             toolTip: "Enabled",
-            isChecked: enabledPlugins.Contains(plugin.Id)
+            isChecked: draft.Contains(plugin.Id)
         );
         enabledCheckbox.IsCheckedChanged += OnEnabledChanged;
         layout.Add(enabledCheckbox, MyAlignH.Right, MyAlignV.Top, 0, 1);
@@ -142,7 +134,12 @@ public class PluginDetailMenu : PluginScreen
 
     private void OnEnabledChanged(MyGuiControlCheckbox checkbox)
     {
-        plugin.UpdateEnabledPlugins(enabledPlugins, checkbox.IsChecked);
+        plugin.UpdateProfile(draft, checkbox.IsChecked);
+
+        if (!checkbox.IsChecked && plugin is LocalFolderPlugin devFolder)
+            devFolder.DeserializeFile(null);
+
+        RecreateControls(false);
     }
 
     private void CreateVotingPanel(MyGuiControlParent parent)
@@ -237,15 +234,5 @@ public class PluginDetailMenu : PluginScreen
     private void OnPluginOpenClick(MyGuiControlButton btn)
     {
         plugin.Show();
-    }
-
-    public void InvokeOnPluginRemoved(PluginData plugin)
-    {
-        OnPluginRemoved?.Invoke(plugin);
-    }
-
-    public void InvokeOnRestartRequired()
-    {
-        OnRestartRequired?.Invoke();
     }
 }

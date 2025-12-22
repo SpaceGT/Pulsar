@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System;
 using System.Text;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -10,8 +9,7 @@ using VRageMath;
 
 namespace Pulsar.Legacy.Screens;
 
-public class ProfilesMenu(HashSet<string> enabledPlugins)
-    : PluginScreen(size: new Vector2(0.85f, 0.52f))
+public class ProfilesMenu(Profile draft) : PluginScreen(size: new Vector2(0.85f, 0.52f))
 {
     private MyGuiControlTable profilesTable;
     private MyGuiControlButton btnUpdate,
@@ -19,7 +17,8 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         btnRename,
         btnDelete;
     private readonly ProfilesConfig config = ConfigManager.Instance.Profiles;
-    private readonly PluginList list = ConfigManager.Instance.List;
+
+    public event Action<Profile> OnDraftChange;
 
     public override string GetFriendlyName()
     {
@@ -107,9 +106,8 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
 
     private void LoadProfile(Profile p)
     {
-        enabledPlugins.Clear();
-        foreach (PluginData plugin in p.GetPlugins())
-            enabledPlugins.Add(plugin.Id);
+        Profile newDraft = Tools.DeepCopy(p);
+        OnDraftChange(newDraft);
         CloseScreen();
     }
 
@@ -135,27 +133,28 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
     private void OnDeleteClick(MyGuiControlButton btn)
     {
         MyGuiControlTable.Row row = profilesTable.SelectedRow;
-        if (row?.UserData is Profile p)
+        if (row?.UserData is not Profile p)
+            return;
+
+        string caption = "Delete Profile";
+        string message = $"Are you sure you want to delete \"{p.Name}\"?";
+
+        MyGuiScreenMessageBox confirmationDialog = MyGuiSandbox.CreateMessageBox(
+            styleEnum: MyMessageBoxStyleEnum.Info,
+            buttonType: MyMessageBoxButtonsType.YES_NO,
+            messageCaption: new StringBuilder(caption),
+            messageText: new StringBuilder(message),
+            callback: DialogCallback
+        );
+        MyGuiSandbox.AddScreen(confirmationDialog);
+
+        void DialogCallback(MyGuiScreenMessageBox.ResultEnum result)
         {
-            string caption = "Delete Profile";
-            string message = $"Are you sure you want to delete \"{p.Name}\"?";
-
-            MyGuiScreenMessageBox confirmationDialog = MyGuiSandbox.CreateMessageBox(
-                styleEnum: MyMessageBoxStyleEnum.Info,
-                buttonType: MyMessageBoxButtonsType.YES_NO,
-                messageCaption: new StringBuilder(caption),
-                messageText: new StringBuilder(message),
-                callback: DialogCallback);
-            MyGuiSandbox.AddScreen(confirmationDialog);
-
-            void DialogCallback(MyGuiScreenMessageBox.ResultEnum result)
+            if (result is MyGuiScreenMessageBox.ResultEnum.YES)
             {
-                if (result is MyGuiScreenMessageBox.ResultEnum.YES)
-                {
-                    config.Remove(p.Key);
-                    profilesTable.Remove(row);
-                    UpdateButtons();
-                }
+                config.Remove(p.Key);
+                profilesTable.Remove(row);
+                UpdateButtons();
             }
         }
     }
@@ -163,25 +162,23 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
     private void OnRenameClick(MyGuiControlButton btn)
     {
         MyGuiControlTable.Row row = profilesTable.SelectedRow;
-        if (row?.UserData is Profile p)
+        if (row?.UserData is not Profile p)
+            return;
+
+        TextInputDialog renameDialog = new("Profile Name", p.Name, onComplete: DialogCallback);
+
+        void DialogCallback(string newName)
         {
-            MyScreenManager.AddScreen(
-                new TextInputDialog(
-                    "Profile Name",
-                    p.Name,
-                    onComplete: (name) =>
-                    {
-                        if (!config.Exists(Tools.CleanFileName(name)))
-                        {
-                            config.Rename(p.Key, name);
-                            row.GetCell(0).Text.Clear().Append(name);
-                        }
-                        else
-                            ShowDuplicateWarning(name);
-                    }
-                )
-            );
+            if (!config.Exists(Tools.CleanFileName(newName)))
+            {
+                config.Rename(p.Key, newName);
+                row.GetCell(0).Text.Clear().Append(newName);
+            }
+            else
+                ShowDuplicateWarning(newName);
         }
+
+        MyScreenManager.AddScreen(renameDialog);
     }
 
     private void OnLoadClick(MyGuiControlButton btn)
@@ -193,6 +190,7 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
     private void OnUpdateClick(MyGuiControlButton btn)
     {
         MyGuiControlTable.Row row = profilesTable.SelectedRow;
+
         if (row is null) // New profile
         {
             TextInputDialog textInput = new("Profile Name", onComplete: CreateProfile);
@@ -200,20 +198,15 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         }
         else if (row.UserData is Profile profile) // Update profile
         {
-            string[] toDisable =
-            [
-                .. profile.GetPluginIDs().Where(x => !enabledPlugins.Contains(x)),
-            ];
+            Profile newProfile = Tools.DeepCopy(draft);
+            newProfile.Name = profile.Name;
 
-            foreach (string pluginId in toDisable)
-                if (list.Contains(pluginId))
-                    profile.Remove(pluginId);
+            MyGuiControlTable.Row newRow = CreateProfileRow(newProfile);
+            profilesTable.Insert((int)profilesTable.SelectedRowIndex, newRow);
+            profilesTable.Remove(row);
 
-            foreach (string id in enabledPlugins)
-                profile.Update(id);
-
-            row.GetCell(1).Text.Clear().Append(profile.GetDescription());
-            config.Save(profile.Key);
+            config.Remove(profile.Key);
+            config.Add(newProfile);
         }
     }
 
@@ -222,7 +215,8 @@ public class ProfilesMenu(HashSet<string> enabledPlugins)
         if (string.IsNullOrWhiteSpace(name))
             return;
 
-        Profile newProfile = new(name, [.. enabledPlugins]);
+        Profile newProfile = Tools.DeepCopy(draft);
+        newProfile.Name = name;
 
         if (config.Exists(newProfile.Key))
         {

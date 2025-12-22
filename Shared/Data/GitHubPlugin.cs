@@ -39,9 +39,7 @@ public partial class GitHubPlugin : PluginData
     [ProtoMember(5)]
     public NuGetPackageList NuGetReferences { get; set; }
 
-    [XmlIgnore]
-    public GitHubPluginConfig Settings { get; private set; }
-
+    private GitHubPluginConfig settings;
     private string assemblyName;
     private CacheManifest manifest;
     private NuGetClient nuget;
@@ -72,9 +70,7 @@ public partial class GitHubPlugin : PluginData
     public override void LoadData(PluginDataConfig config)
     {
         if (config is GitHubPluginConfig githubConfig && IsValidConfig(githubConfig))
-            Settings = githubConfig;
-        else
-            Settings = new GitHubPluginConfig() { Id = Id };
+            settings = Tools.DeepCopy(githubConfig);
     }
 
     private bool IsValidConfig(GitHubPluginConfig githubConfig)
@@ -190,37 +186,16 @@ public partial class GitHubPlugin : PluginData
         return a;
     }
 
-    public void SetSelectedVersion(int key)
+    private Branch GetSelectedVersion()
     {
-        ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-
-        string newVersion = key >= 0 ? AlternateVersions[key].Name : null;
-        string currentVersion = GetSelectedVersion()?.Name;
-        if (currentVersion == newVersion)
-            return;
-
-        if (Settings is null)
-            Settings = new GitHubPluginConfig() { Id = Id, SelectedVersion = newVersion };
-        else
-            Settings.SelectedVersion = newVersion;
-
-        if (profiles.Current.Contains(Id))
-        {
-            profiles.Current.Update(Id);
-            profiles.Save();
-        }
-    }
-
-    public Branch GetSelectedVersion()
-    {
-        if (Settings is null || string.IsNullOrWhiteSpace(Settings.SelectedVersion))
+        if (settings is null || string.IsNullOrWhiteSpace(settings.SelectedVersion))
             return null;
         return AlternateVersions?.FirstOrDefault(x =>
-            x.Name.Equals(Settings.SelectedVersion, StringComparison.OrdinalIgnoreCase)
+            x.Name.Equals(settings.SelectedVersion, StringComparison.OrdinalIgnoreCase)
         );
     }
 
-    public byte[] CompileFromSource(
+    private byte[] CompileFromSource(
         string commit,
         string assemblyName,
         Action<float> callback = null
@@ -349,6 +324,16 @@ public partial class GitHubPlugin : PluginData
         if (index >= 0 && (index + 1) < path.Length)
             return path.Substring(index + 1);
         return path;
+    }
+
+    public override void UpdateProfile(Profile draft, bool enabled)
+    {
+        base.UpdateProfile(draft, enabled);
+
+        if (!enabled)
+            return;
+
+        draft.GitHub.Add(new() { Id = Id });
     }
 
     public override void InvalidateCache()

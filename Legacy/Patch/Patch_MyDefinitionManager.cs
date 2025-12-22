@@ -22,7 +22,8 @@ public static class Patch_MyDefinitionManager
             HashSet<ulong> currentMods = [.. mods.Select(x => x.PublishedFileId)];
             List<MyObjectBuilder_Checkpoint.ModItem> newMods = [.. mods];
 
-            foreach (PluginData data in ConfigManager.Instance.Profiles.Current.GetPlugins())
+            Profile current = ConfigManager.Instance.Profiles.Current;
+            foreach (PluginData data in ConfigManager.Instance.List[current])
             {
                 if (data is ModPlugin mod && !currentMods.Contains(mod.WorkshopId) && mod.Exists)
                 {

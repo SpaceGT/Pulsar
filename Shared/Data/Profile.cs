@@ -16,7 +16,7 @@ public class Profile
 
     public Profile() { }
 
-    public Profile(string name, IEnumerable<string> plugins = null)
+    public Profile(string name)
     {
         Name = name;
 
@@ -24,9 +24,6 @@ public class Profile
         DevFolder = [];
         Local = [];
         Mods = [];
-
-        foreach (string pluginId in plugins ?? [])
-            Update(pluginId);
     }
 
     public IEnumerable<string> GetPluginIDs(bool includeLocal = true)
@@ -49,16 +46,6 @@ public class Profile
 
     public bool Contains(string id) => GetPluginIDs().Contains(id);
 
-    private static bool TryGetPlugin(string id, out PluginData pluginData) =>
-        ConfigManager.Instance.List.TryGetPlugin(id, out pluginData);
-
-    public IEnumerable<PluginData> GetPlugins()
-    {
-        foreach (string id in GetPluginIDs())
-            if (TryGetPlugin(id, out PluginData plugin))
-                yield return plugin;
-    }
-
     public string GetDescription()
     {
         int locals = Local.Count + DevFolder.Count;
@@ -76,22 +63,9 @@ public class Profile
         return string.Join(", ", infoItems);
     }
 
-    public void Update(string id)
-    {
-        if (!TryGetPlugin(id, out PluginData data))
-            return;
-
-        Remove(id);
-
-        if (data is GitHubPlugin gitHubData)
-            GitHub.Add(Tools.DeepCopy(gitHubData.Settings));
-        else if (data is LocalFolderPlugin folderData)
-            DevFolder.Add(Tools.DeepCopy(folderData.FolderSettings));
-        else if (data is LocalPlugin localData)
-            Local.Add(localData.Id);
-        else if (data is ModPlugin modData)
-            Mods.Add(ulong.Parse(modData.Id));
-    }
+    public PluginDataConfig GetData(string id) =>
+        (PluginDataConfig)GitHub.FirstOrDefault(x => x.Id == id)
+        ?? DevFolder.FirstOrDefault(x => x.Id == id);
 
     public void Remove(string id)
     {

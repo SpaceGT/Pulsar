@@ -20,7 +20,7 @@ public class AddPluginMenu : PluginScreen
     const float PercentSearchBox = 0.8f;
 
     private readonly List<PluginData> plugins;
-    private readonly HashSet<string> enabledPlugins;
+    private readonly Profile draft;
     private PluginStats stats;
     private readonly bool mods;
     private MyGuiControlCombobox sortDropdown;
@@ -34,8 +34,6 @@ public class AddPluginMenu : PluginScreen
         set => searchBox.TextBox.Text = value;
     }
 
-    public event Action OnRestartRequired;
-
     enum SortingMethod
     {
         Name,
@@ -44,13 +42,13 @@ public class AddPluginMenu : PluginScreen
         Rating,
     }
 
-    public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, HashSet<string> enabledPlugins)
+    public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
         : base(size: new Vector2(0.8f, 0.9f))
     {
         this.plugins = [.. plugins.Where(x => (x is ModPlugin) == mods)];
         stats = ConfigManager.Instance.Stats ?? new PluginStats();
         this.mods = mods;
-        this.enabledPlugins = enabledPlugins;
+        this.draft = draft;
         SortPlugins(SortingMethod.Name);
     }
 
@@ -333,7 +331,7 @@ public class AddPluginMenu : PluginScreen
         MyGuiControlCheckbox enabledCheckbox = new(
             position: contentTopLeft + new Vector2(contentSize.X, 0),
             originAlign: MyGuiDrawAlignEnum.HORISONTAL_RIGHT_AND_VERTICAL_TOP,
-            isChecked: enabledPlugins.Contains(plugin.Id)
+            isChecked: draft.Contains(plugin.Id)
         )
         {
             Name = "PluginEnabled",
@@ -356,16 +354,15 @@ public class AddPluginMenu : PluginScreen
 
     private void OnEnabledChanged(MyGuiControlCheckbox checkbox)
     {
-        if (checkbox.UserData is PluginData plugin)
-        {
-            if (checkbox.IsChecked)
-                enabledPlugins.Add(plugin.Id);
-            else
-                enabledPlugins.Remove(plugin.Id);
+        if (checkbox.UserData is not PluginData plugin)
+            return;
 
-            if (plugin.UpdateEnabledPlugins(enabledPlugins, checkbox.IsChecked))
-                RefreshPluginList();
-        }
+        plugin.UpdateProfile(draft, checkbox.IsChecked);
+
+        if (!checkbox.IsChecked && plugin is LocalFolderPlugin devFolder)
+            devFolder.DeserializeFile(null);
+
+        RefreshPluginList();
     }
 
     private void OnPluginItemClicked(ParentButton btn)
@@ -373,27 +370,14 @@ public class AddPluginMenu : PluginScreen
         MyGuiControlBase checkbox = btn.Controls.GetControlByName("PluginEnabled");
         if (checkbox is not null && checkbox.CheckMouseOver(false))
             return;
-        if (btn.UserData is PluginData plugin)
-        {
-            btn.PlayClickSound();
-            PluginDetailMenu screen = new(plugin, enabledPlugins);
-            screen.OnRestartRequired += DetailMenu_OnRestartRequired;
-            screen.OnPluginRemoved += DetailMenu_OnPluginRemoved;
-            screen.Closed += DetailMenu_Closed;
-            MyScreenManager.AddScreen(screen);
-        }
-    }
 
-    private void DetailMenu_OnRestartRequired()
-    {
-        OnRestartRequired?.Invoke();
-    }
+        if (btn.UserData is not PluginData plugin)
+            return;
 
-    private void DetailMenu_OnPluginRemoved(PluginData plugin)
-    {
-        int index = plugins.FindIndex(x => x.Id == plugin.Id);
-        if (index >= 0)
-            plugins.RemoveAt(index);
+        btn.PlayClickSound();
+        PluginDetailMenu screen = new(plugin, draft);
+        screen.Closed += DetailMenu_Closed;
+        MyScreenManager.AddScreen(screen);
     }
 
     private void DetailMenu_Closed(MyGuiScreenBase source, bool isUnloading)

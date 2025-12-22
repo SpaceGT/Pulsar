@@ -2,6 +2,7 @@
 using System.IO;
 using System.Reflection;
 using System.Xml.Serialization;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
 
@@ -68,6 +69,14 @@ public class LocalPlugin : PluginData
         {
             LogFile.Error($"Error while reading the xml file {file} for {Id}: " + e);
         }
+    }
+
+    public override void UpdateProfile(Profile draft, bool enabled)
+    {
+        base.UpdateProfile(draft, enabled);
+
+        if (enabled)
+            draft.Local.Add(Id);
     }
 
     public override string GetAssetPath()

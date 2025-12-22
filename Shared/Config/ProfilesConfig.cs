@@ -14,7 +14,7 @@ public class ProfilesConfig(string folderPath)
     private const string currentKey = "Current";
     private readonly Dictionary<string, Profile> profiles = [];
 
-    public Profile Current { get; private set; }
+    public Profile Current { get; set; }
     public IEnumerable<Profile> Profiles => profiles.Values;
 
     public void Save(string key = null)

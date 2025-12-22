@@ -10,16 +10,6 @@ namespace Pulsar.Legacy.Extensions;
 
 internal static class LocalFolderPluginExtensions
 {
-    private static void TrySaveSettings(string id)
-    {
-        ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-        if (profiles.Current.Contains(id))
-        {
-            profiles.Current.Update(id);
-            profiles.Save();
-        }
-    }
-
     public static void AddDetailControls(
         this LocalFolderPlugin localFolderPlugin,
         PluginDetailMenu screen,
@@ -27,19 +17,20 @@ internal static class LocalFolderPluginExtensions
         out MyGuiControlBase topControl
     )
     {
-        LocalFolderConfig folderSettings = localFolderPlugin.FolderSettings;
+        var draftConfig = (LocalFolderConfig)screen.draft.GetData(localFolderPlugin.Id);
+
         MyGuiControlButton btnRemove = new(
             text: new StringBuilder("Remove File"),
             onButtonClick: (btn) =>
             {
                 localFolderPlugin.DeserializeFile(null);
-                TrySaveSettings(folderSettings.Id);
+                draftConfig.DataFile = null;
                 screen.RecreateControls(false);
             }
-        );
-
-        if (folderSettings.DataFile is null)
-            btnRemove.Enabled = false;
+        )
+        {
+            Enabled = draftConfig?.DataFile is not null,
+        };
 
         screen.PositionAbove(bottomControl, btnRemove);
         screen.Controls.Add(btnRemove);
@@ -47,27 +38,30 @@ internal static class LocalFolderPluginExtensions
         MyGuiControlButton btnLoadFile = new(
             text: new StringBuilder("Load File"),
             onButtonClick: (btn) =>
-                localFolderPlugin.LoadNewDataFile(() =>
-                {
-                    TrySaveSettings(folderSettings.Id);
-                    btnRemove.Enabled = true;
-                    screen.RecreateControls(false);
-                })
+                localFolderPlugin.LoadNewDataFile(
+                    (file) =>
+                    {
+                        draftConfig.DataFile = file;
+                        btnRemove.Enabled = true;
+                        screen.RecreateControls(false);
+                    }
+                )
         );
         screen.PositionToRight(btnRemove, btnLoadFile);
         btnLoadFile.Enabled =
-            string.IsNullOrEmpty(folderSettings.DataFile) || !File.Exists(folderSettings.DataFile);
+            draftConfig is not null
+            && (string.IsNullOrEmpty(draftConfig.DataFile) || !File.Exists(draftConfig.DataFile));
         screen.Controls.Add(btnLoadFile);
 
         MyGuiControlCombobox releaseDropdown = new();
         releaseDropdown.AddItem(0, "Release");
         releaseDropdown.AddItem(1, "Debug");
-        releaseDropdown.SelectItemByKey(folderSettings.DebugBuild ? 1 : 0);
+        releaseDropdown.SelectItemByKey((draftConfig ?? new()).DebugBuild ? 1 : 0);
+        releaseDropdown.Enabled = draftConfig is not null;
         releaseDropdown.ItemSelected += () =>
         {
-            folderSettings.DebugBuild = releaseDropdown.GetSelectedKey() == 1;
-            TrySaveSettings(folderSettings.Id);
-            screen.InvokeOnRestartRequired();
+            bool isDebug = releaseDropdown.GetSelectedKey() == 1;
+            draftConfig.DebugBuild = isDebug;
         };
         screen.PositionAbove(btnRemove, releaseDropdown, MyAlignH.Left);
         screen.Controls.Add(releaseDropdown);

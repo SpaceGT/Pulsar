@@ -20,7 +20,8 @@ internal static class GitHubPluginExtensions
             return;
         }
 
-        string selectedCommit = gitHubPlugin.GetSelectedVersion()?.Commit ?? gitHubPlugin.Commit;
+        var draftConfig = (GitHubPluginConfig)screen.draft.GetData(gitHubPlugin.Id);
+
         MyGuiControlCombobox versionDropdown = new();
         versionDropdown.AddItem(-1, "Default");
         int selectedKey = -1;
@@ -28,19 +29,16 @@ internal static class GitHubPluginExtensions
         {
             GitHubPlugin.Branch version = gitHubPlugin.AlternateVersions[i];
             versionDropdown.AddItem(i, version.Name);
-            if (version.Commit == selectedCommit)
+            if (version.Name == draftConfig?.SelectedVersion)
                 selectedKey = i;
         }
         versionDropdown.SelectItemByKey(selectedKey);
+        versionDropdown.Enabled = draftConfig is not null;
         versionDropdown.ItemSelected += () =>
         {
-            Profile current = ConfigManager.Instance.Profiles.Current;
-
             int selectedKey = (int)versionDropdown.GetSelectedKey();
-            gitHubPlugin.SetSelectedVersion(selectedKey);
-
-            if (current.Contains(gitHubPlugin.Id))
-                screen.InvokeOnRestartRequired();
+            GitHubPlugin.Branch version = gitHubPlugin.AlternateVersions[selectedKey];
+            draftConfig.SelectedVersion = version.Name;
         };
 
         screen.PositionAbove(bottomControl, versionDropdown, MyAlignH.Left);

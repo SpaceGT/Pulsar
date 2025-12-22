@@ -54,14 +54,12 @@ public static class Patch_MyScriptManager
             HashSet<string> conditionalSymbols = ConditionalSymbols;
             conditionalSymbols.Add(ConditionalSymbol);
 
-            HashSet<ModPlugin> modPlugins =
-            [
-                .. ConfigManager
-                    .Instance.Profiles.Current.GetPlugins()
-                    .OfType<ModPlugin>()
-                    .Where(mod => !currentMods.Contains(mod.WorkshopId))
-                    .Where(mod => mod.Exists),
-            ];
+            HashSet<ModPlugin> modPlugins = ConfigManager
+                .Instance.List[ConfigManager.Instance.Profiles.Current]
+                .OfType<ModPlugin>()
+                .Where(mod => !currentMods.Contains(mod.WorkshopId))
+                .Where(mod => mod.Exists)
+                .ToHashSet();
 
             foreach (ModPlugin mod in modPlugins)
             {

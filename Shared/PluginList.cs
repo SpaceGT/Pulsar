@@ -37,6 +37,11 @@ public class PluginList : IEnumerable<PluginData>
         get => Plugins[key];
     }
 
+    public IEnumerable<PluginData> this[Profile key]
+    {
+        get => Plugins.Where(kvp => key.Contains(kvp.Key)).Select(kvp => kvp.Value);
+    }
+
     private readonly SourcesConfig SourcesConfig;
     private readonly ProfilesConfig ProfilesConfig;
     private readonly string SourceDir;
@@ -92,18 +97,7 @@ public class PluginList : IEnumerable<PluginData>
     private void LoadPluginData(PluginData plugin, PluginDataConfig config = null)
     {
         Profile current = ProfilesConfig.Current;
-
-        if (config is null)
-        {
-            if (plugin is GitHubPlugin)
-                config = current.GitHub.Where(x => x.Id == plugin.Id).FirstOrDefault();
-            else if (plugin is LocalFolderPlugin)
-                config = current.DevFolder.Where(x => x.Id == plugin.Id).FirstOrDefault();
-
-            // Compiled plugins and mods do not have a config
-        }
-
-        // Passing in null uses a new default config
+        config ??= current.GetData(plugin.Id);
         plugin.LoadData(config);
     }
 

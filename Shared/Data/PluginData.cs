@@ -226,29 +226,13 @@ public abstract class PluginData : IEquatable<PluginData>
         return nameScore + authorScore + tooltipScore;
     }
 
-    public virtual bool UpdateEnabledPlugins(HashSet<string> enabledPlugins, bool enable)
+    public virtual void UpdateProfile(Profile profile, bool enabled)
     {
-        bool changed;
-
-        if (enable)
-        {
-            changed = enabledPlugins.Add(Id);
-
+        if (enabled)
             foreach (PluginData other in Group)
-            {
-                if (
-                    !ReferenceEquals(other, this)
-                    && other.UpdateEnabledPlugins(enabledPlugins, false)
-                )
-                    changed = true;
-            }
-        }
+                other.UpdateProfile(profile, false);
         else
-        {
-            changed = enabledPlugins.Remove(Id);
-        }
-
-        return changed;
+            profile.Remove(Id);
     }
 
     /// <summary>

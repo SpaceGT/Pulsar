@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -86,19 +85,17 @@ public class ModPlugin : PluginData, ISteamItem
 
     public bool Exists => Directory.Exists(ModLocation) || (isLegacy && File.Exists(modLocation));
 
-    public override bool UpdateEnabledPlugins(HashSet<string> enabledPlugins, bool enable)
+    public override void UpdateProfile(Profile draft, bool enabled)
     {
-        bool changed = base.UpdateEnabledPlugins(enabledPlugins, enable);
+        base.UpdateProfile(draft, enabled);
 
-        if (enable)
-        {
-            foreach (ModPlugin other in Dependencies)
-            {
-                if (enabledPlugins.Add(other.Id))
-                    changed = true;
-            }
-        }
+        if (!enabled)
+            return;
 
-        return changed;
+        draft.Mods.Add(WorkshopId);
+
+        // FIXME: Can't handle cyclic dependencies.
+        foreach (ModPlugin other in Dependencies)
+            other.UpdateProfile(draft, true);
     }
 }

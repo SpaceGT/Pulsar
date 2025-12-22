@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Pulsar.Legacy.Loader;
@@ -13,18 +14,15 @@ namespace Pulsar.Legacy.Screens;
 
 public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: new Vector2(1, 0.9f))
 {
+    private Profile draft = Tools.DeepCopy(configManager.Profiles.Current);
+
     private readonly PluginList pluginList = configManager.List;
-    private List<PluginData> Plugins => [.. pluginList.OrderBy(x => x.FriendlyName)];
     private readonly ProfilesConfig profiles = configManager.Profiles;
     private readonly SourcesConfig sources = configManager.Sources;
+
     private MyGuiControlCheckbox consentBox;
     private MyGuiControlParent pluginsPanel;
     private MyGuiControlParent modsPanel;
-    private bool requiresRestart = false;
-    private readonly HashSet<string> enabledPlugins =
-    [
-        .. configManager.Profiles.Current.GetPluginIDs(),
-    ];
 
     public static void Open()
     {
@@ -169,15 +167,9 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void OpenAddPluginMenu(bool mods)
     {
-        AddPluginMenu screen = new(Plugins, mods, enabledPlugins);
-        screen.OnRestartRequired += OnRestartRequired;
+        AddPluginMenu screen = new(pluginList, mods, draft);
         screen.Closed += Screen_Closed;
         MyGuiSandbox.AddScreen(screen);
-    }
-
-    private void OnRestartRequired()
-    {
-        requiresRestart = true;
     }
 
     private void Screen_Closed(MyGuiScreenBase source, bool isUnloading)
@@ -223,8 +215,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void OpenPluginDetails(PluginData plugin)
     {
-        PluginDetailMenu screen = new(plugin, enabledPlugins);
-        screen.OnRestartRequired += OnRestartRequired;
+        PluginDetailMenu screen = new(plugin, draft);
         screen.Closed += Screen_Closed;
         MyGuiSandbox.AddScreen(screen);
     }
@@ -391,7 +382,8 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void OnProfilesClick(MyGuiControlButton btn)
     {
-        ProfilesMenu screen = new(enabledPlugins);
+        ProfilesMenu screen = new(draft);
+        screen.OnDraftChange += ReplaceDraft;
         screen.Closed += Screen_Closed;
         MyGuiSandbox.AddScreen(screen);
     }
@@ -421,7 +413,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     {
         list.Clear();
         list.Controls.Clear();
-        foreach (PluginData plugin in Plugins)
+        foreach (PluginData plugin in pluginList.OrderBy(x => x.FriendlyName))
         {
             if (!IsEnabled(plugin))
                 continue;
@@ -497,86 +489,129 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private bool IsEnabled(PluginData plugin)
     {
-        return enabledPlugins.Contains(plugin.Id);
+        return draft.Contains(plugin.Id);
+    }
+
+    private void ReplaceDraft(Profile profile)
+    {
+        SyncDevFolders(profile, draft);
+        profile.Name = draft.Name;
+        draft = profile;
     }
 
     private void SetEnabled(PluginData plugin, bool enabled)
     {
-        if (enabled)
-            enabledPlugins.Add(plugin.Id);
-        else
-            enabledPlugins.Remove(plugin.Id);
+        plugin.UpdateProfile(draft, enabled);
 
-        if (plugin.UpdateEnabledPlugins(enabledPlugins, enabled))
-            RefreshPluginLists();
+        if (!enabled && plugin is LocalFolderPlugin devFolder)
+            devFolder.DeserializeFile(null);
+
+        RefreshPluginLists();
     }
 
     private void OnCancelClick(MyGuiControlButton btn)
     {
+        SyncDevFolders(profiles.Current, draft);
         CloseScreen();
+    }
+
+    protected override void Canceling()
+    {
+        SyncDevFolders(profiles.Current, draft);
+        base.Canceling();
     }
 
     private void OnApplyClick(MyGuiControlButton btn)
     {
-        if (RequiresRestart())
-            MyGuiSandbox.AddScreen(
-                MyGuiSandbox.CreateMessageBox(
-                    MyMessageBoxStyleEnum.Info,
-                    MyMessageBoxButtonsType.YES_NO_CANCEL,
-                    new StringBuilder(
-                        "A restart is required to apply changes. Would you like to restart the game now?"
-                    ),
-                    new StringBuilder("Apply Changes?"),
-                    callback: AskRestartResult
-                )
-            );
-        else
+        if (!SyncPluginConfigs())
+        {
             CloseScreen();
+            return;
+        }
+
+        foreach (string id in draft.GetPluginIDs())
+            pluginList.SubscribeToItem(id);
+
+        profiles.Current = draft;
+        profiles.Save();
+
+        MyGuiScreenMessageBox restartDialog = MyGuiSandbox.CreateMessageBox(
+            MyMessageBoxStyleEnum.Info,
+            MyMessageBoxButtonsType.YES_NO_CANCEL,
+            new("A restart is required to apply changes. Would you like to restart the game now?"),
+            new("Apply Changes?"),
+            callback: AskRestartResult
+        );
+
+        MyGuiSandbox.AddScreen(restartDialog);
     }
 
     private void AskRestartResult(MyGuiScreenMessageBox.ResultEnum result)
     {
         if (result == MyGuiScreenMessageBox.ResultEnum.YES)
-        {
-            Save();
             LoaderTools.AskToRestart();
-        }
         else if (result == MyGuiScreenMessageBox.ResultEnum.NO)
-        {
-            Save();
             CloseScreen();
-        }
     }
 
-    private void Save()
+    private bool SyncPluginConfigs()
     {
         Profile current = profiles.Current;
+        bool hasDiff = false;
 
-        string[] toDisable = [.. current.GetPluginIDs().Where(x => !enabledPlugins.Contains(x))];
-
-        foreach (string pluginId in toDisable)
-            if (pluginList.Contains(pluginId))
-                current.Remove(pluginId);
-
-        foreach (string id in enabledPlugins)
+        foreach (string id in current.GetPluginIDs().Concat(draft.GetPluginIDs()))
         {
-            if (pluginList.Contains(id))
+            PluginDataConfig cConfig = current.GetData(id);
+            PluginDataConfig dConfig = draft.GetData(id);
+
+            // Prebuilt and Mod plugins lack a config
+            // FIXME: The diff check would have "just worked" if they did
+            if (cConfig is null && dConfig is null)
             {
-                current.Update(id);
-                pluginList.SubscribeToItem(id);
+                hasDiff |= current.Local.Contains(id) != draft.Local.Contains(id);
+
+                if (ulong.TryParse(id, out ulong wId))
+                    hasDiff |= current.Mods.Contains(wId) != draft.Mods.Contains(wId);
+
+                continue;
             }
+
+            bool diff = cConfig is null || dConfig is null;
+
+            if (cConfig is GitHubPluginConfig cGitHub && dConfig is GitHubPluginConfig dGitHub)
+                diff |= cGitHub.SelectedVersion != dGitHub.SelectedVersion;
+
+            if (cConfig is LocalFolderConfig cFolder && dConfig is LocalFolderConfig dFolder)
+                diff |=
+                    cFolder.DataFile != dFolder.DataFile
+                    || cFolder.DebugBuild != dFolder.DebugBuild;
+
+            if (diff && pluginList.TryGetPlugin(id, out PluginData plugin))
+                plugin.LoadData(dConfig);
+
+            hasDiff |= diff;
         }
 
-        profiles.Save();
+        return hasDiff;
     }
 
-    private bool RequiresRestart()
+    private void SyncDevFolders(Profile target, Profile previous)
     {
-        if (requiresRestart)
-            return true;
-        HashSet<string> actualPlugins = [.. configManager.Profiles.Current.GetPluginIDs()];
-        return enabledPlugins.Count != actualPlugins.Count
-            || !enabledPlugins.SetEquals(actualPlugins);
+        IEnumerable<string> folderIDs = target
+            .DevFolder.Concat(previous.DevFolder)
+            .Select(c => c.Id);
+
+        foreach (string configID in folderIDs)
+        {
+            var tFolder = (LocalFolderConfig)target.GetData(configID);
+            var pFolder = (LocalFolderConfig)previous.GetData(configID);
+
+            if (
+                tFolder?.DataFile != pFolder?.DataFile
+                && pluginList.TryGetPlugin(configID, out PluginData plugin)
+            )
+                plugin.LoadData(tFolder);
+        }
     }
 
     #endregion
