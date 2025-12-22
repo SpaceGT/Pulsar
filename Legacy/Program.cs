@@ -43,9 +43,10 @@ static class Program
 
         string baseDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
         string libraryDir = Path.Combine(baseDir, "Libraries", "Interim");
+        string dotNetLibraryDir = Path.Combine(baseDir, "DotNetLibraries");
         string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
 
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir]);
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir, dotNetLibraryDir]);
 
         PulsarMain(args);
     }
