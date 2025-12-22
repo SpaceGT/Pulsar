@@ -161,6 +161,9 @@ public class Preloader
         bool reference = patchMethod.GetParameters()[0].ParameterType.IsByRef;
         object[] args = [definition];
 
+#if DEBUG
+        patchMethod.Invoke(null, args);
+#else        
         try
         {
             patchMethod.Invoke(null, args);
@@ -173,6 +176,7 @@ public class Preloader
             Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
+#endif
 
         if (reference)
             definition = (AssemblyDefinition)args[0];
@@ -195,6 +199,9 @@ public class Preloader
             return false;
         }
 
+#if DEBUG
+        hookMethod.Invoke(null, []);
+#else
         try
         {
             hookMethod.Invoke(null, []);
@@ -207,6 +214,7 @@ public class Preloader
             Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
             return false;
         }
+#endif
 
         return true;
     }
