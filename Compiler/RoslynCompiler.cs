@@ -139,7 +139,7 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
                 MetadataReference reference = MetadataReference.CreateFromFile(dll);
                 if (reference is not null)
                 {
-                    LogFile.WriteLine("Custom compiler reference: " + (reference.Display ?? dll));
+                    LogFile.WriteLine($"Custom compiler reference: {Path.GetFileName(dll)}");
                     customReferences.Add(reference);
                 }
             }
