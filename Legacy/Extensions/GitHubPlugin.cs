@@ -27,7 +27,7 @@ internal static class GitHubPluginExtensions
         int selectedKey = -1;
         for (int i = 0; i < gitHubPlugin.AlternateVersions.Length; i++)
         {
-            GitHubPlugin.Branch version = gitHubPlugin.AlternateVersions[i];
+            GitHubPlugin.GitHubSource version = gitHubPlugin.AlternateVersions[i];
             versionDropdown.AddItem(i, version.Name);
             if (version.Name == draftConfig?.SelectedVersion)
                 selectedKey = i;
@@ -37,8 +37,10 @@ internal static class GitHubPluginExtensions
         versionDropdown.ItemSelected += () =>
         {
             int selectedKey = (int)versionDropdown.GetSelectedKey();
-            GitHubPlugin.Branch version = gitHubPlugin.AlternateVersions[selectedKey];
-            draftConfig.SelectedVersion = version.Name;
+            if (selectedKey >= 0)
+                draftConfig.SelectedVersion = gitHubPlugin.AlternateVersions[selectedKey].Name;
+            else
+                draftConfig.SelectedVersion = null;
         };
 
         screen.PositionAbove(bottomControl, versionDropdown, MyAlignH.Left);
