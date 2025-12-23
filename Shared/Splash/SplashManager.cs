@@ -35,7 +35,7 @@ public class SplashManager
 
     public void Delete()
     {
-        splash.Invoke(splash.Delete);
         Instance = null;
+        splash.Invoke(splash.Delete);
     }
 }
