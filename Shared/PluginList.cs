@@ -54,8 +54,6 @@ public class PluginList : IEnumerable<PluginData>
     public bool TryGetPlugin(string id, out PluginData pluginData) =>
         Plugins.TryGetValue(id, out pluginData);
 
-    public IEnumerable<ISteamItem> GetSteamPlugins() => Plugins.Values.OfType<ISteamItem>();
-
     public PluginList(string mainDirectory, SourcesConfig sources, ProfilesConfig profiles)
     {
         LocalPluginDir = Path.Combine(mainDirectory, "Local");
@@ -90,7 +88,7 @@ public class PluginList : IEnumerable<PluginData>
     /// </summary>
     public void SubscribeToItem(string id)
     {
-        if (Plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
+        if (Plugins.TryGetValue(id, out PluginData data) && data is ModPlugin steam)
             Steam.SubscribeToItem(steam.WorkshopId);
     }
 
@@ -128,11 +126,8 @@ public class PluginList : IEnumerable<PluginData>
 
     private void FindModDependencies()
     {
-        foreach (ISteamItem data in GetSteamPlugins())
-        {
-            if (data is ModPlugin mod)
-                FindModDependencies(mod);
-        }
+        foreach (ModPlugin mod in Plugins.Values.OfType<ModPlugin>())
+            FindModDependencies(mod);
     }
 
     private void FindModDependencies(ModPlugin mod)

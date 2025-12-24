@@ -7,14 +7,8 @@ using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
 
-public interface ISteamItem
-{
-    string Id { get; }
-    ulong WorkshopId { get; }
-}
-
 [ProtoContract]
-public class ModPlugin : PluginData, ISteamItem
+public class ModPlugin : PluginData
 {
     public override bool IsLocal => false;
     public override bool IsCompiled => false;
