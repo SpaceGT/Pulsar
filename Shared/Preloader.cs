@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Windows.Forms;
 using Mono.Cecil;
 
@@ -26,8 +28,11 @@ public class Preloader
             AddPreloader(assembly);
     }
 
-    public void Preload(string gameDir, string preloadDir)
+    public void Preload(string gameDir, string preloadDir, string[] probeDirs)
     {
+        File.Delete(@"C:\Temp\ilverify.out.log");
+        File.Delete(@"C:\Temp\ilverify.err.log");
+        
         var resolver = new DefaultAssemblyResolver();
         resolver.AddSearchDirectory(gameDir);
 
@@ -77,6 +82,7 @@ public class Preloader
             // CLR does not respect pure in-memory refrences when resolving
             string newDll = Path.Combine(preloadDir, dll);
             asmDef.Write(newDll);
+            IlVerifyRunner.Verify(newDll, preloadDir, probeDirs[0], probeDirs[1], probeDirs[2]);
             Assembly.LoadFrom(newDll);
         }
 
@@ -217,5 +223,65 @@ public class Preloader
 #endif
 
         return true;
+    }
+}
+
+public static class IlVerifyRunner
+{
+    public static int Verify(string dllPath, params string[] additionalReferenceFolders)
+    {
+        if (!File.Exists(dllPath))
+            throw new FileNotFoundException(dllPath);
+
+        var references = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        // 1. Add runtime TPA references first
+        var tpa = (string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!;
+        foreach (var path in tpa.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+        {
+            var name = Path.GetFileName(path);
+            if (!references.ContainsKey(name))
+                references.Add(name, path);
+        }
+
+        // 2. Add user-provided folders (first folder wins per DLL name)
+        foreach (var folder in additionalReferenceFolders.Where(Directory.Exists))
+        {
+            foreach (var dll in Directory.EnumerateFiles(folder, "*.dll"))
+            {
+                var name = Path.GetFileName(dll);
+                if (!references.ContainsKey(name))
+                    references.Add(name, dll);
+            }
+        }
+
+        var args = new StringBuilder();
+        args.Append($"\"{dllPath}\" ");
+
+        foreach (var reference in references.Values)
+            args.Append($"--reference \"{reference}\" ");
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = "ilverify",
+            Arguments = args.ToString(),
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            UseShellExecute = false,
+            CreateNoWindow = true,
+            WindowStyle = ProcessWindowStyle.Hidden
+        };
+
+        using var process = Process.Start(psi)!;
+
+        string stdout = process.StandardOutput.ReadToEnd();
+        string stderr = process.StandardError.ReadToEnd();
+
+        process.WaitForExit();
+
+        File.AppendAllText(@"C:\Temp\ilverify.out.log", stdout);
+        File.AppendAllText(@"C:\Temp\ilverify.err.log", stderr);
+
+        return process.ExitCode;
     }
 }

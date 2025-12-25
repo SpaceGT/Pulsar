@@ -24,6 +24,8 @@ namespace Pulsar.Legacy;
 
 static class Program
 {
+    public static string[] ProbeDirs;
+
     class ExternalTools : IExternalTools
     {
         public void OnMainThread(Action action) => Game.RunOnGameThread(action);
@@ -46,7 +48,8 @@ static class Program
         string dotNetLibraryDir = Path.Combine(baseDir, "DotNetLibraries");
         string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
 
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir, dotNetLibraryDir]);
+        ProbeDirs = [dotNetLibraryDir, libraryDir, runtimeDir];
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver(ProbeDirs);
 
         PulsarMain(args);
     }
@@ -206,7 +209,7 @@ static class Program
         if (!ConfigManager.Instance.SafeMode)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
-            preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"));
+            preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"), ProbeDirs);
         }
     }
 
