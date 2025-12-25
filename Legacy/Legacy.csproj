@@ -5,6 +5,7 @@
     <Copyright>© 2025 SpaceGT</Copyright>
     <AssemblyTitle>Pulsar</AssemblyTitle>
     <Description>Plugin and Mod loader for Space Engineers 1</Description>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>Pulsar.Legacy</RootNamespace>
@@ -13,7 +14,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>

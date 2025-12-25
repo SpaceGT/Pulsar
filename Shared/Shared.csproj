@@ -3,6 +3,7 @@
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
     <Copyright>© 2025 SpaceGT</Copyright>
+    <TargetFramework>net8.0-windows</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Pulsar.Shared</AssemblyName>
@@ -10,7 +11,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
