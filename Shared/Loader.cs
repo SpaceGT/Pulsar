@@ -23,7 +23,7 @@ public class Loader
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
 
-    public Loader()
+    public Loader(string[] forceEnable = null)
     {
         ConfigManager manager = ConfigManager.Instance;
         config = manager.Core;
@@ -67,9 +67,22 @@ public class Loader
         if (Flags.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
+        // FIXME: Treat as a plugin dependency in the future.
+        foreach (string id in forceEnable ?? [])
+        {
+            if (
+                ConfigManager.Instance.List.TryGetPlugin(id, out PluginData data)
+                && TryGetAssembly(data, out Assembly plugin)
+            )
+                Plugins.Add((data, plugin));
+        }
+
         //TODO: Compile in parallel
         foreach (PluginData data in GetEnabledPlugins())
         {
+            if (forceEnable.Contains(data.Id))
+                continue;
+
             if (TryGetAssembly(data, out Assembly plugin))
             {
                 Plugins.Add((data, plugin));

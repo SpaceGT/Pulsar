@@ -1,6 +1,5 @@
 ﻿#if NETCOREAPP
 using Pulsar.Compiler;
-using Pulsar.Shared;
 using System;
 using System.IO;
 using System.Reflection;
@@ -11,21 +10,33 @@ namespace Pulsar.Legacy.Compiler;
 
 file class CompilerWrapper : ICompiler
 {
-    private readonly dynamic instance;
+    private const BindingFlags access = BindingFlags.Public | BindingFlags.Instance;
+    private readonly object instance;
 
-    public CompilerWrapper(dynamic compiler, bool debugBuild, string[] flags)
+    public CompilerWrapper(object compiler, bool debugBuild, string[] flags)
     {
-        compiler.DebugBuild = debugBuild;
-        compiler.Flags = flags;
         instance = compiler;
+        SetField("DebugBuild", debugBuild);
+        SetField("Flags", flags);
     }
 
-    public void Load(Stream s, string name) => instance.Load(s, name);
+    public byte[] Compile(string assemblyName, out byte[] symbols)
+    {
+        object[] args = [assemblyName, null];
+        var output = (byte[])RunMethod("Compile", args);
+        symbols = (byte[])args[1];
+        return output;
+    }
 
-    public void TryAddDependency(string dll) => instance.TryAddDependency(dll);
+    public void Load(Stream s, string name) => RunMethod("Load", [s, name]);
 
-    public byte[] Compile(string assemblyName, out byte[] symbols) =>
-        instance.Compile(assemblyName, out symbols);
+    public void TryAddDependency(string dll) => RunMethod("TryAddDependency", [dll]);
+
+    private object RunMethod(string name, object[] args) =>
+        instance.GetType().GetMethod(name, access).Invoke(instance, args);
+
+    private void SetField(string name, object value) =>
+        instance.GetType().GetField(name, access).SetValue(instance, value);
 }
 
 file sealed class CompilerLoadContext : AssemblyLoadContext
@@ -50,7 +61,6 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
 {
     private Assembly compilerAsm = null;
     private AssemblyLoadContext loadContext = null;
-    private readonly bool isNative = Tools.IsNative();
 
     public void Init()
     {
@@ -73,26 +83,38 @@ internal class CompilerFactory(string[] probeDirs, string gameDir, string logDir
     {
         // Pulsar.Compiler.LogFile.Init(logDir);
         compilerAsm
-            .GetType(typeof(Pulsar.Compiler.LogFile).FullName, true)
+            .GetType(typeof(LogFile).FullName, true)
             .GetMethod("Init", BindingFlags.Public | BindingFlags.Static)
             .Invoke(null, [logDir]);
 
         // RoslynReferences.Instance
-        dynamic instance = compilerAsm
+        object instance = compilerAsm
             .GetType(typeof(RoslynReferences).FullName, true)
             .GetField("Instance", BindingFlags.Public | BindingFlags.Static)
             .GetValue(null);
 
+        MethodInfo generateAssemblyList = instance
+            .GetType()
+            .GetMethod("GenerateAssemblyList", BindingFlags.Public | BindingFlags.Instance);
+
+        // RoslynReferences.Instance.Resolver
+        object resolver = instance
+            .GetType()
+            .GetField("Resolver", BindingFlags.Public | BindingFlags.Instance)
+            .GetValue(instance);
+
+        MethodInfo addSearchDirectory = resolver
+            .GetType()
+            .GetMethod("AddSearchDirectory", BindingFlags.Public | BindingFlags.Instance);
+
+        // runtimeDir must be probed first to prevent namespace clashes from SE refs.
+        string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
+        addSearchDirectory.Invoke(resolver, [runtimeDir]);
+
         foreach (string dir in probeDirs)
-            instance.Resolver.AddSearchDirectory(dir);
+            addSearchDirectory.Invoke(resolver, [dir]);
 
-        if (isNative)
-        {
-            string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
-            instance.Resolver.AddSearchDirectory(runtimeDir);
-        }
-
-        instance.GenerateAssemblyList(assemblies);
+        generateAssemblyList.Invoke(instance, [assemblies]);
     }
 
     private void CreateLoadContext()
