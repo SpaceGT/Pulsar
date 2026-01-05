@@ -95,11 +95,7 @@
 	  <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
 	  <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
 	  <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
-	  <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-	  <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10">
-		  <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
-		  <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
-	  </PackageReference>
+	  <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10"/>
 	  <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
