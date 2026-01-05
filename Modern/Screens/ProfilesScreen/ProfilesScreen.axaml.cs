@@ -45,7 +45,7 @@ public partial class ProfilesScreen : PluginScreenBase
                 ProfilesList.SelectedItem = p;
                 selected = true;
                 UpdateButtons();
-            }));
+            }), true);
         }
         else if (ProfilesList.SelectedItem is Profile profile)
         {
@@ -84,7 +84,7 @@ public partial class ProfilesScreen : PluginScreenBase
             }
             else
                 (DataContext as ProfilesScreenViewModel).ShowDuplicateWarning(name);
-        }));
+        }), true);
     }
 
     private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

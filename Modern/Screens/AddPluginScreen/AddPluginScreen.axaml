@@ -27,8 +27,56 @@
 						<Button Name="SearchClearButton" MaxHeight="15" MaxWidth="15" Content="X" IsVisible="False" Click="SearchClearButton_Click"/>
                     </TextBox.InnerRightContent>
                 </TextBox>
-                <DropDownButton Name="SortDropdown" Grid.Column="1" HorizontalAlignment="Stretch"/>
+                <Button Name="SortButton" Grid.Column="1" HorizontalAlignment="Stretch" Height="55"/>
             </Grid>
+            <ListBox Name="PluginList" HorizontalAlignment="Stretch" Height="780" Margin="30,10,30,10" Padding="10" ItemsSource="{Binding}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="rgba(41,54,62,96)">
+                <ListBox.Styles>
+					<Style Selector="ListBoxItem">
+						<Setter Property="Margin" Value="10,10,10,10" />
+                        <Setter Property="Padding" Value="0" />
+                    </Style>
+                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
+                    <Setter Property="Background" Value="Transparent" />
+                        <Style Selector="^ > Border">
+                            <Setter Property="Background" Value="LightGreen" />
+                        </Style>
+                    </Style>
+                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
+                        <Setter Property="Background" Value="Transparent" />
+                        <Style Selector="^ > Border">
+                            <Setter Property="Background" Value="LightBlue" />
+                        </Style>
+                    </Style>
+                </ListBox.Styles>
+                <ListBox.ItemsPanel>
+					<ItemsPanelTemplate>
+                      <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ListBox.ItemsPanel>
+                <ListBox.ItemTemplate>
+					<DataTemplate>
+						<Grid Width="505" Height="241" Background="rgba(60,76,82,96)">
+							<Grid.ColumnDefinitions>
+					            <ColumnDefinition Width="400"/>
+					            <ColumnDefinition/>
+				            </Grid.ColumnDefinitions>
+                            <Grid Grid.Column="0" Margin="20">
+                                <StackPanel>
+									<TextBlock Text="{Binding FriendlyName}" 
+							                FontSize="23"
+							                FontWeight="Normal"/>
+                                    <TextBlock Text="{Binding Author}" Margin="0,0,0,15"/>
+                                    <TextBlock Text="{Binding Tooltip}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
+                                </StackPanel>
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <TextBlock Text="{Binding Source}"/>
+                                </StackPanel>
+                            </Grid>
+                            <CheckBox Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0"/>
+                        </Grid>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </StackPanel>
     </Border>
 </UserControl>

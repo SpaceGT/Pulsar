@@ -37,10 +37,10 @@ internal class GameMenu_UpdateButtons_Patch
 
         __instance._buttonsPanel.Children.Insert(__instance._buttonsPanel.Children.Count - 2, pluginsButton);
 
-        (__instance._buttonsPanel.Children[__instance._buttonsPanel.Children.Count - 1] as Button).Content = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+        if (__instance.DataContext is MainMenuScreenViewModel)
+            (__instance._buttonsPanel.Children[__instance._buttonsPanel.Children.Count - 1] as Button).Content = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
 
-#if DEBUG
-        (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(new KeyGesture(Key.F12, KeyModifiers.Shift));
-#endif
+        if (Flags.DebugMenu)
+            (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(new KeyGesture(Key.F12, KeyModifiers.Shift));
     }
 }

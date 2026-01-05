@@ -106,7 +106,7 @@ public partial class PluginsScreen : PluginScreenBase
         viewModel.OnDraftChange += (DataContext as PluginsScreenViewModel).ReplaceDraft;
         viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel);
+        ScreenTools.GetSharedUIComponent().CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel, true);
     }
 
     private void RefreshButton_Click(object? sender, RoutedEventArgs e)
@@ -120,17 +120,17 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void PluginAddButton_Click(object? sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel(false);
+        var viewModel = new AddPluginScreenViewModel((DataContext as PluginsScreenViewModel).PluginList, false, (DataContext as PluginsScreenViewModel).Draft);
         viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel);
+        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 
     private void ModAddButton_Click(object? sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel(true);
+        var viewModel = new AddPluginScreenViewModel((DataContext as PluginsScreenViewModel).PluginList, true, (DataContext as PluginsScreenViewModel).Draft);
         viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel);
+        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 }

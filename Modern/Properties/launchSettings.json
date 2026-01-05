@@ -3,6 +3,7 @@
     "Space Engineers 2": {
       "commandName": "Executable",
       "executablePath": "C:\\Users\\Western\\AppData\\Roaming\\Pulsar\\Modern.exe",
+      "commandLineArgs": "-sources -f12menu",
       "workingDirectory": "C:\\Users\\Western\\AppData\\Roaming\\Pulsar"
     }
   }
