@@ -60,17 +60,30 @@
 					            <ColumnDefinition Width="400"/>
 					            <ColumnDefinition/>
 				            </Grid.ColumnDefinitions>
-                            <Grid Grid.Column="0" Margin="20">
+                            <Grid Grid.Column="0" Grid.ColumnSpan="1" Margin="20">
                                 <StackPanel>
-									<TextBlock Text="{Binding FriendlyName}" 
+									<TextBlock Text="{Binding PluginData.FriendlyName}" 
 							                FontSize="23"
 							                FontWeight="Normal"/>
-                                    <TextBlock Text="{Binding Author}" Margin="0,0,0,15"/>
-                                    <TextBlock Text="{Binding Tooltip}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
+                                    <TextBlock Text="{Binding PluginData.Author}" Margin="0,0,0,15" FontSize="19"/>
+                                    <TextBlock Text="{Binding DescriptionShort}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
                                 </StackPanel>
-                                <StackPanel VerticalAlignment="Bottom">
-                                    <TextBlock Text="{Binding Source}"/>
-                                </StackPanel>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+					                    <ColumnDefinition Width="100" MaxWidth="100"/>
+					                    <ColumnDefinition/>
+				                    </Grid.ColumnDefinitions>
+                                    <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
+                                        <TextBlock Name="UsersText" Text="{Binding PluginStat.Players, StringFormat='\{0\} users'}"/>
+                                        <TextBlock Text="{Binding PluginData.Source}"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+										<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+                                        <TextBlock Name="UpvotesText" Text="{Binding PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+                                        <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+                                        <TextBlock Name="DownvotesText" Text="{Binding PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+                                    </StackPanel>
+                                </Grid>
                             </Grid>
                             <CheckBox Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0"/>
                         </Grid>

@@ -25,7 +25,11 @@ public partial class AddPluginScreen : PluginScreenBase
             else
                 shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.Hidden)];
 
-            PluginList.DataContext = shownPlugins;
+            List<PluginViewModel> vms = [];
+            foreach (PluginData p in shownPlugins)
+                vms.Add(new PluginViewModel(p));
+
+            PluginList.DataContext = vms;
         }
         else
         {
@@ -38,11 +42,11 @@ public partial class AddPluginScreen : PluginScreenBase
                 Source = "Local"
             };
 
-            List<PluginData> dummyPlugins = [];
+            List<PluginViewModel> dummyPlugins = [];
 
             for (int i = 0; i < 25; i++)
             {
-                dummyPlugins.Add(dummyPlugin);
+                dummyPlugins.Add(new PluginViewModel(dummyPlugin));
             }
 
             PluginList.DataContext = dummyPlugins;
