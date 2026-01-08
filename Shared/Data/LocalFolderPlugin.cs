@@ -268,7 +268,7 @@ public class LocalFolderPlugin : PluginData
     {
         Tools.OpenFileDialog(
             "Open an xml data file",
-            FriendlyName,
+            Folder,
             Tools.XmlDataType,
             (file) =>
             {
