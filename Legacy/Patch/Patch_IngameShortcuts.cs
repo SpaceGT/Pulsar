@@ -94,8 +94,9 @@ public static class Patch_IngameShortcuts
     {
         if (result == MyGuiScreenMessageBox.ResultEnum.YES)
         {
+            bool isInGame = MySession.Static != null;
             LoaderTools.Unload();
-            LoaderTools.Restart(true);
+            LoaderTools.Restart(isInGame);
         }
     }
 }
