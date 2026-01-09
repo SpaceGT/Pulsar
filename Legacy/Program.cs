@@ -30,12 +30,7 @@ static class Program
     }
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
-    private const string OldLauncher =
-#if NETFRAMEWORK
-        "SpaceEngineers.exe";
-#else
-        "SpaceEngineers.dll";
-#endif
+    private const string OldLauncher = "SpaceEngineers.exe";
 
     static void Main(string[] args)
     {
@@ -73,15 +68,18 @@ static class Program
         CheckCanStart(updater);
         SetupSteam();
         SetupPlugins(baseDir);
-        SetupGameResolver();
         SetupGame(args);
     }
 
     private static void SetupCoreData(string baseDir)
     {
+        Environment.CurrentDirectory = baseDir;
+
         var asmName = Assembly.GetExecutingAssembly().GetName();
-        string folderName = asmName.Name == "Modern" ? "Modern" : "Legacy";
-        string pulsarDir = Path.Combine(baseDir, folderName);
+        string pulsarDir = Path.Combine(baseDir, asmName.Name);
+
+        if (!Directory.Exists(pulsarDir))
+            pulsarDir = Path.Combine(baseDir, "Legacy");
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
@@ -198,15 +196,33 @@ static class Program
                 compiler.Init();
 
             Tools.Init(new ExternalTools(), compiler);
-            SharedLoader.Instance = new SharedLoader();
+            SharedLoader.Instance = new SharedLoader(GetCorePlugins());
         }
 
         Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
         if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
-            preloader.Preload(bin64Dir, Path.Combine(pulsarDir, "Preloader"));
+            string preloadDir = Path.Combine(pulsarDir, "Preloader");
+
+            preloader.PreHooks();
+            preloader.Patch(bin64Dir, preloadDir);
+            SetupGameResolver();
+            preloader.PostHooks();
         }
+        else
+            SetupGameResolver();
+    }
+
+    private static string[] GetCorePlugins()
+    {
+#if NETFRAMEWORK
+        return [];
+#else
+        string bin64Dir = ConfigManager.Instance.GameDir;
+        bool isGameFramework = Tools.GetFiles(bin64Dir, ["*.config"], []).Any();
+        return isGameFramework ? ["se-dotnet-compat"] : [];
+#endif
     }
 
     private static void SetupGameResolver()

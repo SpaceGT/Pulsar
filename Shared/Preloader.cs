@@ -33,18 +33,21 @@ public class Preloader
         }
     }
 
-    public void Preload(string gameDir, string preloadDir)
+    public void PreHooks()
     {
         foreach (MethodInfo hook in preHooks)
             SafeInvoke(hook);
+    }
 
+    public void Patch(string gameDir, string cacheDir)
+    {
         var resolver = new DefaultAssemblyResolver();
         resolver.AddSearchDirectory(gameDir);
 
         var readerParams = new ReaderParameters() { AssemblyResolver = resolver };
 
-        if (!Directory.Exists(preloadDir))
-            Directory.CreateDirectory(preloadDir);
+        if (!Directory.Exists(cacheDir))
+            Directory.CreateDirectory(cacheDir);
 
         foreach (var kvp in patches)
         {
@@ -62,15 +65,18 @@ public class Preloader
                 ApplyPatch(patchMethod, ref asmDef);
 
             // CLR does not respect pure in-memory references when resolving
-            string newDll = Path.Combine(preloadDir, dll);
+            string newDll = Path.Combine(cacheDir, dll);
             asmDef.Write(newDll);
             Assembly.LoadFrom(newDll);
         }
 
-        foreach (string file in Directory.GetFiles(preloadDir))
+        foreach (string file in Directory.GetFiles(cacheDir))
             if (!patches.ContainsKey(Path.GetFileName(file)))
                 File.Delete(file);
+    }
 
+    public void PostHooks()
+    {
         foreach (MethodInfo hook in postHooks)
             SafeInvoke(hook);
     }

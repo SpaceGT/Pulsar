@@ -107,7 +107,7 @@ internal static class Game
     {
         // No native function in Space Engineers does this but we can estimate
         // FIXME: Does not work well with Preloaders or under Proton
-        const float expectedGrowth = 1100f * 1024 * 1024;
+        float expectedGrowth = 700f * 1024 * 1024;
 
         Process process = Process.GetCurrentProcess();
         process.Refresh();
