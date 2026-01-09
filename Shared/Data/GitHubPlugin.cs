@@ -253,7 +253,8 @@ public partial class GitHubPlugin : PluginData
         if (AllowedZipPath(path))
         {
             using Stream entryStream = entry.Open();
-            compiler.Load(entryStream, entry.FullName);
+            string relFile = string.Join("\\", entry.FullName.Split('/').Skip(1));
+            compiler.Load(entryStream, relFile, embedFile: null);
         }
         if (IsAssetZipPath(path, out string assetFilePath))
         {

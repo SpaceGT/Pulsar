@@ -28,15 +28,27 @@ file class CompilerWrapper : ICompiler
         return output;
     }
 
-    public void Load(Stream s, string name) => RunMethod("Load", [s, name]);
+    public void Load(Stream s, string name, string embedFile = null) =>
+        RunMethod("Load", [s, name, embedFile]);
 
     public void TryAddDependency(string dll) => RunMethod("TryAddDependency", [dll]);
 
-    private object RunMethod(string name, object[] args) =>
-        instance.GetType().GetMethod(name, access).Invoke(instance, args);
-
     private void SetField(string name, object value) =>
         instance.GetType().GetField(name, access).SetValue(instance, value);
+
+    private object RunMethod(string name, object[] args)
+    {
+        MethodInfo method = instance.GetType().GetMethod(name, access);
+
+        try
+        {
+            return method.Invoke(instance, args);
+        }
+        catch (TargetInvocationException e)
+        {
+            throw e.InnerException;
+        }
+    }
 }
 
 file sealed class CompilerLoadContext : AssemblyLoadContext

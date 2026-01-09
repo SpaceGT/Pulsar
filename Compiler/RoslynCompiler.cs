@@ -17,7 +17,7 @@ public interface ICompilerFactory : IDisposable
 
 public interface ICompiler
 {
-    void Load(Stream s, string name);
+    void Load(Stream s, string name, string embedFile = null);
     byte[] Compile(string assemblyName, out byte[] symbols);
     void TryAddDependency(string dll);
 }
@@ -31,17 +31,19 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
     private readonly PublicizedAssemblies publicizedAssemblies = new();
     private readonly List<MetadataReference> customReferences = [];
 
-    public void Load(Stream s, string name)
+    public void Load(Stream s, string name, string embedFile = null)
     {
-        MemoryStream mem = new();
-        using (mem)
-        {
-            s.CopyTo(mem);
-            source.Add(new Source(mem, name, DebugBuild));
+        var options = CSharpParseOptions
+            .Default.WithLanguageVersion(LanguageVersion.CSharp13)
+            .WithPreprocessorSymbols(Flags);
 
-            SourceText sourceText = SourceText.From(mem);
-            publicizedAssemblies.InspectSource(sourceText);
-        }
+        using MemoryStream mem = new();
+
+        s.CopyTo(mem);
+        source.Add(new Source(mem, name, options, embedFile));
+
+        SourceText sourceText = SourceText.From(mem);
+        publicizedAssemblies.InspectSource(sourceText);
     }
 
     public byte[] Compile(string assemblyName, out byte[] symbols)
@@ -54,13 +56,9 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
             )
             .Concat(customReferences);
 
-        var options = CSharpParseOptions
-            .Default.WithLanguageVersion(LanguageVersion.CSharp13)
-            .WithPreprocessorSymbols(Flags);
-
         CSharpCompilation compilation = CSharpCompilation.Create(
             assemblyName,
-            syntaxTrees: source.Select(x => x.Tree.WithRootAndOptions(x.Tree.GetRoot(), options)),
+            syntaxTrees: source.Select(x => x.Tree),
             references: references,
             options: new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
@@ -104,12 +102,12 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
                 Location location = diagnostic.Location;
                 Source source = this.source.FirstOrDefault(x => x.Tree == location.SourceTree);
                 LinePosition pos = location.GetLineSpan().StartLinePosition;
-                exceptions.Add(
-                    new Exception(
-                        $"{diagnostic.Id}: {diagnostic.GetMessage()} in file:\n"
-                            + $"{source?.Name ?? "null"} ({pos.Line + 1},{pos.Character + 1})"
-                    )
-                );
+
+                string message = $"{diagnostic.Id}: {diagnostic.GetMessage()}";
+                if (source?.Name is not null)
+                    message += $" in file: {source?.Name} ({pos.Line + 1},{pos.Character + 1})";
+
+                exceptions.Add(new Exception(message));
             }
             throw new AggregateException("Compilation failed!", exceptions);
         }
@@ -153,25 +151,20 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
         public SyntaxTree Tree { get; }
         public EmbeddedText Text { get; }
 
-        public Source(Stream s, string name, bool includeText)
+        public Source(Stream s, string name, CSharpParseOptions options, string embedFile = null)
         {
             Name = name;
+            bool includeText = embedFile is not null;
             SourceText source = SourceText.From(s, canBeEmbedded: includeText);
+
             if (includeText)
             {
-                Text = EmbeddedText.FromSource(name, source);
-                Tree = CSharpSyntaxTree.ParseText(
-                    source,
-                    new CSharpParseOptions(LanguageVersion.Latest),
-                    name
-                );
+                Text = EmbeddedText.FromSource(embedFile, source);
+                Tree = CSharpSyntaxTree.ParseText(source, options, embedFile);
             }
             else
             {
-                Tree = CSharpSyntaxTree.ParseText(
-                    source,
-                    new CSharpParseOptions(LanguageVersion.Latest)
-                );
+                Tree = CSharpSyntaxTree.ParseText(source, options);
             }
         }
     }

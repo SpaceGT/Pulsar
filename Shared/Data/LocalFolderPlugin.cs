@@ -58,7 +58,8 @@ public class LocalFolderPlugin : PluginData
         if (!Directory.Exists(Folder))
             throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
 
-        ICompiler compiler = Tools.Compiler.Create(settings.DebugBuild);
+        bool debug = settings.DebugBuild;
+        ICompiler compiler = Tools.Compiler.Create(debug);
         bool hasFile = false;
 
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
@@ -76,7 +77,8 @@ public class LocalFolderPlugin : PluginData
             hasFile = true;
             string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
             sb.Append(name).Append(", ");
-            compiler.Load(fileStream, file);
+            string relFile = file.Replace(Folder, "").TrimStart('\\');
+            compiler.Load(fileStream, relFile, debug ? file : null);
         }
 
         if (hasFile)
