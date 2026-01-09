@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Serialization;
+using Mono.Cecil;
 using ProtoBuf;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -457,6 +458,9 @@ public class PluginList : IEnumerable<PluginData>
             )
         )
         {
+            if (IsNativeAssembly(dll))
+                continue;
+
             LocalPlugin local = new(dll) { Source = "Local" };
             localPlugins[local.Id] = local;
         }
@@ -478,6 +482,19 @@ public class PluginList : IEnumerable<PluginData>
                 continue;
 
             localPlugins.Remove(source.Id);
+        }
+    }
+
+    private static bool IsNativeAssembly(string dll)
+    {
+        try
+        {
+            using var _ = AssemblyDefinition.ReadAssembly(dll);
+            return false;
+        }
+        catch (BadImageFormatException)
+        {
+            return true;
         }
     }
 
@@ -747,6 +764,9 @@ public class PluginList : IEnumerable<PluginData>
             )
         )
         {
+            if (IsNativeAssembly(dll))
+                continue;
+
             LocalPlugin local = new(dll) { Source = "Local" };
             localPlugins[local.Id] = local;
         }

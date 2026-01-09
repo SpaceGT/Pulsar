@@ -184,10 +184,8 @@ public class PluginLoader : IHandleInputPlugin
     private void InstantiatePlugins()
     {
         foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-        {
-            PluginInstance.TryGet(data, assembly, out PluginInstance instance);
-            plugins.Add(instance);
-        }
+            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+                plugins.Add(instance);
 
         for (int i = plugins.Count - 1; i >= 0; i--)
         {
