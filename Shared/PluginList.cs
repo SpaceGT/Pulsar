@@ -81,7 +81,7 @@ public class PluginList : IEnumerable<PluginData>
         SourcesConfig.Save();
 
         FindPluginGroups();
-        FindModDependencies();
+        FindPluginDependencies();
     }
 
     /// <summary>
@@ -125,44 +125,40 @@ public class PluginList : IEnumerable<PluginData>
             LogFile.WriteLine($"Found {groups} plugin groups");
     }
 
-    private void FindModDependencies()
+    private void FindPluginDependencies()
     {
-        foreach (ModPlugin mod in Plugins.Values.OfType<ModPlugin>())
-            FindModDependencies(mod);
-    }
-
-    private void FindModDependencies(ModPlugin mod)
-    {
-        if (mod.DependencyIds is null)
-            return;
-
-        Dictionary<ulong, ModPlugin> dependencies = new() { { mod.WorkshopId, mod } };
-        Stack<ModPlugin> toProcess = new();
-        toProcess.Push(mod);
-
-        while (toProcess.Count > 0)
+        foreach (PluginData plugin in Plugins.Values)
         {
-            ModPlugin temp = toProcess.Pop();
-
-            if (temp.DependencyIds is null)
+            if (plugin.DependencyIds is null)
                 continue;
 
-            foreach (ulong id in temp.DependencyIds)
+            Dictionary<string, PluginData> dependencies = new() { { plugin.Id, plugin } };
+            Stack<PluginData> toProcess = new();
+            toProcess.Push(plugin);
+
+            while (toProcess.Count > 0)
             {
-                if (
-                    !dependencies.ContainsKey(id)
-                    && Plugins.TryGetValue(id.ToString(), out PluginData data)
-                    && data is ModPlugin dependency
-                )
+                PluginData temp = toProcess.Pop();
+
+                if (temp.DependencyIds is null)
+                    continue;
+
+                foreach (string id in temp.DependencyIds)
                 {
-                    toProcess.Push(dependency);
-                    dependencies[id] = dependency;
+                    if (
+                        !dependencies.ContainsKey(id)
+                        && Plugins.TryGetValue(id, out PluginData dependency)
+                    )
+                    {
+                        toProcess.Push(dependency);
+                        dependencies[id] = dependency;
+                    }
                 }
             }
-        }
 
-        dependencies.Remove(mod.WorkshopId);
-        mod.Dependencies = [.. dependencies.Values];
+            dependencies.Remove(plugin.Id);
+            plugin.Dependencies.AddRange(dependencies.Values);
+        }
     }
 
     private void InitRemoteHub(RemoteHubConfig source)

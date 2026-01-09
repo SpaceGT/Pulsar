@@ -346,10 +346,8 @@ public partial class GitHubPlugin : PluginData
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.GitHub.Add(new() { Id = Id });
+        if (enabled)
+            draft.GitHub.Add(new() { Id = Id });
     }
 
     public override void InvalidateCache()

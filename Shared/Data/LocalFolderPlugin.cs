@@ -260,10 +260,8 @@ public class LocalFolderPlugin : PluginData
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.DevFolder.Add(new() { Id = Id });
+        if (enabled)
+            draft.DevFolder.Add(new() { Id = Id });
     }
 
     public void LoadNewDataFile(Action<string> onComplete = null)
@@ -291,6 +289,7 @@ public class LocalFolderPlugin : PluginData
             Author = null;
             Description = null;
             Runtimes = null;
+            DependencyIds = null;
             return;
         }
 
@@ -315,6 +314,8 @@ public class LocalFolderPlugin : PluginData
             Author = github.Author;
             Description = github.Description;
             Runtimes = github.Runtimes;
+            DependencyIds = github.DependencyIds;
+
             sourceDirectories = github
                 .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
                 .ToArray();

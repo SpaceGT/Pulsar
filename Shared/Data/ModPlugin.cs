@@ -26,14 +26,6 @@ public class ModPlugin : PluginData
         }
     }
 
-    [ProtoMember(1)]
-    [XmlArray]
-    [XmlArrayItem("Id")]
-    public ulong[] DependencyIds { get; set; } = [];
-
-    [XmlIgnore]
-    public ModPlugin[] Dependencies { get; set; } = [];
-
     public ModPlugin() { }
 
     public override Assembly GetAssembly()
@@ -83,13 +75,7 @@ public class ModPlugin : PluginData
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.Mods.Add(WorkshopId);
-
-        // FIXME: Can't handle cyclic dependencies.
-        foreach (ModPlugin other in Dependencies)
-            other.UpdateProfile(draft, true);
+        if (enabled)
+            draft.Mods.Add(WorkshopId);
     }
 }
