@@ -94,6 +94,14 @@ public class PluginList : IEnumerable<PluginData>
             Steam.SubscribeToItem(steam.WorkshopId);
     }
 
+    public IEnumerable<ModPlugin> GetModPlugins(Profile profile, HashSet<ulong> ignore)
+    {
+        return this[profile]
+            .OfType<ModPlugin>()
+            .Where(mod => !ignore.Contains(mod.WorkshopId))
+            .Where(mod => mod.Exists && mod.IsSupportedRuntime());
+    }
+
     private void LoadPluginData(PluginData plugin, PluginDataConfig config = null)
     {
         Profile current = ProfilesConfig.Current;

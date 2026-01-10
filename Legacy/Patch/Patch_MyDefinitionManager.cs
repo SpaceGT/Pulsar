@@ -22,14 +22,13 @@ public static class Patch_MyDefinitionManager
             HashSet<ulong> currentMods = [.. mods.Select(x => x.PublishedFileId)];
             List<MyObjectBuilder_Checkpoint.ModItem> newMods = [.. mods];
 
+            PluginList list = ConfigManager.Instance.List;
             Profile current = ConfigManager.Instance.Profiles.Current;
-            foreach (PluginData data in ConfigManager.Instance.List[current])
+
+            foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
             {
-                if (data is ModPlugin mod && !currentMods.Contains(mod.WorkshopId) && mod.Exists)
-                {
-                    LogFile.WriteLine("Loading client mod definitions for " + mod.WorkshopId);
-                    newMods.Add(mod.GetModItem());
-                }
+                LogFile.WriteLine("Loading client mod definitions for " + mod.WorkshopId);
+                newMods.Add(mod.GetModItem());
             }
 
             mods = newMods;

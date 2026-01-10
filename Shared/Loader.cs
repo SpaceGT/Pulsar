@@ -74,7 +74,18 @@ public class Loader
                 ConfigManager.Instance.List.TryGetPlugin(id, out PluginData data)
                 && TryGetAssembly(data, out Assembly plugin)
             )
+            {
                 Plugins.Add((data, plugin));
+                continue;
+            }
+
+            string message = $"Failed to load core plugin '{id}'";
+            LogFile.Error(message);
+
+            string fullMessage = $"{message}\nPulsar cannot continue loading!";
+            Tools.ShowMessageBox(fullMessage, MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            Environment.Exit(1);
         }
 
         //TODO: Compile in parallel

@@ -59,6 +59,6 @@
     <Reference Include="SpaceEngineers2" HintPath="$(Game2)\SpaceEngineers2.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Lib.Harmony" Version="2.3.6" />
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
   </ItemGroup>
 </Project>
