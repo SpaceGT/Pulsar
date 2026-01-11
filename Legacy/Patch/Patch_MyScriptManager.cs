@@ -39,10 +39,6 @@ public static class Patch_MyScriptManager
             "m_conditionalCompilationSymbols",
             BindingFlags.Instance | BindingFlags.NonPublic
         );
-
-#if NETCOREAPP
-        ConditionalSymbols.Add("NETCOREAPP");
-#endif
     }
 
     public static void Postfix(MyScriptManager __instance)

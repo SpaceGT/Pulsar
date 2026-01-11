@@ -13,6 +13,7 @@ using Sandbox.Game;
 using SpaceEngineers;
 using VRage.FileSystem;
 using VRage.Plugins;
+using VRage.Scripting;
 using VRage.Utils;
 
 namespace Pulsar.Legacy.Launcher;
@@ -118,6 +119,9 @@ internal static class Game
     }
 
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
+
+    public static void AddCompilationSymbols(params string[] symbols) =>
+        MyScriptCompiler.Static.AddConditionalCompilationSymbols(symbols);
 
     public static void ShowIntroVideo(bool enabled) =>
         MyPlatformGameSettings.ENABLE_LOGOS = enabled;
