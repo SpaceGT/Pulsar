@@ -39,6 +39,10 @@ public static class Patch_MyScriptManager
             "m_conditionalCompilationSymbols",
             BindingFlags.Instance | BindingFlags.NonPublic
         );
+
+#if NETCOREAPP
+        ConditionalSymbols.Add("NETCOREAPP");
+#endif
     }
 
     public static void Postfix(MyScriptManager __instance)
@@ -54,18 +58,18 @@ public static class Patch_MyScriptManager
             HashSet<string> conditionalSymbols = ConditionalSymbols;
             conditionalSymbols.Add(ConditionalSymbol);
 
-            HashSet<ModPlugin> modPlugins = ConfigManager
-                .Instance.List[ConfigManager.Instance.Profiles.Current]
-                .OfType<ModPlugin>()
-                .Where(mod => !currentMods.Contains(mod.WorkshopId))
-                .Where(mod => mod.Exists)
-                .ToHashSet();
+            PluginList list = ConfigManager.Instance.List;
+            Profile current = ConfigManager.Instance.Profiles.Current;
 
-            foreach (ModPlugin mod in modPlugins)
+            Patch_MyDefinitionErrors.RedirectModLogging(true);
+
+            foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
             {
                 LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
                 loadScripts(__instance, mod.ModLocation, mod.GetModContext());
             }
+
+            Patch_MyDefinitionErrors.RedirectModLogging(false);
 
             conditionalSymbols.Remove(ConditionalSymbol);
         }

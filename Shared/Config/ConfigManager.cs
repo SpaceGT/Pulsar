@@ -7,7 +7,7 @@ namespace Pulsar.Shared.Config;
 
 public class ConfigManager
 {
-    public const string HarmonyVersion = "2.3.6.0";
+    public const string HarmonyVersion = "2.4.2.0";
 
     public static ConfigManager Instance { get; private set; }
 
