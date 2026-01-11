@@ -34,7 +34,7 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
     public void Load(Stream s, string name, string embedFile = null)
     {
         var options = CSharpParseOptions
-            .Default.WithLanguageVersion(LanguageVersion.CSharp13)
+            .Default.WithLanguageVersion(LanguageVersion.CSharp14)
             .WithPreprocessorSymbols(Flags);
 
         using MemoryStream mem = new();
