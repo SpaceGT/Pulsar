@@ -72,7 +72,7 @@ public class Loader
         {
             if (
                 ConfigManager.Instance.List.TryGetPlugin(id, out PluginData data)
-                && TryGetAssembly(data, out Assembly plugin)
+                && data.TryLoadAssembly(out Assembly plugin)
             )
             {
                 Plugins.Add((data, plugin));
@@ -94,13 +94,13 @@ public class Loader
             if (forceEnable.Contains(data.Id))
                 continue;
 
-            if (TryGetAssembly(data, out Assembly plugin))
+            if (data.TryLoadAssembly(out Assembly plugin))
             {
                 Plugins.Add((data, plugin));
                 if (data.IsLocal)
                     ConfigManager.Instance.HasLocal = true;
             }
-            else if (Flags.CheckAllPlugins && data is not ModPlugin)
+            else if (Flags.CheckAllPlugins && data is not ModPlugin && data.IsSupportedRuntime())
             {
                 debugCompileResults
                     .Append(data.FriendlyName ?? "(null)")
@@ -135,16 +135,6 @@ public class Loader
             LogFile.WriteLine("List of enabled plugins has been sent to the statistics server");
         else
             LogFile.Error("Failed to send the list of enabled plugins to the statistics server");
-    }
-
-    private static bool TryGetAssembly(PluginData data, out Assembly assembly)
-    {
-        assembly = null;
-
-        if (data.Status == PluginStatus.Error || !data.TryLoadAssembly(out assembly))
-            return false;
-
-        return true;
     }
 
     private IEnumerable<PluginData> GetEnabledPlugins()

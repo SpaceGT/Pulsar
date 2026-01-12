@@ -58,7 +58,8 @@ public class LocalFolderPlugin : PluginData
         if (!Directory.Exists(Folder))
             throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
 
-        ICompiler compiler = Tools.Compiler.Create(settings.DebugBuild);
+        bool debug = settings.DebugBuild;
+        ICompiler compiler = Tools.Compiler.Create(debug);
         bool hasFile = false;
 
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
@@ -76,7 +77,8 @@ public class LocalFolderPlugin : PluginData
             hasFile = true;
             string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
             sb.Append(name).Append(", ");
-            compiler.Load(fileStream, file);
+            string relFile = file.Replace(Folder, "").TrimStart('\\');
+            compiler.Load(fileStream, relFile, debug ? file : null);
         }
 
         if (hasFile)
@@ -258,17 +260,15 @@ public class LocalFolderPlugin : PluginData
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.DevFolder.Add(new() { Id = Id });
+        if (enabled)
+            draft.DevFolder.Add(new() { Id = Id });
     }
 
     public void LoadNewDataFile(Action<string> onComplete = null)
     {
         Tools.OpenFileDialog(
             "Open an xml data file",
-            FriendlyName,
+            Folder,
             Tools.XmlDataType,
             (file) =>
             {
@@ -289,6 +289,7 @@ public class LocalFolderPlugin : PluginData
             Author = null;
             Description = null;
             Runtimes = null;
+            DependencyIds = null;
             return;
         }
 
@@ -313,6 +314,8 @@ public class LocalFolderPlugin : PluginData
             Author = github.Author;
             Description = github.Description;
             Runtimes = github.Runtimes;
+            DependencyIds = github.DependencyIds;
+
             sourceDirectories = github
                 .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
                 .ToArray();

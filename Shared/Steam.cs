@@ -21,6 +21,12 @@ public static class Steam
     public static void SubscribeToItem(ulong id) =>
         SteamUGC.SubscribeItem(new PublishedFileId_t(id));
 
+    public static bool IsSubscribed(ulong id)
+    {
+        uint state = SteamUGC.GetItemState(new PublishedFileId_t(id));
+        return (state & (uint)EItemState.k_EItemStateSubscribed) != 0;
+    }
+
     public static ulong GetSteamId() => SteamUser.GetSteamID().m_SteamID;
 
     public static void Init(uint AppId)

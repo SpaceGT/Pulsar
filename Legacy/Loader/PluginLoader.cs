@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
@@ -8,6 +9,7 @@ using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
+using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
 using Sandbox.Game.World;
 using VRage;
@@ -109,9 +111,12 @@ public class PluginLoader : IHandleInputPlugin
         }
 
         SplashManager.Instance?.SetText($"Updating workshop items...");
-        ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-        SteamMods.Update(profiles.Current.Mods);
 
+        PluginList list = ConfigManager.Instance.List;
+        Profile current = ConfigManager.Instance.Profiles.Current;
+
+        IEnumerable<ulong> steamIDs = list.GetModPlugins(current, []).Select(x => x.WorkshopId);
+        SteamMods.Update(steamIDs);
         ShowGame();
     }
 
@@ -179,10 +184,8 @@ public class PluginLoader : IHandleInputPlugin
     private void InstantiatePlugins()
     {
         foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-        {
-            PluginInstance.TryGet(data, assembly, out PluginInstance instance);
-            plugins.Add(instance);
-        }
+            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+                plugins.Add(instance);
 
         for (int i = plugins.Count - 1; i >= 0; i--)
         {

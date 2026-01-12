@@ -7,14 +7,8 @@ using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
 
-public interface ISteamItem
-{
-    string Id { get; }
-    ulong WorkshopId { get; }
-}
-
 [ProtoContract]
-public class ModPlugin : PluginData, ISteamItem
+public class ModPlugin : PluginData
 {
     public override bool IsLocal => false;
     public override bool IsCompiled => false;
@@ -31,14 +25,6 @@ public class ModPlugin : PluginData, ISteamItem
             WorkshopId = ulong.Parse(Id);
         }
     }
-
-    [ProtoMember(1)]
-    [XmlArray]
-    [XmlArrayItem("Id")]
-    public ulong[] DependencyIds { get; set; } = [];
-
-    [XmlIgnore]
-    public ModPlugin[] Dependencies { get; set; } = [];
 
     public ModPlugin() { }
 
@@ -89,13 +75,7 @@ public class ModPlugin : PluginData, ISteamItem
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.Mods.Add(WorkshopId);
-
-        // FIXME: Can't handle cyclic dependencies.
-        foreach (ModPlugin other in Dependencies)
-            other.UpdateProfile(draft, true);
+        if (enabled)
+            draft.Mods.Add(WorkshopId);
     }
 }

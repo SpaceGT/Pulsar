@@ -521,11 +521,10 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void OnApplyClick(MyGuiControlButton btn)
     {
+        CloseScreen();
+
         if (!SyncPluginConfigs())
-        {
-            CloseScreen();
             return;
-        }
 
         foreach (string id in draft.GetPluginIDs())
             pluginList.SubscribeToItem(id);
@@ -535,7 +534,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
         MyGuiScreenMessageBox restartDialog = MyGuiSandbox.CreateMessageBox(
             MyMessageBoxStyleEnum.Info,
-            MyMessageBoxButtonsType.YES_NO_CANCEL,
+            MyMessageBoxButtonsType.YES_NO,
             new("A restart is required to apply changes. Would you like to restart the game now?"),
             new("Apply Changes?"),
             callback: AskRestartResult
@@ -548,8 +547,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     {
         if (result == MyGuiScreenMessageBox.ResultEnum.YES)
             LoaderTools.AskToRestart();
-        else if (result == MyGuiScreenMessageBox.ResultEnum.NO)
-            CloseScreen();
     }
 
     private bool SyncPluginConfigs()
@@ -616,13 +613,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     public override void HandleUnhandledInput(bool receivedFocusInThisUpdate)
     {
-        var input = VRage.Input.MyInput.Static;
-        if (input.IsAnyAltKeyPressed() && input.IsAnyCtrlKeyPressed())
-        {
-            if (input.IsNewKeyPressed(VRage.Input.MyKeys.F5))
-                Patch.Patch_IngameShortcuts.ShowRestartMenu();
-            else if (input.IsNewKeyPressed(VRage.Input.MyKeys.L))
-                Patch.Patch_IngameShortcuts.ShowLogMenu();
-        }
+        Patch.Patch_IngameShortcuts.TryOpenQuickMenu(false);
     }
 }

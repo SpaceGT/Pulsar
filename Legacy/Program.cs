@@ -269,6 +269,10 @@ static class Program
         Game.ShowIntroVideo(Flags.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
+#if NETCOREAPP
+        Game.AddCompilationSymbols("NETCOREAPP");
+#endif
+
         SplashManager.Instance?.SetText("Launching Space Engineers...");
         if (Tools.IsNative())
             ProgressPollFactory().Start();

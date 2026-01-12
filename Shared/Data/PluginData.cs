@@ -70,6 +70,14 @@ public abstract class PluginData : IEquatable<PluginData>
     [ProtoMember(8)]
     public string Runtimes { get; set; }
 
+    [ProtoMember(9)]
+    [XmlArray]
+    [XmlArrayItem("Id")]
+    public string[] DependencyIds { get; set; }
+
+    [XmlIgnore]
+    public List<PluginData> Dependencies { get; } = [];
+
     [XmlIgnore]
     public List<PluginData> Group { get; } = [];
 
@@ -293,8 +301,14 @@ public abstract class PluginData : IEquatable<PluginData>
     public virtual void UpdateProfile(Profile profile, bool enabled)
     {
         if (enabled)
+        {
             foreach (PluginData other in Group)
                 other.UpdateProfile(profile, false);
+
+            // FIXME: Can't handle cyclic dependencies.
+            foreach (PluginData other in Dependencies)
+                other.UpdateProfile(profile, true);
+        }
         else
             profile.Remove(Id);
     }

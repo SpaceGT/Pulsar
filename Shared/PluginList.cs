@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Serialization;
+using Mono.Cecil;
 using ProtoBuf;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -54,8 +55,6 @@ public class PluginList : IEnumerable<PluginData>
     public bool TryGetPlugin(string id, out PluginData pluginData) =>
         Plugins.TryGetValue(id, out pluginData);
 
-    public IEnumerable<ISteamItem> GetSteamPlugins() => Plugins.Values.OfType<ISteamItem>();
-
     public PluginList(string mainDirectory, SourcesConfig sources, ProfilesConfig profiles)
     {
         LocalPluginDir = Path.Combine(mainDirectory, "Local");
@@ -82,7 +81,7 @@ public class PluginList : IEnumerable<PluginData>
         SourcesConfig.Save();
 
         FindPluginGroups();
-        FindModDependencies();
+        FindPluginDependencies();
     }
 
     /// <summary>
@@ -90,7 +89,7 @@ public class PluginList : IEnumerable<PluginData>
     /// </summary>
     public void SubscribeToItem(string id)
     {
-        if (Plugins.TryGetValue(id, out PluginData data) && data is ISteamItem steam)
+        if (Plugins.TryGetValue(id, out PluginData data) && data is ModPlugin steam)
             Steam.SubscribeToItem(steam.WorkshopId);
     }
 
@@ -126,47 +125,40 @@ public class PluginList : IEnumerable<PluginData>
             LogFile.WriteLine($"Found {groups} plugin groups");
     }
 
-    private void FindModDependencies()
+    private void FindPluginDependencies()
     {
-        foreach (ISteamItem data in GetSteamPlugins())
+        foreach (PluginData plugin in Plugins.Values)
         {
-            if (data is ModPlugin mod)
-                FindModDependencies(mod);
-        }
-    }
-
-    private void FindModDependencies(ModPlugin mod)
-    {
-        if (mod.DependencyIds is null)
-            return;
-
-        Dictionary<ulong, ModPlugin> dependencies = new() { { mod.WorkshopId, mod } };
-        Stack<ModPlugin> toProcess = new();
-        toProcess.Push(mod);
-
-        while (toProcess.Count > 0)
-        {
-            ModPlugin temp = toProcess.Pop();
-
-            if (temp.DependencyIds is null)
+            if (plugin.DependencyIds is null)
                 continue;
 
-            foreach (ulong id in temp.DependencyIds)
+            Dictionary<string, PluginData> dependencies = new() { { plugin.Id, plugin } };
+            Stack<PluginData> toProcess = new();
+            toProcess.Push(plugin);
+
+            while (toProcess.Count > 0)
             {
-                if (
-                    !dependencies.ContainsKey(id)
-                    && Plugins.TryGetValue(id.ToString(), out PluginData data)
-                    && data is ModPlugin dependency
-                )
+                PluginData temp = toProcess.Pop();
+
+                if (temp.DependencyIds is null)
+                    continue;
+
+                foreach (string id in temp.DependencyIds)
                 {
-                    toProcess.Push(dependency);
-                    dependencies[id] = dependency;
+                    if (
+                        !dependencies.ContainsKey(id)
+                        && Plugins.TryGetValue(id, out PluginData dependency)
+                    )
+                    {
+                        toProcess.Push(dependency);
+                        dependencies[id] = dependency;
+                    }
                 }
             }
-        }
 
-        dependencies.Remove(mod.WorkshopId);
-        mod.Dependencies = [.. dependencies.Values];
+            dependencies.Remove(plugin.Id);
+            plugin.Dependencies.AddRange(dependencies.Values);
+        }
     }
 
     private void InitRemoteHub(RemoteHubConfig source)
@@ -462,6 +454,9 @@ public class PluginList : IEnumerable<PluginData>
             )
         )
         {
+            if (IsNativeAssembly(dll))
+                continue;
+
             LocalPlugin local = new(dll) { Source = "Local" };
             localPlugins[local.Id] = local;
         }
@@ -483,6 +478,19 @@ public class PluginList : IEnumerable<PluginData>
                 continue;
 
             localPlugins.Remove(source.Id);
+        }
+    }
+
+    private static bool IsNativeAssembly(string dll)
+    {
+        try
+        {
+            using var _ = AssemblyDefinition.ReadAssembly(dll);
+            return false;
+        }
+        catch (BadImageFormatException)
+        {
+            return true;
         }
     }
 
@@ -752,6 +760,9 @@ public class PluginList : IEnumerable<PluginData>
             )
         )
         {
+            if (IsNativeAssembly(dll))
+                continue;
+
             LocalPlugin local = new(dll) { Source = "Local" };
             localPlugins[local.Id] = local;
         }

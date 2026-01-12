@@ -32,7 +32,7 @@ public partial class GitHubPlugin : PluginData
     [ProtoMember(3)]
     [XmlArray]
     [XmlArrayItem("Version")]
-    public Branch[] AlternateVersions { get; set; }
+    public GitHubSource[] AlternateVersions { get; set; }
 
     [ProtoMember(4)]
     public string AssetFolder { get; set; }
@@ -154,7 +154,10 @@ public partial class GitHubPlugin : PluginData
         resolver = new AssemblyResolver();
 
         Version gameVersion = ConfigManager.Instance.GameVersion;
-        string selectedCommit = GetSelectedVersion()?.Commit ?? Commit;
+        GitHubSource selectedVersion = GetSelectedVersion();
+        string selectedRepo = selectedVersion?.Repo ?? RepoId;
+        string selectedCommit = selectedVersion?.Commit ?? Commit;
+
         if (
             !manifest.IsCacheValid(
                 selectedCommit,
@@ -173,7 +176,7 @@ public partial class GitHubPlugin : PluginData
             manifest.ClearAssets();
             string name = assemblyName + '_' + Path.GetRandomFileName();
             Action<float> setBarValue = lbl is not null ? lbl.SetBarValue : null;
-            byte[] data = CompileFromSource(selectedCommit, name, setBarValue);
+            byte[] data = CompileFromSource(selectedRepo, selectedCommit, name, setBarValue);
             File.WriteAllBytes(manifest.DllFile, data);
             manifest.DeleteUnknownFiles();
             manifest.Save();
@@ -197,7 +200,7 @@ public partial class GitHubPlugin : PluginData
         return a;
     }
 
-    private Branch GetSelectedVersion()
+    private GitHubSource GetSelectedVersion()
     {
         if (settings is null || string.IsNullOrWhiteSpace(settings.SelectedVersion))
             return null;
@@ -207,13 +210,14 @@ public partial class GitHubPlugin : PluginData
     }
 
     private byte[] CompileFromSource(
+        string repo,
         string commit,
         string assemblyName,
         Action<float> callback = null
     )
     {
         ICompiler compiler = Tools.Compiler.Create();
-        using (Stream s = GitHub.GetRepoArchive(RepoId, commit))
+        using (Stream s = GitHub.GetRepoArchive(repo, commit))
         using (ZipArchive zip = new(s))
         {
             callback?.Invoke(0);
@@ -249,7 +253,8 @@ public partial class GitHubPlugin : PluginData
         if (AllowedZipPath(path))
         {
             using Stream entryStream = entry.Open();
-            compiler.Load(entryStream, entry.FullName);
+            string relFile = string.Join("\\", entry.FullName.Split('/').Skip(1));
+            compiler.Load(entryStream, relFile, embedFile: null);
         }
         if (IsAssetZipPath(path, out string assetFilePath))
         {
@@ -341,10 +346,8 @@ public partial class GitHubPlugin : PluginData
     {
         base.UpdateProfile(draft, enabled);
 
-        if (!enabled)
-            return;
-
-        draft.GitHub.Add(new() { Id = Id });
+        if (enabled)
+            draft.GitHub.Add(new() { Id = Id });
     }
 
     public override void InvalidateCache()
@@ -370,7 +373,7 @@ public partial class GitHubPlugin : PluginData
     }
 
     [ProtoContract]
-    public class Branch
+    public class GitHubSource
     {
         [ProtoMember(1)]
         public string Name { get; set; }
@@ -378,6 +381,9 @@ public partial class GitHubPlugin : PluginData
         [ProtoMember(2)]
         public string Commit { get; set; }
 
-        public Branch() { }
+        [ProtoMember(3)]
+        public string Repo { get; set; }
+
+        public GitHubSource() { }
     }
 }

@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Shared;
 using Sandbox;
-using Sandbox.Game.Gui;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Game.World;
@@ -29,19 +28,18 @@ public static class LoaderTools
 
     public static void AskToRestart()
     {
-        if (MyGuiScreenGamePlay.Static is not null)
-            AskSave(
-                delegate
-                {
-                    Unload();
-                    Restart();
-                }
-            );
-        else
+        bool isInGame = MySession.Static is not null;
+
+        void RestartGame()
         {
             Unload();
-            Restart();
+            Restart(isInGame);
         }
+
+        if (isInGame)
+            AskSave(RestartGame);
+        else
+            RestartGame();
     }
 
     /// <summary>
@@ -125,7 +123,7 @@ public static class LoaderTools
         }
     }
 
-    public static void Unload()
+    private static void Unload()
     {
         LogFile.Dispose();
         MySessionLoader.Unload();
@@ -161,7 +159,6 @@ public static class LoaderTools
         );
 
         Process.Start(startInfo);
-        Process.GetCurrentProcess().Kill();
     }
 
     /// <summary>

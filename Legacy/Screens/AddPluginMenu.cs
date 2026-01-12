@@ -20,6 +20,7 @@ public class AddPluginMenu : PluginScreen
     const float PercentSearchBox = 0.8f;
 
     private readonly List<PluginData> plugins;
+    private readonly List<PluginData> hidden;
     private readonly Profile draft;
     private PluginStats stats;
     private readonly bool mods;
@@ -45,9 +46,9 @@ public class AddPluginMenu : PluginScreen
     public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
         : base(size: new Vector2(0.8f, 0.9f))
     {
-        this.plugins = plugins
-            .Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime())
-            .ToList();
+        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime());
+        this.plugins = [.. supported.Where(x => !x.Hidden)];
+        hidden = [.. supported.Where(x => x.Hidden)];
 
         stats = ConfigManager.Instance.Stats ?? new PluginStats();
         this.mods = mods;
@@ -235,16 +236,13 @@ public class AddPluginMenu : PluginScreen
 
     private void CreatePluginList(MyGuiControlParent panel)
     {
-        PluginData[] shownPlugins;
-        if ((int)sortDropdown.GetSelectedKey() == (int)SortingMethod.Search)
-            shownPlugins = [.. plugins];
-        else
-            shownPlugins = [.. plugins.Where(x => !x.Hidden)];
+        PluginData[] shownPlugins = hidden
+            .Where(x => x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
+            .Concat(plugins)
+            .ToArray();
 
         Vector2 itemSize = pluginListSize / new Vector2(ListItemsHorizontal, ListItemsVertical);
         int numPlugins = shownPlugins.Length;
-        if (!mods && string.IsNullOrWhiteSpace(Filter))
-            numPlugins += 2;
         int totalRows = (int)Math.Ceiling(numPlugins / (float)ListItemsHorizontal);
         panel.Size = new Vector2(pluginListSize.X, itemSize.Y * totalRows);
 

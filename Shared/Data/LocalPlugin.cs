@@ -78,6 +78,7 @@ public class LocalPlugin : PluginData
             Tooltip = github.Tooltip;
             Author = github.Author;
             Description = github.Description;
+            DependencyIds = github.DependencyIds;
 
             this.github = github;
         }
