@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Shared.Data;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using static Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreenViewModel;
@@ -19,17 +20,12 @@ public partial class AddPluginScreen : PluginScreenBase
             if ((DataContext as AddPluginScreenViewModel).Mods)
                 TitleText.Text = "Mod List";
 
-            PluginData[] shownPlugins;
-            if ((DataContext as AddPluginScreenViewModel).SortMethod == SortingMethod.Search)
-                shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins];
-            else
-                shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.Hidden)];
+            RefreshPluginList();
 
-            List<PluginViewModel> vms = [];
-            foreach (PluginData p in shownPlugins)
-                vms.Add(new PluginViewModel(p));
-
-            PluginList.DataContext = vms;
+            SortButton.PlaceholderText = "Sort by";
+            string[] sortMethods = Enum.GetNames(typeof(SortingMethod));
+            for (int i = 0; i < sortMethods.Length; i++)
+                SortButton.Items.Add(sortMethods[i]);
         }
         else
         {
@@ -59,10 +55,44 @@ public partial class AddPluginScreen : PluginScreenBase
             SearchClearButton.IsVisible = true;
         else
             SearchClearButton.IsVisible = false;
+
+        SortButton.SelectedIndex = (int)SortingMethod.Search;
+        (DataContext as AddPluginScreenViewModel).Filter = SearchBox.Text;
+        (DataContext as AddPluginScreenViewModel).SortPluginsBySearch();
+        RefreshPluginList();
     }
 
     private void SearchClearButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         SearchBox.Text = string.Empty;
+    }
+
+    private void PluginList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+    }
+
+    private void SortButton_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        SortingMethod selectedItem = (SortingMethod)SortButton.SelectedIndex;
+        (DataContext as AddPluginScreenViewModel).SortPlugins(selectedItem);
+        RefreshPluginList();
+    }
+
+    private async void RefreshPluginList()
+    {
+        PluginList.ItemsSource = null;
+
+        PluginData[] shownPlugins;
+        if ((DataContext as AddPluginScreenViewModel).SortMethod == SortingMethod.Search)
+            shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins];
+        else
+            shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.Hidden)];
+
+        List<PluginViewModel> vms = [];
+
+        foreach (PluginData p in shownPlugins)
+            vms.Add(new PluginViewModel(p));
+
+        PluginList.ItemsSource = vms;
     }
 }

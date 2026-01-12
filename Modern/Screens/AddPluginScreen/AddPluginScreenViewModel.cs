@@ -19,7 +19,7 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
         public string Filter;
         public SortingMethod SortMethod = SortingMethod.Name;
 
-        public enum SortingMethod
+        public enum SortingMethod : int
         {
             Name,
             Search,
@@ -43,7 +43,7 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             SortPlugins(SortingMethod.Name);
         }
 
-        private void SortPlugins(SortingMethod sort)
+        public void SortPlugins(SortingMethod sort)
         {
             switch (sort)
             {
@@ -65,7 +65,7 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             }
         }
 
-        private void SortPluginsBySearch()
+        public void SortPluginsBySearch()
         {
             if (string.IsNullOrWhiteSpace(Filter))
                 return;

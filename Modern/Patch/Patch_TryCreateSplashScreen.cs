@@ -6,7 +6,7 @@ namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
 [HarmonyPatch(typeof(VRageWindows), "TryCreateSplashScreen")]
-internal class VRageWindows_TryCreateSplashScreen_Patch
+internal class Patch_TryCreateSplashScreen
 {
     private static bool Prefix()
     {

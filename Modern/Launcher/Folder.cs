@@ -1,13 +1,12 @@
-﻿using Gameloop.Vdf;
-using Gameloop.Vdf.Linq;
-using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
-using Pulsar.Shared;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using Gameloop.Vdf;
+using Gameloop.Vdf.Linq;
+using Microsoft.Win32;
+using Pulsar.Shared;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -21,10 +20,8 @@ internal class Folder
     private static readonly HashSet<string> se2Files =
     [
         se2Launcher,
-        "SpaceEngineers2.dll",
-        "VRage.Core.dll",
         "Game2.Game.dll",
-        "Vortice.Direct3D12.dll"
+        "VRage.Core.dll",
     ];
 
     public static string GetGame2() =>

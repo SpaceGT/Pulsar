@@ -1,7 +1,9 @@
 ﻿using HarmonyLib;
 using Keen.Game2.Game.Plugins;
 using Keen.VRage.Core.EngineComponents;
+using Keen.VRage.Core.Project;
 using Keen.VRage.Library.Extensions;
+using Pulsar.Modern.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
@@ -19,7 +21,6 @@ internal class PluginLoader : IPlugin, IDisposable
 {
     public static PluginLoader Instance;
 
-
     private bool init;
     private readonly List<PluginInstance> plugins = [];
     public List<PluginInstance> Plugins => plugins;
@@ -28,8 +29,37 @@ internal class PluginLoader : IPlugin, IDisposable
     {
         Instance = this;
         AppDomain.CurrentDomain.FirstChanceException += OnException;
-        host.OnBeforeEngineInstantiated += (EngineBuilder engine) => InvokeOnBeforeEngineInstantiated(engine, host);
-        //PlayerConsent.OnConsentChanged += OnConsentChanged;
+        PlayerConsent.OnConsentChanged += OnConsentChanged;
+
+        StringBuilder debugCompileResults = new();
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
+
+        if (ConfigManager.Instance.SafeMode)
+        {
+            plugins.Clear();
+            LogFile.Warn("Skipping plugin instantiation");
+        }
+        else
+        {
+            InstantiatePlugins(host);
+            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
+
+            if (Flags.CheckAllPlugins)
+            {
+                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
+            }
+        }
+
+        init = true;
+
+        if (Flags.CheckAllPlugins)
+        {
+            MessageBox.Show("All plugins compiled, log file will now open");
+            LogFile.WriteLine(debugCompileResults.ToString());
+            LogFile.Open();
+        }
     }
 
     public bool TryGetPluginInstance(string id, out PluginInstance instance)
@@ -50,48 +80,13 @@ internal class PluginLoader : IPlugin, IDisposable
         return false;
     }
 
-    public void InvokeOnBeforeEngineInstantiated(EngineBuilder engine, PluginHost host)
-    {
-        StringBuilder debugCompileResults = new();
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
-
-        if (ConfigManager.Instance.SafeMode)
-        {
-            plugins.Clear();
-            LogFile.Warn("Skipping plugin instantiation");
-        }
-        else
-        {
-            InstantiatePlugins(host);
-            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
-
-            if (Flags.CheckAllPlugins)
-                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
-        }
-
-        init = true;
-
-        if (Flags.CheckAllPlugins)
-        {
-            MessageBox.Show("All plugins compiled, log file will now open");
-            LogFile.WriteLine(debugCompileResults.ToString());
-            LogFile.Open();
-        }
-
-        //SplashManager.Instance?.SetText($"Updating workshop items...");
-        //ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-        //SteamMods.Update(profiles.Current.Mods);
-    }
-
     public void Dispose()
     {
         foreach (PluginInstance p in plugins)
             p.Dispose();
         plugins.Clear();
 
-        //PlayerConsent.OnConsentChanged -= OnConsentChanged;
+        PlayerConsent.OnConsentChanged -= OnConsentChanged;
         LogFile.Dispose();
         Instance = null;
     }

@@ -89,6 +89,12 @@
 	  <Reference Include="Game2.Game">
 		  <HintPath>$(Game2)\Game2.Game.dll</HintPath>
 	  </Reference>
+	  <Reference Include="VRage.Steam">
+		  <HintPath>$(Game2)\VRage.Steam.dll</HintPath>
+	  </Reference>
+	  <Reference Include="Steamworks.NET">
+		  <HintPath>$(Game2)\Steamworks.NET.dll</HintPath>
+	  </Reference>
   </ItemGroup>
   <ItemGroup>
 	  <PackageReference Include="Avalonia" Version="11.0.10" />
@@ -111,6 +117,7 @@
 		<Publicize Include="VRage.Client" />
 		<Publicize Include="SpaceEngineers2" />
 		<Publicize Include="0Harmony" />
+		<Publicize Include="VRage.Steam" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="Screens\TextInputDialog\TextInputDialog.axaml.cs">

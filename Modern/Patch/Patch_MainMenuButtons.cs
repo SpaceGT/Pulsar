@@ -2,12 +2,9 @@
 using Avalonia.Controls;
 using Avalonia.Input;
 using HarmonyLib;
-using Keen.Game2.Client.UI.Library;
 using Keen.Game2.Client.UI.Menu;
-using Keen.Game2.Client.UI.Menu.InGameMenu;
 using Keen.Game2.Client.UI.Menu.MainMenu;
 using Keen.VRage.UI.AvaloniaInterface;
-using Keen.VRage.UI.Shared.Helpers;
 using Pulsar.Modern.Screens.PluginsScreen;
 using Pulsar.Shared;
 using Tools = Pulsar.Shared.Tools;
@@ -16,7 +13,7 @@ namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Late")]
 [HarmonyPatch(typeof(GameMenu), "UpdateButtons")]
-internal class GameMenu_UpdateButtons_Patch
+internal class Patch_MainMenuButtons
 {
     private static void Postfix(GameMenu __instance)
     {
@@ -25,15 +22,7 @@ internal class GameMenu_UpdateButtons_Patch
             return;
         }
 
-        Button pluginsButton = new()
-        {
-            Classes = { "Menu" },
-            Content = "Plugins",
-            Command = SimpleCommand.Create(delegate
-            {
-                PluginsScreenViewModel.Open();
-            })
-        };
+        Button pluginsButton = __instance.CreateButton("Plugins", () => PluginsScreenViewModel.Open());
 
         __instance._buttonsPanel.Children.Insert(__instance._buttonsPanel.Children.Count - 2, pluginsButton);
 

@@ -6,7 +6,7 @@ namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
 [HarmonyPatch(typeof(GameAppComponent), "TransitionToMainMenu")]
-internal static class GameAppComponent_TransitionToMainMenu_Patch
+internal static class Patch_HideSplash
 {
     public static void Postfix()
     {

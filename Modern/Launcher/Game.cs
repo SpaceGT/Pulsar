@@ -1,9 +1,12 @@
-﻿using HarmonyLib;
+﻿using Keen.Game2.Game.Plugins;
 using Keen.VRage.Library.Diagnostics;
+using Pulsar.Modern.Patch;
 using Pulsar.Shared;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -32,6 +35,11 @@ internal class GameLog : IGameLog
 
 internal static class Game
 {
+    public static void RegisterPlugin(Type plugin)
+    {
+        Patch_LoadPlugin.PluginsToLoad.Add(plugin);
+    }
+
     public static Version GetGameVersion(string game2Dir)
     {
         const string Assembly = "SpaceEngineers2.dll";
@@ -45,7 +53,7 @@ internal static class Game
     {
         // No native function in Space Engineers does this but we can estimate
         // FIXME: Does not work well with Preloaders or under Proton
-        const float expectedGrowth = 1600f * 1024 * 1024;
+        const float expectedGrowth = 1900f * 1024 * 1024;
 
         Process process = Process.GetCurrentProcess();
         process.Refresh();
@@ -55,13 +63,5 @@ internal static class Game
         return Math.Min(1f, Math.Max(0f, ratio));
     }
 
-    public static void StartSpaceEngineers2(string[] args) 
-    {
-        Keen.Game2.Program.Main(args);
-    }
-
-    public static void RunOnGameThread(Action action)
-    {
-        throw new NotImplementedException();
-    }
+    public static void StartSpaceEngineers2(string[] args) => Keen.Game2.Program.Main(args);
 }

@@ -14,8 +14,9 @@
 				<TextBlock HorizontalAlignment="Center"
 					   Margin="0,40,0,0"
 					   FontSize="25"
-					   FontWeight="Normal">Profiles</TextBlock>
-			<Button Name="CancelButton" Width="40" Height="40" Margin="0,16,26,0" 
+					   FontWeight="Normal"
+					   Foreground="White">Profiles</TextBlock>
+			<Button Name="CancelButton" Classes="Menu" Width="40" Height="40" Margin="0,16,26,0" 
 		   HorizontalAlignment="Right" 
 		   HorizontalContentAlignment="Center" 
 		   VerticalContentAlignment="Center"
@@ -62,10 +63,10 @@
 			</ListBox>
 			<Separator Background="rgb(77,99,96)" Margin="100,16,100,0"/>
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-				<Button Name="NewButton" Width="264" Height="55" Click="NewButton_Click">New</Button>
-				<Button Name="LoadButton" Width="264" Height="55" Margin="26,0,0,0" Click="LoadButton_Click">Load</Button>
-				<Button Name="RenameButton" Width="264" Height="55" Margin="26,0,0,0" Click="RenameButton_Click">Rename</Button>
-				<Button Name="DeleteButton" Width="264" Height="55" Margin="26,0,0,0" Click="DeleteButton_Click">Delete</Button>
+				<Button Name="NewButton" Classes="Menu" Width="264" Height="55" Click="NewButton_Click">New</Button>
+				<Button Name="LoadButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="LoadButton_Click">Load</Button>
+				<Button Name="RenameButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="RenameButton_Click">Rename</Button>
+				<Button Name="DeleteButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="DeleteButton_Click">Delete</Button>
 			</StackPanel>
 		</StackPanel>
     </Border>

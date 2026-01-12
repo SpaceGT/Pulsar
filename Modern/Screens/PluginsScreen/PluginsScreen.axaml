@@ -15,14 +15,16 @@
 					   HorizontalAlignment="Center"
 					   Margin="0,40,0,0"
 					   FontSize="25"
-					   FontWeight="Normal">Pulsar</TextBlock>
+					   FontWeight="Normal"
+					   Foreground="White">Pulsar</TextBlock>
 			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="100,16,100,0"/>
 			<Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto" Margin="35,28,35,0">
 				<StackPanel Grid.Column="0" HorizontalAlignment="Center">
 					<TextBlock Grid.Row="0"
 							   HorizontalAlignment="Center"
 							   FontSize="23"
-							   FontWeight="Normal">Plugins</TextBlock>
+							   FontWeight="Normal"
+							   Foreground="White">Plugins</TextBlock>
 					<ListBox HorizontalAlignment="Center" Width="680" Height="660" Name="PluginsList" ItemsSource="{Binding}">
 						<ListBox.Template>
 							<ControlTemplate>
@@ -67,14 +69,15 @@
 						</ListBox.ItemTemplate>
 					</ListBox>
 					<StackPanel Orientation="Horizontal" Grid.Column="3" Margin="0,12,0,0" HorizontalAlignment="Right">
-						<Button Name="PluginSettingsButton" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Open plugin settings, in-game hotkey: Ctrl+Alt+/"></Button>
-						<Button Name="PluginDetailsButton" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
-						<Button Name="PluginAddButton" Width="30" Height="30" ToolTip.Tip="Add plugin" Click="PluginAddButton_Click">
+						<Button Name="PluginSettingsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Open plugin settings, in-game hotkey: Ctrl+Alt+/"></Button>
+						<Button Name="PluginDetailsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
+						<Button Name="PluginAddButton" Classes="Menu" Width="30" Height="30" ToolTip.Tip="Add plugin" Click="PluginAddButton_Click">
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
 									   FontSize="70"
 									   FontWeight="Medium"
-									   Margin="0,0,0,8">+</TextBlock>
+									   Margin="0,0,0,8"
+									   Foreground="White">+</TextBlock>
 							</Button>
 					</StackPanel>
 				</StackPanel>
@@ -82,7 +85,8 @@
 				<TextBlock Grid.Row="0"
 						   HorizontalAlignment="Center"
 						   FontSize="23"
-						   FontWeight="Normal">Mods</TextBlock>
+						   FontWeight="Normal"
+						   Foreground="White">Mods</TextBlock>
 					<ListBox HorizontalAlignment="Center" Width="400" Height="660" >
 						<ListBox.Template>
 							<ControlTemplate>
@@ -115,27 +119,28 @@
 						</ListBox.ItemTemplate>
 					</ListBox>
 					<StackPanel Orientation="Horizontal" Grid.Column="3" Margin="0,12,0,0" HorizontalAlignment="Right">
-						<Button Name="ModDetailsButton" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
-						<Button Name="ModAddButton" Width="30" Height="30" ToolTip.Tip="Add mod" Click="ModAddButton_Click">
+						<Button Name="ModDetailsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
+						<Button Name="ModAddButton" Classes="Menu" Width="30" Height="30" ToolTip.Tip="Add mod" Click="ModAddButton_Click">
 							<TextBlock HorizontalAlignment="Center"
 									   VerticalAlignment="Center"
 									   FontSize="70"
 									   FontWeight="Medium"
+									   Foreground="White"
 									   Margin="0,0,0,8">+</TextBlock>
 						</Button>
 					</StackPanel>
 				</StackPanel>
 				<StackPanel Grid.Column="3" Margin="16,30,0,0">
-					<Button Name="ProfilesButton" Width="256" Height="50" Click="ProfilesButton_OnClick" ToolTip.Tip="Load or edit profiles">Profiles</Button>
-					<Button Name="RefreshButton" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Refresh all plugin sources" Click="RefreshButton_Click">Refresh</Button>
-					<Button Name="SourcesButton" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Add or remove plugin source" IsVisible="False">Sources</Button>
+					<Button Name="ProfilesButton" Classes="Menu" Width="256" Height="50" Click="ProfilesButton_OnClick" ToolTip.Tip="Load or edit profiles">Profiles</Button>
+					<Button Name="RefreshButton" Classes="Menu" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Refresh all plugin sources" Click="RefreshButton_Click">Refresh</Button>
+					<Button Name="SourcesButton" Classes="Menu" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Add or remove plugin source" IsVisible="False">Sources</Button>
 					<CheckBox Margin="0,16,0,0" ToolTip.Tip="Consent to use your data for usage tracking" Name="ConsentBox">Track Usage</CheckBox>
 				</StackPanel>
 			</Grid>
 			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="100,16,100,0"/>
 			<StackPanel Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Center" Margin="0,16,0,0">
-				<Button Name="ApplyButton" Width="264" Height="55" Click="ApplyButton_OnClick">Apply</Button>
-				<Button Name="CancelButton" Width="264" Height="55" Margin="26,0,0,0" Click="CancelButton_OnClick">Cancel</Button>
+				<Button Name="ApplyButton" Classes="Menu" Width="264" Height="55" Click="ApplyButton_OnClick">Apply</Button>
+				<Button Name="CancelButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="CancelButton_OnClick">Cancel</Button>
 			</StackPanel>
 		</Grid>
 	</Border>
