@@ -122,7 +122,7 @@ public class PluginInstance
         if (string.IsNullOrEmpty(assetFolder) || !Directory.Exists(assetFolder))
             return;
 
-        LogFile.WriteLine($"Loading assets for {data} from {assetFolder}");
+        LogFile.WriteLine($"Loading assets for {data}");
         MethodInfo loadAssets = AccessTools.DeclaredMethod(
             mainType,
             "LoadAssets",
