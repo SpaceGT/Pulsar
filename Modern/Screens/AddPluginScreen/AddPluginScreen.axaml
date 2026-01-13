@@ -10,12 +10,21 @@
 			Width="1152" 
 			Height="972">
         <StackPanel Background="rgba(37,47,53,96)">
-            <TextBlock Name="TitleText" 
+            <Grid>
+				<TextBlock Name="TitleText" 
                        Text="Plugin List" 
                        Margin="0,30,0,0"
                        TextAlignment="Center"
                        FontSize="25"
 					   FontWeight="Normal"/>
+                <Button Name="CancelButton" Classes="Menu" Width="40" Height="40" Margin="0,16,26,0" 
+		   HorizontalAlignment="Right" 
+		   HorizontalContentAlignment="Center" 
+		   VerticalContentAlignment="Center"
+		   FontSize="40"
+		   Click="CancelButton_Click">X</Button>
+            </Grid>
+            
             <Separator Background="rgb(77,99,96)" Margin="100,16,100,0"/>
             <Grid Margin="30,10,30,10">
                 <Grid.ColumnDefinitions>
@@ -70,14 +79,14 @@
 					                        <ColumnDefinition/>
 				                        </Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
-                                            <TextBlock Name="UsersText" Text="{Binding PluginStat.Players, StringFormat='\{0\} users'}"/>
+                                            <TextBlock Name="UsersText" IsVisible="{Binding !PluginData.IsLocal}" Text="{Binding PluginStat.Players, StringFormat='\{0\} users'}"/>
                                             <TextBlock Text="{Binding PluginData.Source}"/>
                                         </StackPanel>
                                         <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-										    <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock Name="UpvotesText" Text="{Binding PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-                                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock Name="DownvotesText" Text="{Binding PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+										    <Image IsVisible="{Binding !PluginData.IsLocal}" Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+                                            <TextBlock IsVisible="{Binding !PluginData.IsLocal}" Name="UpvotesText" Text="{Binding PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+                                            <Image IsVisible="{Binding !PluginData.IsLocal}" Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+                                            <TextBlock IsVisible="{Binding !PluginData.IsLocal}" Name="DownvotesText" Text="{Binding PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </Grid>

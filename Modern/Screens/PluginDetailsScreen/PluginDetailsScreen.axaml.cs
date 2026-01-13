@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using NuGet.Protocol.Plugins;
+using Pulsar.Modern.Extensions;
 using Pulsar.Shared.Data;
 
 namespace Pulsar.Modern.Screens.PluginDetailsScreen;
@@ -34,7 +35,16 @@ public partial class PluginDetailsScreen : PluginScreenBase
             PluginEnabledCheckbox.IsChecked = (DataContext as PluginDetailsScreenViewModel).Draft.Contains((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.Id);
         }
 
-        TitleText.Text = (DataContext as PluginDetailsScreenViewModel).Plugin is ModPlugin ? "Mod Details" : "Plugin Details";
+        TitleText.Text = (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin ? "Mod Details" : "Plugin Details";
+
+        if ((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.IsLocal)
+        {
+            UsersText.IsVisible = false;
+            UpvoteButton.IsVisible = false;
+            UpvotesText.IsVisible = false;
+            DownvoteButton.IsVisible = false;
+            DownvotesText.IsVisible = false;
+        }
     }
 
     private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -48,5 +58,15 @@ public partial class PluginDetailsScreen : PluginScreenBase
 
         if (!(bool)PluginEnabledCheckbox.IsChecked && (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is LocalFolderPlugin devFolder)
             devFolder.DeserializeFile(null);
+    }
+
+    private void MoreInfoButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.Show();
+    }
+
+    private void SettingsButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        (DataContext as PluginDetailsScreenViewModel).PluginInstance?.OpenConfig();
     }
 }

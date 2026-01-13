@@ -13,7 +13,7 @@ namespace Pulsar.Modern.Screens.PluginDetailsScreen;
 internal class PluginDetailsScreenViewModel : ScreenViewModel
 {
     public PluginViewModel Plugin { get; private set; }
-    private readonly PluginInstance pluginInstance;
+    public readonly PluginInstance PluginInstance;
     public readonly Profile Draft;
 
     public event Action OnScreenClose;
@@ -30,11 +30,7 @@ internal class PluginDetailsScreenViewModel : ScreenViewModel
         if (!Design.IsDesignMode)
         {
             if (PluginLoader.Instance.TryGetPluginInstance(plugin.PluginData.Id, out PluginInstance instance))
-                pluginInstance = instance;
-        }
-        else
-        {
-
+                PluginInstance = instance;
         }
 
         InitializeInputContext();

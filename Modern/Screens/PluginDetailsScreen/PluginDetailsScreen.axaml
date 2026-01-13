@@ -24,12 +24,16 @@
 		   Click="CancelButton_Click">X</Button>
 			</Grid>
             <Separator Grid.Row="1" Margin="100,16,100,0"/>
-			<Grid Height="241">
+			<Grid Height="125">
 				<Grid.ColumnDefinitions>
 					<ColumnDefinition Width="400"/>
 					<ColumnDefinition/>
 				</Grid.ColumnDefinitions>
                 <Grid Grid.Column="0" Grid.ColumnSpan="1" Margin="50,20,50,0">
+					<Grid.ColumnDefinitions>
+					        <ColumnDefinition Width="450" MaxWidth="450"/>
+					        <ColumnDefinition/>
+				        </Grid.ColumnDefinitions>
                     <StackPanel>
 						<TextBlock Text="{Binding Plugin.PluginData.FriendlyName}" 
 							    FontSize="23"
@@ -41,23 +45,31 @@
 					        <ColumnDefinition Width="100" MaxWidth="100"/>
 					        <ColumnDefinition/>
 				        </Grid.ColumnDefinitions>
-                        <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
-                            <TextBlock Name="UsersText" Text=""/>
-                            <TextBlock Text=""/>
-                        </StackPanel>
-                        <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-							<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
-                            <TextBlock Name="UpvotesText" Text="" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
-                            <TextBlock Name="DownvotesText" Text="" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
-                        </StackPanel>
+                        <TextBlock Name="UsersText" VerticalAlignment="Bottom" Text="{Binding Plugin.PluginStat.Players, StringFormat='\{0\} users'}"/>
                     </Grid>
+					<StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+						<Button Name="UpvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60">
+							<Button.Content>
+								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+							</Button.Content>
+						</Button>
+						<TextBlock Name="UpvotesText" Text="{Binding Plugin.PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+						<Button Name="DownvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60">
+							<Button.Content>
+								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+							</Button.Content>
+						</Button>
+						<TextBlock Name="DownvotesText" Text="{Binding Plugin.PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+					</StackPanel>
                 </Grid>
                 <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,50,0" Click="PluginEnabledCheckbox_Click"/>
             </Grid>
-			<SelectableTextBlock Name="PluginDescription" Margin="50,16,50,00" Background="rgba(41,54,62,96)" Text="{Binding Plugin.DescriptionFull}" Height="500">
-					
-			</SelectableTextBlock>
+			<SelectableTextBlock Name="PluginDescription" Margin="50,16,50,00" Background="rgba(41,54,62,96)" Text="{Binding Plugin.DescriptionFull}" Height="480" TextWrapping="Wrap" FontSize="16" Foreground="White"/>
+			<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
+				<Button Name="MoreInfoButton" Content="More Info" Classes="Menu" Width="264" Height="55" Click="MoreInfoButton_Click"/>
+				<Button Name="SettingsButton" Content="Settings" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" IsEnabled="false" Click="SettingsButton_Click"/>
+			</StackPanel>
+			<TextBlock Name="SourceLabel" Text="{Binding Plugin.PluginData.Source}" Margin="50,20" FontWeight="Normal"/>
         </StackPanel>
     </Border>
 </UserControl>

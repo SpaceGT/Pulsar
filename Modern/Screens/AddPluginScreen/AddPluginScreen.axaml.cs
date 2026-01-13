@@ -117,4 +117,9 @@ public partial class AddPluginScreen : PluginScreenBase
         if (!(bool)(sender as CheckBox).IsChecked && plugin.PluginData is LocalFolderPlugin devFolder)
             devFolder.DeserializeFile(null);
     }
+
+    private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        Dispose();
+    }
 }
