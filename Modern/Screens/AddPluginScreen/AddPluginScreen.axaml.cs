@@ -92,18 +92,19 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private async void RefreshPluginList()
     {
-        PluginList.ItemsSource = null;
+        PluginList.DataContext = null;
 
-        PluginViewModel[] shownPlugins;
-        if ((DataContext as AddPluginScreenViewModel).SortMethod == SortingMethod.Search)
-            PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Plugins;
-        else
-            PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.PluginData.Hidden);
-
-        PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Hidden
-            .Where(x => x.PluginData.FriendlyName.Equals((DataContext as AddPluginScreenViewModel).Filter, StringComparison.OrdinalIgnoreCase))
+        PluginData[] shownPlugins = (DataContext as AddPluginScreenViewModel).Hidden
+            .Where(x => x.FriendlyName.Equals((DataContext as AddPluginScreenViewModel).Filter, StringComparison.OrdinalIgnoreCase))
             .Concat((DataContext as AddPluginScreenViewModel).Plugins)
             .ToArray();
+
+        List<PluginViewModel> vms = [];
+
+        foreach (PluginData p in shownPlugins)
+            vms.Add(new PluginViewModel(p, (DataContext as AddPluginScreenViewModel).Draft.Contains(p.Id)));
+
+        PluginList.DataContext = vms;
     }
 
 
