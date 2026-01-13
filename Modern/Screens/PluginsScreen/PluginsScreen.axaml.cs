@@ -24,14 +24,14 @@ public partial class PluginsScreen : PluginScreenBase
             (DataContext as PluginsScreenViewModel).OnListRefreshed += delegate
             {
                 List<PluginViewModel> vms = [];
+                List<PluginViewModel> vmsMods = [];
 
                 foreach (PluginData plugin in (DataContext as PluginsScreenViewModel).PluginList.OrderBy(x => x.FriendlyName))
                 {
                     if (!(DataContext as PluginsScreenViewModel).Draft.Contains(plugin.Id))
                         continue;
 
-                    if (plugin is ModPlugin)
-                        continue;
+                    
 
                     var tip = plugin.FriendlyName;
                     if (!string.IsNullOrWhiteSpace(plugin.Tooltip))
@@ -44,10 +44,14 @@ public partial class PluginsScreen : PluginScreenBase
                         ToolTipString = tip
                     };
 
-                    vms.Add(vm);
+                    if (plugin is ModPlugin)
+                        vmsMods.Add(vm);
+                    else
+                        vms.Add(vm);
                 }
 
                 PluginsList.DataContext = vms;
+                ModsList.DataContext = vmsMods;
             };
 
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();

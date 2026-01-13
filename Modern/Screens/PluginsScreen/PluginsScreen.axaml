@@ -87,13 +87,13 @@
 						   FontSize="23"
 						   FontWeight="Normal"
 						   Foreground="White">Mods</TextBlock>
-					<ListBox HorizontalAlignment="Center" Width="400" Height="660" >
+					<ListBox Name="ModsList" HorizontalAlignment="Center" Width="400" Height="660" ItemsSource="{Binding}">
 						<ListBox.Template>
 							<ControlTemplate>
 								<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">
 									<Grid DockPanel.Dock="Top" Height="30" Background="rgba(60,76,82,96)">
 										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="200"/>
+											<ColumnDefinition Width="300"/>
 											<ColumnDefinition Width="70"/>
 										</Grid.ColumnDefinitions>
 										<Label Grid.Column="0">Name</Label>
@@ -109,10 +109,14 @@
 							<DataTemplate>
 								<Grid Margin="0,2">
 									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="200"/>
+										<ColumnDefinition Width="310"/>
 										<ColumnDefinition Width="70"/>
 									</Grid.ColumnDefinitions>
-									<TextBlock Text="{Binding Name}" Grid.Column="0"/>
+									<TextBlock Grid.Column="0">
+										<Run Text="{Binding PluginData.FriendlyName}"/>
+										<LineBreak/>
+										<Run Text="{Binding PluginData.Author}"/>
+									</TextBlock>
 									<CheckBox IsChecked="{Binding Enabled}" Grid.Column="3"/>
 								</Grid>
 							</DataTemplate>
