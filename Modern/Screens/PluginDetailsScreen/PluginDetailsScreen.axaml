@@ -1,0 +1,63 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.PluginDetailsScreen">
+    <Border Background="Transparent"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="720" 
+			Height="864">
+        <StackPanel Background="rgba(37,47,53,96)">
+            <Grid>
+				<TextBlock Name="TitleText" HorizontalAlignment="Center"
+					   Margin="0,40,0,0"
+					   FontSize="25"
+					   FontWeight="Normal"
+					   Foreground="White">Plugin Details</TextBlock>
+			<Button Name="CancelButton" Classes="Menu" Width="40" Height="40" Margin="0,16,26,0" 
+		   HorizontalAlignment="Right" 
+		   HorizontalContentAlignment="Center" 
+		   VerticalContentAlignment="Center"
+		   FontSize="40"
+		   Click="CancelButton_Click">X</Button>
+			</Grid>
+            <Separator Grid.Row="1" Margin="100,16,100,0"/>
+			<Grid Height="241">
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="400"/>
+					<ColumnDefinition/>
+				</Grid.ColumnDefinitions>
+                <Grid Grid.Column="0" Grid.ColumnSpan="1" Margin="50,20,50,0">
+                    <StackPanel>
+						<TextBlock Text="{Binding Plugin.PluginData.FriendlyName}" 
+							    FontSize="23"
+							    FontWeight="Normal"/>
+                        <TextBlock Text="{Binding Plugin.PluginData.Author}" Margin="0,0,0,15" FontSize="19"/>
+                    </StackPanel>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+					        <ColumnDefinition Width="100" MaxWidth="100"/>
+					        <ColumnDefinition/>
+				        </Grid.ColumnDefinitions>
+                        <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
+                            <TextBlock Name="UsersText" Text=""/>
+                            <TextBlock Text=""/>
+                        </StackPanel>
+                        <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+							<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+                            <TextBlock Name="UpvotesText" Text="" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+                            <TextBlock Name="DownvotesText" Text="" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+                        </StackPanel>
+                    </Grid>
+                </Grid>
+                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,50,0" Click="PluginEnabledCheckbox_Click"/>
+            </Grid>
+			<SelectableTextBlock Name="PluginDescription" Margin="50,16,50,00" Background="rgba(41,54,62,96)" Text="{Binding Plugin.DescriptionFull}" Height="500">
+					
+			</SelectableTextBlock>
+        </StackPanel>
+    </Border>
+</UserControl>

@@ -5,6 +5,7 @@ using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared;
+using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using System.Collections.Generic;
 using System.Linq;
@@ -22,10 +23,31 @@ public partial class PluginsScreen : PluginScreenBase
         {
             (DataContext as PluginsScreenViewModel).OnListRefreshed += delegate
             {
-                PluginsList.DataContext = (DataContext as PluginsScreenViewModel).PluginList
-                .OrderBy(x => x.FriendlyName)
-                .Where(x => x.GetType() != typeof(ModPlugin))
-                .ToList();
+                List<PluginViewModel> vms = [];
+
+                foreach (PluginData plugin in (DataContext as PluginsScreenViewModel).PluginList.OrderBy(x => x.FriendlyName))
+                {
+                    if (!(DataContext as PluginsScreenViewModel).Draft.Contains(plugin.Id))
+                        continue;
+
+                    if (plugin is ModPlugin)
+                        continue;
+
+                    var tip = plugin.FriendlyName;
+                    if (!string.IsNullOrWhiteSpace(plugin.Tooltip))
+                        tip += "\n" + plugin.Tooltip;
+
+                    PluginViewModel vm = new PluginViewModel(plugin, true)
+                    {
+                        StatusString = ConfigManager.Instance.SafeMode ? "Disabled" : plugin.StatusString,
+                        VersionString = plugin.Version?.ToString() ?? "N/A",
+                        ToolTipString = tip
+                    };
+
+                    vms.Add(vm);
+                }
+
+                PluginsList.DataContext = vms;
             };
 
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();

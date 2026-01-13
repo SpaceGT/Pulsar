@@ -4,6 +4,7 @@ using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats.Model;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Pulsar.Modern.Screens.AddPluginScreen
@@ -12,8 +13,9 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
     {
         public event Action OnScreenClose;
 
-        public readonly List<PluginData> Plugins;
-        private readonly Profile draft;
+        public readonly List<PluginViewModel> Plugins = [];
+        public readonly List<PluginViewModel> Hidden = [];
+        public readonly Profile Draft;
         private PluginStats stats;
         public readonly bool Mods;
         public string Filter;
@@ -34,13 +36,32 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             AllowsInputFromLowerScreens = false;
             InitializeInputContext();
 
-            Plugins = plugins
-            .Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime())
-            .ToList();
             stats = ConfigManager.Instance.Stats ?? new PluginStats();
             Mods = mods;
-            this.draft = draft;
+            this.Draft = draft;
+
+            var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime());
+
+            foreach (PluginData plugin in supported)
+            {
+                if (!plugin.Hidden)
+                {
+                    Plugins.Add(new PluginViewModel(plugin, Draft.Contains(plugin.Id)));
+                }
+                else
+                {
+                    Hidden.Add(new PluginViewModel(plugin, Draft.Contains(plugin.Id)));
+                }
+            };
+
             SortPlugins(SortingMethod.Name);
+        }
+
+        public override void OnDispose()
+        {
+            base.OnDispose();
+
+            OnScreenClose?.Invoke();
         }
 
         public void SortPlugins(SortingMethod sort)
@@ -70,36 +91,36 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             if (string.IsNullOrWhiteSpace(Filter))
                 return;
 
-            var scoreCache = Plugins.ToDictionary(p => p, p => p.Rank(Filter));
+            var scoreCache = Plugins.ToDictionary(p => p.PluginData, p => p.PluginData.Rank(Filter));
             Plugins.Sort(Comparator);
 
-            int Comparator(PluginData x, PluginData y)
+            int Comparator(PluginViewModel x, PluginViewModel y)
             {
-                int comp = scoreCache[y].CompareTo(scoreCache[x]);
+                int comp = scoreCache[y.PluginData].CompareTo(scoreCache[x.PluginData]);
                 return comp == 0 ? ComparePluginsByName(x, y) : comp;
             }
         }
 
-        private int ComparePluginsByName(PluginData x, PluginData y)
+        private int ComparePluginsByName(PluginViewModel x, PluginViewModel y)
         {
-            return x.FriendlyName.CompareTo(y.FriendlyName, StringComparison.OrdinalIgnoreCase);
+            return x.PluginData.FriendlyName.CompareTo(y.PluginData.FriendlyName, StringComparison.OrdinalIgnoreCase);
         }
 
-        private int ComparePluginsByUsage(PluginData x, PluginData y)
+        private int ComparePluginsByUsage(PluginViewModel x, PluginViewModel y)
         {
-            PluginStat statX = stats.GetStatsForPlugin(x);
-            PluginStat statY = stats.GetStatsForPlugin(y);
+            PluginStat statX = stats.GetStatsForPlugin(x.PluginData);
+            PluginStat statY = stats.GetStatsForPlugin(y.PluginData);
             int usage = -statX.Players.CompareTo(statY.Players);
             if (usage != 0)
                 return usage;
             return ComparePluginsByName(x, y);
         }
 
-        private int ComparePluginsByRating(PluginData x, PluginData y)
+        private int ComparePluginsByRating(PluginViewModel x, PluginViewModel y)
         {
-            PluginStat statX = stats.GetStatsForPlugin(x);
+            PluginStat statX = stats.GetStatsForPlugin(x.PluginData);
             int ratingX = statX.Upvotes - statX.Downvotes;
-            PluginStat statY = stats.GetStatsForPlugin(y);
+            PluginStat statY = stats.GetStatsForPlugin(y.PluginData);
             int ratingY = statY.Upvotes - statY.Downvotes;
             int rating = -ratingX.CompareTo(ratingY);
             if (rating != 0)

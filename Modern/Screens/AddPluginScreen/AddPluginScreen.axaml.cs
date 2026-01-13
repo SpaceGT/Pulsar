@@ -1,5 +1,8 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
+using Pulsar.Modern.Screens.PluginDetailsScreen;
+using Pulsar.Modern.Screens.PluginsScreen;
+using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared.Data;
 using System;
 using System.Collections.Generic;
@@ -42,7 +45,7 @@ public partial class AddPluginScreen : PluginScreenBase
 
             for (int i = 0; i < 25; i++)
             {
-                dummyPlugins.Add(new PluginViewModel(dummyPlugin));
+                dummyPlugins.Add(new PluginViewModel(dummyPlugin, true));
             }
 
             PluginList.DataContext = dummyPlugins;
@@ -69,6 +72,15 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void PluginList_SelectionChanged(object? sender, SelectionChangedEventArgs e)
     {
+        PluginViewModel pluginVM = (PluginViewModel)PluginList.SelectedItem;
+
+        if (pluginVM == null)
+            return;
+
+        var viewModel = new PluginDetailsScreenViewModel(pluginVM, (DataContext as AddPluginScreenViewModel).Draft);
+        viewModel.OnScreenClose += () => RefreshPluginList();
+
+        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(viewModel, true);
     }
 
     private void SortButton_SelectionChanged(object? sender, SelectionChangedEventArgs e)
@@ -82,17 +94,27 @@ public partial class AddPluginScreen : PluginScreenBase
     {
         PluginList.ItemsSource = null;
 
-        PluginData[] shownPlugins;
+        PluginViewModel[] shownPlugins;
         if ((DataContext as AddPluginScreenViewModel).SortMethod == SortingMethod.Search)
-            shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins];
+            PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Plugins;
         else
-            shownPlugins = [.. (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.Hidden)];
+            PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Plugins.Where(x => !x.PluginData.Hidden);
 
-        List<PluginViewModel> vms = [];
+        PluginList.ItemsSource = (DataContext as AddPluginScreenViewModel).Hidden
+            .Where(x => x.PluginData.FriendlyName.Equals((DataContext as AddPluginScreenViewModel).Filter, StringComparison.OrdinalIgnoreCase))
+            .Concat((DataContext as AddPluginScreenViewModel).Plugins)
+            .ToArray();
+    }
 
-        foreach (PluginData p in shownPlugins)
-            vms.Add(new PluginViewModel(p));
 
-        PluginList.ItemsSource = vms;
+    private void PluginEnabledCheckbox_IsCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if ((sender as CheckBox).DataContext is not PluginViewModel plugin)
+            return;
+
+        plugin.PluginData.UpdateProfile((DataContext as AddPluginScreenViewModel).Draft, (bool)(sender as CheckBox).IsChecked);
+
+        if (!(bool)(sender as CheckBox).IsChecked && plugin.PluginData is LocalFolderPlugin devFolder)
+            devFolder.DeserializeFile(null);
     }
 }

@@ -81,7 +81,7 @@
                                         </StackPanel>
                                     </Grid>
                                 </Grid>
-                                <CheckBox Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" IsChecked="{Binding PluginData.Enabled}"/>
+                                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" IsChecked="{Binding Enabled}" IsCheckedChanged="PluginEnabledCheckbox_IsCheckedChanged"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

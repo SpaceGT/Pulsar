@@ -14,8 +14,9 @@ internal class PluginsScreenViewModel : ScreenViewModel
 {
     public Profile Draft { get; private set; }
 
+    private ConfigManager configManager;
+
     public readonly PluginList PluginList;
-    public readonly List<PluginData> EnabledPluginList;
     private readonly ProfilesConfig profiles;
     public readonly SourcesConfig Sources;
 
@@ -28,11 +29,12 @@ internal class PluginsScreenViewModel : ScreenViewModel
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;
-       
-        Draft = Tools.DeepCopy(configManager.Profiles.Current);
-        PluginList = configManager.List;
-        profiles = configManager.Profiles;
-        Sources = configManager.Sources;
+
+        this.configManager = configManager;
+        Draft = Tools.DeepCopy(this.configManager.Profiles.Current);
+        PluginList = this.configManager.List;
+        profiles = this.configManager.Profiles;
+        Sources = this.configManager.Sources;
 
         InitializeInputContext();
     }
@@ -41,8 +43,6 @@ internal class PluginsScreenViewModel : ScreenViewModel
     {
         var configManager = ConfigManager.Instance;
         PluginsScreenViewModel menu = new(configManager);
-        configManager.List.UpdateRemoteList();
-        configManager.List.UpdateLocalList();
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginsScreen>(menu, true);
     }
 

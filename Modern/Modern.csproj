@@ -101,7 +101,7 @@
 	  <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
 	  <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
 	  <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
-	  <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10"/>
+	  <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" />
 	  <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
@@ -109,7 +109,7 @@
 		  <PrivateAssets>all</PrivateAssets>
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 	  </PackageReference>
-	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+	  <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
 	<ItemGroup>
 		<Publicize Include="Game2.Client" />

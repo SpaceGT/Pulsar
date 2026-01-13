@@ -1,11 +1,11 @@
 ﻿using HarmonyLib;
 using Keen.Game2;
 using Pulsar.Modern.Loader;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
-using Pulsar.Shared.Splash;
-using System;
+using Pulsar.Shared.Data;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 
 namespace Pulsar.Modern.Patch;
 
@@ -15,8 +15,9 @@ internal class Patch_CreateEngine
 {
     private static void Postfix()
     {
-        SplashManager.Instance?.SetText($"Updating workshop items...");
-        ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-        SteamMods.Update(profiles.Current.Mods);
+        PluginList list = ConfigManager.Instance.List;
+        Profile current = ConfigManager.Instance.Profiles.Current;
+        IEnumerable<ulong> steamIDs = list.GetModPlugins(current, []).Select(x => x.WorkshopId);
+        SteamMods.Update(steamIDs);
     }
 }
