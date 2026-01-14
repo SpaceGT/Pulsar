@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Keen.Game2.Game.Plugins;
 using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -17,7 +18,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
     private ConfigManager configManager;
 
     public readonly PluginList PluginList;
-    private readonly ProfilesConfig profiles;
+    public readonly ProfilesConfig Profiles;
     public readonly SourcesConfig Sources;
 
     public bool ConsentGiven = PlayerConsent.ConsentGiven;
@@ -33,7 +34,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
         this.configManager = configManager;
         Draft = Tools.DeepCopy(this.configManager.Profiles.Current);
         PluginList = this.configManager.List;
-        profiles = this.configManager.Profiles;
+        Profiles = this.configManager.Profiles;
         Sources = this.configManager.Sources;
 
         InitializeInputContext();
@@ -72,6 +73,47 @@ internal class PluginsScreenViewModel : ScreenViewModel
         SyncDevFolders(profile, Draft);
         profile.Name = Draft.Name;
         Draft = profile;
+    }
+
+    public bool SyncPluginConfigs()
+    {
+        Profile current = Profiles.Current;
+        bool hasDiff = false;
+
+        foreach (string id in current.GetPluginIDs().Concat(Draft.GetPluginIDs()))
+        {
+            PluginDataConfig cConfig = current.GetData(id);
+            PluginDataConfig dConfig = Draft.GetData(id);
+
+            // Prebuilt and Mod plugins lack a config
+            // FIXME: The diff check would have "just worked" if they did
+            if (cConfig is null && dConfig is null)
+            {
+                hasDiff |= current.Local.Contains(id) != Draft.Local.Contains(id);
+
+                if (ulong.TryParse(id, out ulong wId))
+                    hasDiff |= current.Mods.Contains(wId) != Draft.Mods.Contains(wId);
+
+                continue;
+            }
+
+            bool diff = cConfig is null || dConfig is null;
+
+            if (cConfig is GitHubPluginConfig cGitHub && dConfig is GitHubPluginConfig dGitHub)
+                diff |= cGitHub.SelectedVersion != dGitHub.SelectedVersion;
+
+            if (cConfig is LocalFolderConfig cFolder && dConfig is LocalFolderConfig dFolder)
+                diff |=
+                    cFolder.DataFile != dFolder.DataFile
+                    || cFolder.DebugBuild != dFolder.DebugBuild;
+
+            if (diff && PluginList.TryGetPlugin(id, out PluginData plugin))
+                plugin.LoadData(dConfig);
+
+            hasDiff |= diff;
+        }
+
+        return hasDiff;
     }
 
     private void SyncDevFolders(Profile target, Profile previous)

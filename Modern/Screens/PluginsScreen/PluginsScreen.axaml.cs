@@ -1,6 +1,9 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
+using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
+using Keen.Game2.Game.Plugins;
+using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
@@ -100,30 +103,36 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void ApplyButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        if ((DataContext as PluginsScreenViewModel).RequiresRestart())
-        {
-            var definition = ScreenTools.GetDefaultYesNoCancelDialog();
-            definition.Title = ScreenTools.GetKeyFromString("Apply Changes?");
-            definition.Content = ScreenTools.GetKeyFromString("A restart is required to apply changes. Would you like to restart the game now?");
+        Dispose();
 
-            ScreenTools.GetSharedUIComponent().ShowDialog(new ThreeOptionsDialogViewModel(definition)
-            {
-                ConfirmAction = () =>
-                {
-                    (DataContext as PluginsScreenViewModel).Save();
-                    //LoaderTools.AskToRestart();
-                },
-                DefaultAction = () =>
-                {
-                    (DataContext as PluginsScreenViewModel).Save();
-                    Dispose();
-                }
-            });
-        }
-        else
+        if (!(DataContext as PluginsScreenViewModel).SyncPluginConfigs())
+            return;
+
+        foreach (string id in (DataContext as PluginsScreenViewModel).Draft.GetPluginIDs())
+            (DataContext as PluginsScreenViewModel).PluginList.SubscribeToItem(id);
+
+        (DataContext as PluginsScreenViewModel).Profiles.Current = (DataContext as PluginsScreenViewModel).Draft;
+        (DataContext as PluginsScreenViewModel).Profiles.Save();
+
+
+        var definition = ScreenTools.GetDefaultYesNoDialog();
+        definition.Title = ScreenTools.GetKeyFromString("Apply Changes?");
+        definition.Content = ScreenTools.GetKeyFromString("A restart is required to apply changes. Would you like to restart the game now?");
+
+        ScreenTools.GetSharedUIComponent().ShowDialog(new TwoOptionsDialogViewModel(definition)
         {
-            Dispose();
-        }
+            ConfirmAction = () =>
+            {
+                    
+                   
+            },
+            CancelAction = () =>
+            {
+                    
+                    
+            }
+        });
+
     }
 
     private void ProfilesButton_OnClick(object? sender, RoutedEventArgs e)

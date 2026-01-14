@@ -12,7 +12,7 @@ namespace Pulsar.Modern.Screens
         public string DescriptionShort { get; private set; }
 
         public string DescriptionFull { get; private set; }
-        public PluginStat PluginStat { get; private set; }
+        public PluginStat PluginStat { get; set; }
 
         public bool Enabled { get; private set; }
         public string StatusString { get; set; }

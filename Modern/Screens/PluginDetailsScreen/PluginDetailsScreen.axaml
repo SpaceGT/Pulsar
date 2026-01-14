@@ -47,20 +47,24 @@
 				        </Grid.ColumnDefinitions>
                         <TextBlock Name="UsersText" VerticalAlignment="Bottom" Text="{Binding Plugin.PluginStat.Players, StringFormat='\{0\} users'}"/>
                     </Grid>
-					<StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-						<Button Name="UpvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60">
-							<Button.Content>
-								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
-							</Button.Content>
-						</Button>
-						<TextBlock Name="UpvotesText" Text="{Binding Plugin.PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-						<Button Name="DownvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60">
-							<Button.Content>
-								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
-							</Button.Content>
-						</Button>
-						<TextBlock Name="DownvotesText" Text="{Binding Plugin.PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+					<StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+						<StackPanel Orientation="Horizontal">
+							<Button Name="UpvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="UpvoteButton_Click">
+								<Button.Content>
+									<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+								</Button.Content>
+							</Button>
+							<TextBlock Name="UpvotesText" Text="{Binding Plugin.PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+							<Button Name="DownvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="DownvoteButton_Click">
+								<Button.Content>
+									<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+								</Button.Content>
+							</Button>
+							<TextBlock Name="DownvotesText" Text="{Binding Plugin.PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+						</StackPanel>
+						<TextBlock Name="VoteStatusText" Text="{Binding}" FontSize="14" Width="175" HorizontalAlignment="Left"/>
 					</StackPanel>
+					
                 </Grid>
                 <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,50,0" Click="PluginEnabledCheckbox_Click"/>
             </Grid>
