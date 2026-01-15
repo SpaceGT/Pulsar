@@ -51,11 +51,10 @@ public class Launcher(string sePath)
     public bool VerifyConfig()
     {
         string seFolder = Path.GetDirectoryName(sePath);
-        bool hasConfig = Tools.GetFiles(seFolder, ["*.config", "*.runtimeconfig.json"], []).Any();
+        bool hasConfig = Tools.GetFiles(seFolder, ["*.config"], []).Any();
         string configPath = Assembly.GetEntryAssembly().Location + ".config";
-        string configPathModern = Assembly.GetEntryAssembly().Location.TrimEnd(['.', 'd', 'l', 'l']) + ".runtimeconfig.json";
 
-        if ((hasConfig && !File.Exists(configPath)) && (hasConfig && !File.Exists(configPathModern)))
+        if (hasConfig && !File.Exists(configPath))
             return false;
 
         return true;

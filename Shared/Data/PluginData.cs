@@ -20,8 +20,7 @@ namespace Pulsar.Shared.Data;
 [ProtoInclude(104, typeof(ModPlugin))]
 public abstract class PluginData : IEquatable<PluginData>
 {
-    [XmlIgnore]
-    public string Source { get; set; }
+    public string Source;
     public abstract bool IsLocal { get; }
     public abstract bool IsCompiled { get; }
 

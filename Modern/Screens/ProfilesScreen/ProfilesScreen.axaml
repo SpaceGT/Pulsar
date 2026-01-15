@@ -3,7 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
-             x:Class="Pulsar.Modern.Screens.ProfilesScreen.ProfilesScreen">
+             x:Class="Pulsar.Modern.Screens.ProfilesScreen.ProfilesScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.ProfilesScreen"
+			 x:DataType="vm:ProfilesScreenViewModel">
     <Border Background="Transparent"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
@@ -49,7 +51,7 @@
 					</ControlTemplate>
 				</ListBox.Template>
 				<ListBox.ItemTemplate>
-					<DataTemplate>
+					<DataTemplate x:DataType="vm:ProfileViewModel">
 						<Grid Margin="0,2">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="400"/>

@@ -54,6 +54,9 @@
 	<StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
+  <PropertyGroup>
+	<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
   </Target>

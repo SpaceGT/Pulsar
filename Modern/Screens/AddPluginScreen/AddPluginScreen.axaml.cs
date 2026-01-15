@@ -1,8 +1,6 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
-using Pulsar.Modern.Screens.PluginsScreen;
-using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared.Data;
 using System;
 using System.Collections.Generic;
@@ -45,7 +43,7 @@ public partial class AddPluginScreen : PluginScreenBase
 
             for (int i = 0; i < 25; i++)
             {
-                dummyPlugins.Add(new PluginViewModel(dummyPlugin, true));
+                dummyPlugins.Add(new PluginViewModel(dummyPlugin, (DataContext as AddPluginScreenViewModel).Draft));
             }
 
             PluginList.DataContext = dummyPlugins;
@@ -78,7 +76,7 @@ public partial class AddPluginScreen : PluginScreenBase
             return;
 
         var viewModel = new PluginDetailsScreenViewModel(pluginVM, (DataContext as AddPluginScreenViewModel).Draft);
-        viewModel.OnScreenClose += () => RefreshPluginList();
+        viewModel.OnScreenClosed += () => RefreshPluginList();
 
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(viewModel, true);
     }
@@ -102,21 +100,9 @@ public partial class AddPluginScreen : PluginScreenBase
         List<PluginViewModel> vms = [];
 
         foreach (PluginData p in shownPlugins)
-            vms.Add(new PluginViewModel(p, (DataContext as AddPluginScreenViewModel).Draft.Contains(p.Id)));
+            vms.Add(new PluginViewModel(p, (DataContext as AddPluginScreenViewModel).Draft));
 
         PluginList.DataContext = vms;
-    }
-
-
-    private void PluginEnabledCheckbox_IsCheckedChanged(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-    {
-        if ((sender as CheckBox).DataContext is not PluginViewModel plugin)
-            return;
-
-        plugin.PluginData.UpdateProfile((DataContext as AddPluginScreenViewModel).Draft, (bool)(sender as CheckBox).IsChecked);
-
-        if (!(bool)(sender as CheckBox).IsChecked && plugin.PluginData is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
     }
 
     private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

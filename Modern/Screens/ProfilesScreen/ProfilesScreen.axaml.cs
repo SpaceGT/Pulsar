@@ -20,7 +20,7 @@ public partial class ProfilesScreen : PluginScreenBase
         if (!Design.IsDesignMode)
         {
             foreach (Profile p in (DataContext as ProfilesScreenViewModel).Config.Profiles)
-                ProfilesList.Items.Add(p);
+                ProfilesList.Items.Add(new ProfileViewModel(p));
             UpdateButtons();
         }
     }

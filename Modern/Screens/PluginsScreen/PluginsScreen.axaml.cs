@@ -1,14 +1,10 @@
 using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
 using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
-using Keen.Game2.Game.Plugins;
-using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared;
-using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,18 +30,7 @@ public partial class PluginsScreen : PluginScreenBase
                     if (!(DataContext as PluginsScreenViewModel).Draft.Contains(plugin.Id))
                         continue;
 
-                    
-
-                    var tip = plugin.FriendlyName;
-                    if (!string.IsNullOrWhiteSpace(plugin.Tooltip))
-                        tip += "\n" + plugin.Tooltip;
-
-                    PluginViewModel vm = new PluginViewModel(plugin, true)
-                    {
-                        StatusString = ConfigManager.Instance.SafeMode ? "Disabled" : plugin.StatusString,
-                        VersionString = plugin.Version?.ToString() ?? "N/A",
-                        ToolTipString = tip
-                    };
+                    PluginViewModel vm = new PluginViewModel(plugin, (DataContext as PluginsScreenViewModel).Draft);
 
                     if (plugin is ModPlugin)
                         vmsMods.Add(vm);

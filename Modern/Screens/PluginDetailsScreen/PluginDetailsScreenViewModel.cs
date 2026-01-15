@@ -1,22 +1,18 @@
 ﻿using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
-using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
-using Pulsar.Shared.Stats.Model;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Pulsar.Modern.Screens.PluginDetailsScreen;
 
 internal class PluginDetailsScreenViewModel : ScreenViewModel
 {
     public PluginViewModel Plugin { get; private set; }
-    public readonly PluginInstance PluginInstance;
+    public PluginInstance PluginInstance { get; private set; }
     public readonly Profile Draft;
 
-    public event Action OnScreenClose;
+    public event Action OnScreenClosed;
 
     public PluginDetailsScreenViewModel(PluginViewModel plugin, Profile draft)
     {
@@ -40,6 +36,6 @@ internal class PluginDetailsScreenViewModel : ScreenViewModel
     {
         base.OnDispose();
 
-        OnScreenClose?.Invoke();
+        OnScreenClosed?.Invoke();
     }
 }

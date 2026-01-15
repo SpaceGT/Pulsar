@@ -3,7 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
-             x:Class="Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreen">
+             x:Class="Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreen"
+             xmlns:vm="using:Pulsar.Modern.Screens.AddPluginScreen"
+             xmlns:vm2="using:Pulsar.Modern.Screens"
+             x:DataType="vm:AddPluginScreenViewModel">
   <Border Background="Transparent"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
@@ -53,7 +56,7 @@
                     </ItemsPanelTemplate>
                 </ListBox.ItemsPanel>
                 <ListBox.ItemTemplate>
-					<DataTemplate>
+					<DataTemplate x:DataType="vm2:PluginViewModel">
                         <Border BorderThickness="1" Name="itemBorder">
                             <Border.Styles>
 								<Style Selector="Border:pointerover">
@@ -67,11 +70,11 @@
 				                </Grid.ColumnDefinitions>
                                 <Grid Grid.Column="0" Grid.ColumnSpan="1" Margin="20">
                                     <StackPanel>
-									    <TextBlock Text="{Binding PluginData.FriendlyName}" 
+									    <TextBlock Text="{Binding FriendlyName}" 
 							                    FontSize="23"
 							                    FontWeight="Normal"/>
-                                        <TextBlock Text="{Binding PluginData.Author}" Margin="0,0,0,15" FontSize="19"/>
-                                        <TextBlock Text="{Binding DescriptionShort}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
+                                        <TextBlock Text="{Binding Author}" Margin="0,0,0,15" FontSize="19"/>
+                                        <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
                                     </StackPanel>
                                     <Grid>
                                         <Grid.ColumnDefinitions>
@@ -79,18 +82,18 @@
 					                        <ColumnDefinition/>
 				                        </Grid.ColumnDefinitions>
                                         <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
-                                            <TextBlock Name="UsersText" IsVisible="{Binding !PluginData.IsLocal}" Text="{Binding PluginStat.Players, StringFormat='\{0\} users'}"/>
-                                            <TextBlock Text="{Binding PluginData.Source}"/>
+                                            <TextBlock Name="UsersText" IsVisible="{Binding ShowStatElements}" Text="{Binding Players, StringFormat='\{0\} users'}"/>
+                                            <TextBlock Text="{Binding SourceString}"/>
                                         </StackPanel>
-                                        <StackPanel Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-										    <Image IsVisible="{Binding !PluginData.IsLocal}" Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock IsVisible="{Binding !PluginData.IsLocal}" Name="UpvotesText" Text="{Binding PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-                                            <Image IsVisible="{Binding !PluginData.IsLocal}" Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock IsVisible="{Binding !PluginData.IsLocal}" Name="DownvotesText" Text="{Binding PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+                                        <StackPanel IsVisible="{Binding ShowStatElements}" Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+										    <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
+                                            <TextBlock Name="UpvotesText" Text="{Binding Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+                                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
+                                            <TextBlock Name="DownvotesText" Text="{Binding Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
                                         </StackPanel>
                                     </Grid>
                                 </Grid>
-                                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" IsChecked="{Binding Enabled}" IsCheckedChanged="PluginEnabledCheckbox_IsCheckedChanged"/>
+                                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" IsChecked="{Binding DraftEnabled}"/>
                             </Grid>
                         </Border>
                     </DataTemplate>

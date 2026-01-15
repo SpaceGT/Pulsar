@@ -3,7 +3,9 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
-             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.PluginDetailsScreen">
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.PluginDetailsScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.PluginDetailsScreen"
+             x:DataType="vm:PluginDetailsScreenViewModel">
     <Border Background="Transparent"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
@@ -35,45 +37,45 @@
 					        <ColumnDefinition/>
 				        </Grid.ColumnDefinitions>
                     <StackPanel>
-						<TextBlock Text="{Binding Plugin.PluginData.FriendlyName}" 
+						<TextBlock Text="{Binding Plugin.FriendlyName}" 
 							    FontSize="23"
 							    FontWeight="Normal"/>
-                        <TextBlock Text="{Binding Plugin.PluginData.Author}" Margin="0,0,0,15" FontSize="19"/>
+                        <TextBlock Text="{Binding Plugin.Author}" Margin="0,0,0,15" FontSize="19"/>
                     </StackPanel>
-                    <Grid>
+                    <Grid IsVisible="{Binding Plugin.ShowStatElements}">
                         <Grid.ColumnDefinitions>
 					        <ColumnDefinition Width="100" MaxWidth="100"/>
 					        <ColumnDefinition/>
 				        </Grid.ColumnDefinitions>
-                        <TextBlock Name="UsersText" VerticalAlignment="Bottom" Text="{Binding Plugin.PluginStat.Players, StringFormat='\{0\} users'}"/>
+                        <TextBlock Name="UsersText" VerticalAlignment="Bottom" Text="{Binding Plugin.Players, StringFormat='\{0\} users'}"/>
                     </Grid>
-					<StackPanel Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
+					<StackPanel Grid.Column="1" IsVisible="{Binding Plugin.ShowStatElements}" VerticalAlignment="Bottom" HorizontalAlignment="Right">
 						<StackPanel Orientation="Horizontal">
-							<Button Name="UpvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="UpvoteButton_Click">
+							<Button Name="UpvoteButton" IsEnabled="{Binding Plugin.CanVote}" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="UpvoteButton_Click">
 								<Button.Content>
 									<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
 								</Button.Content>
 							</Button>
-							<TextBlock Name="UpvotesText" Text="{Binding Plugin.PluginStat.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-							<Button Name="DownvoteButton" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="DownvoteButton_Click">
+							<TextBlock Name="UpvotesText" Text="{Binding Plugin.Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
+							<Button Name="DownvoteButton" IsEnabled="{Binding Plugin.CanVote}" MaxHeight="45" MaxWidth="60" MinHeight="45" MinWidth="60" Click="DownvoteButton_Click">
 								<Button.Content>
 									<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
 								</Button.Content>
 							</Button>
-							<TextBlock Name="DownvotesText" Text="{Binding Plugin.PluginStat.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+							<TextBlock Name="DownvotesText" Text="{Binding Plugin.Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
 						</StackPanel>
-						<TextBlock Name="VoteStatusText" Text="{Binding}" FontSize="14" Width="175" HorizontalAlignment="Left"/>
+						<TextBlock Name="VoteStatusText" Text="{Binding Plugin.VoteStatusString}" FontSize="14" Width="175" HorizontalAlignment="Left"/>
 					</StackPanel>
 					
                 </Grid>
-                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,50,0" Click="PluginEnabledCheckbox_Click"/>
+                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,50,0" IsChecked="{Binding Plugin.DraftEnabled}"/>
             </Grid>
-			<SelectableTextBlock Name="PluginDescription" Margin="50,16,50,00" Background="rgba(41,54,62,96)" Text="{Binding Plugin.DescriptionFull}" Height="480" TextWrapping="Wrap" FontSize="16" Foreground="White"/>
+			<SelectableTextBlock Name="PluginDescription" Margin="50,16,50,00" Background="rgba(41,54,62,96)" Text="{Binding Plugin.DetailDescription}" Height="480" TextWrapping="Wrap" FontSize="16" Foreground="White"/>
 			<StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Center">
 				<Button Name="MoreInfoButton" Content="More Info" Classes="Menu" Width="264" Height="55" Click="MoreInfoButton_Click"/>
-				<Button Name="SettingsButton" Content="Settings" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" IsEnabled="false" Click="SettingsButton_Click"/>
+				<Button Name="SettingsButton" Content="Settings" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" IsEnabled="{Binding PluginInstance.HasConfigDialog}" Click="SettingsButton_Click"/>
 			</StackPanel>
-			<TextBlock Name="SourceLabel" Text="{Binding Plugin.PluginData.Source}" Margin="50,20" FontWeight="Normal"/>
+			<TextBlock Name="SourceLabel" Text="{Binding Plugin.SourceString}" Margin="50,20" FontWeight="Normal"/>
         </StackPanel>
     </Border>
 </UserControl>
