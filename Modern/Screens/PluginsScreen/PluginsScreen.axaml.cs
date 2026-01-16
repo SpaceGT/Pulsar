@@ -20,30 +20,6 @@ public partial class PluginsScreen : PluginScreenBase
 
         if (!Design.IsDesignMode)
         {
-            (DataContext as PluginsScreenViewModel).OnListRefreshed += delegate
-            {
-                List<PluginViewModel> vms = [];
-                List<PluginViewModel> vmsMods = [];
-
-                foreach (PluginData plugin in (DataContext as PluginsScreenViewModel).PluginList.OrderBy(x => x.FriendlyName))
-                {
-                    if (!(DataContext as PluginsScreenViewModel).Draft.Contains(plugin.Id))
-                        continue;
-
-                    PluginViewModel vm = new PluginViewModel(plugin, (DataContext as PluginsScreenViewModel).Draft);
-
-                    if (plugin is ModPlugin)
-                        vmsMods.Add(vm);
-                    else
-                        vms.Add(vm);
-                }
-
-                PluginsList.DataContext = vms;
-                ModsList.DataContext = vmsMods;
-            };
-
-            (DataContext as PluginsScreenViewModel).RefreshPluginLists();
-
             ConsentBox.IsChecked = (DataContext as PluginsScreenViewModel).ConsentGiven;
             ConsentBox.IsCheckedChanged += (DataContext as PluginsScreenViewModel).OnConsentBoxChanged;
             PlayerConsent.OnConsentChanged += OnConsentChanged;
@@ -67,6 +43,7 @@ public partial class PluginsScreen : PluginScreenBase
             }
 
             PluginsList.DataContext = dummyPlugins;
+            ModsList.DataContext = dummyPlugins;
         }
     }
 
@@ -122,9 +99,7 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void ProfilesButton_OnClick(object? sender, RoutedEventArgs e)
     {
-        var viewModel = new ProfilesScreenViewModel((DataContext as PluginsScreenViewModel).Draft);
-        viewModel.OnDraftChange += (DataContext as PluginsScreenViewModel).ReplaceDraft;
-        viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+        var viewModel = new ProfilesScreenViewModel((DataContext as PluginsScreenViewModel).Draft, (DataContext as PluginsScreenViewModel).ReplaceDraft);
 
         ScreenTools.GetSharedUIComponent().CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel, true);
     }
@@ -140,17 +115,19 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void PluginAddButton_Click(object? sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel((DataContext as PluginsScreenViewModel).PluginList, false, (DataContext as PluginsScreenViewModel).Draft);
-        viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
-
+        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate()
+        {
+            (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+        });
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 
     private void ModAddButton_Click(object? sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel((DataContext as PluginsScreenViewModel).PluginList, true, (DataContext as PluginsScreenViewModel).Draft);
-        viewModel.OnScreenClose += () => (DataContext as PluginsScreenViewModel).RefreshPluginLists();
-
+        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).ModPlugins], true, delegate ()
+        {
+            (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+        });
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 }

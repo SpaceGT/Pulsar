@@ -7,98 +7,168 @@
              xmlns:vm="using:Pulsar.Modern.Screens.AddPluginScreen"
              xmlns:vm2="using:Pulsar.Modern.Screens"
              x:DataType="vm:AddPluginScreenViewModel">
-  <Border Background="Transparent"
+    <Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
 			Width="1152" 
 			Height="972">
-        <StackPanel Background="rgba(37,47,53,96)">
-            <Grid>
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+            <Grid Grid.Row="0">
 				<TextBlock Name="TitleText" 
-                       Text="Plugin List" 
-                       Margin="0,30,0,0"
-                       TextAlignment="Center"
-                       FontSize="25"
-					   FontWeight="Normal"/>
-                <Button Name="CancelButton" Classes="Menu" Width="40" Height="40" Margin="0,16,26,0" 
-		   HorizontalAlignment="Right" 
-		   HorizontalContentAlignment="Center" 
-		   VerticalContentAlignment="Center"
-		   FontSize="40"
-		   Click="CancelButton_Click">X</Button>
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+                        Text="Plugin List"/>
+                <Button Name="CancelButton" Classes="Menu" 
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_Click">
+				    <Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
             </Grid>
-            
-            <Separator Background="rgb(77,99,96)" Margin="100,16,100,0"/>
-            <Grid Margin="30,10,30,10">
+            <Separator Grid.Row="1" 
+                       Background="rgb(77,99,96)" 
+                       Margin="0,16,0,0"/>
+            <Grid Grid.Row="2" Margin="0,16,0,0">
                 <Grid.ColumnDefinitions>
-					<ColumnDefinition Width="875"/>
-					<ColumnDefinition/>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
 				</Grid.ColumnDefinitions>
-				<TextBox Name="SearchBox" Grid.Column="0" HorizontalAlignment="Stretch" Margin="0,0,10,0" Watermark="Search" TextChanged="SearchBox_TextChanged">
+				<TextBox Name="SearchBox" 
+                            Grid.Column="0" 
+                            HorizontalAlignment="Stretch" 
+                            Margin="0,0,16,0" 
+                            Watermark="Search" 
+                            TextChanged="SearchBox_TextChanged"
+                            Width="900">
                     <TextBox.InnerRightContent>
-						<Button Name="SearchClearButton" MaxHeight="15" MaxWidth="15" Content="X" IsVisible="False" Click="SearchClearButton_Click"/>
+						<Button Name="SearchClearButton" 
+                                MaxHeight="15" 
+                                MaxWidth="15" 
+                                IsVisible="False" 
+                                Click="SearchClearButton_Click">
+                            <Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+                        </Button>
                     </TextBox.InnerRightContent>
                 </TextBox>
-                <ComboBox Name="SortButton" Grid.Column="1" HorizontalAlignment="Stretch" Height="55" SelectionChanged="SortButton_SelectionChanged"/>
+                <ComboBox Name="SortButton" 
+                          Grid.Column="1" 
+                          HorizontalAlignment="Stretch" 
+                          Height="55" 
+                          SelectionChanged="SortButton_SelectionChanged" 
+                          PlaceholderText="Sort by"/>
             </Grid>
-            <ListBox Name="PluginList" HorizontalAlignment="Stretch" Height="780" Margin="30,10,30,10" Padding="10" ItemsSource="{Binding}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" Background="rgba(41,54,62,96)" SelectionChanged="PluginList_SelectionChanged">
-                <ListBox.Styles>
-                    <Style Selector="ListBoxItem:selected /template/ ContentPresenter">
-	                    <Setter Property="Background" Value="Transparent"/>	
-                    </Style>
-                    <Style Selector="ListBoxItem:pointerover /template/ ContentPresenter">
-	                    <Setter Property="Background" Value="Transparent"/>	
-                    </Style>
-                </ListBox.Styles>
-                <ListBox.ItemsPanel>
-					<ItemsPanelTemplate>
-                      <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ListBox.ItemsPanel>
-                <ListBox.ItemTemplate>
-					<DataTemplate x:DataType="vm2:PluginViewModel">
-                        <Border BorderThickness="1" Name="itemBorder">
-                            <Border.Styles>
-								<Style Selector="Border:pointerover">
-	                                <Setter Property="BorderBrush" Value="White"/>	
-                                </Style>
-                            </Border.Styles>
-							<Grid Width="505" Height="241" Background="rgba(60,76,82,96)">
-							    <Grid.ColumnDefinitions>
-					                <ColumnDefinition Width="400"/>
-					                <ColumnDefinition/>
-				                </Grid.ColumnDefinitions>
-                                <Grid Grid.Column="0" Grid.ColumnSpan="1" Margin="20">
-                                    <StackPanel>
-									    <TextBlock Text="{Binding FriendlyName}" 
-							                    FontSize="23"
-							                    FontWeight="Normal"/>
-                                        <TextBlock Text="{Binding Author}" Margin="0,0,0,15" FontSize="19"/>
-                                        <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" Height="100" MaxHeight="100"/>
-                                    </StackPanel>
-                                    <Grid>
-                                        <Grid.ColumnDefinitions>
-					                        <ColumnDefinition Width="100" MaxWidth="100"/>
-					                        <ColumnDefinition/>
-				                        </Grid.ColumnDefinitions>
-                                        <StackPanel VerticalAlignment="Bottom" Grid.Column="0">
-                                            <TextBlock Name="UsersText" IsVisible="{Binding ShowStatElements}" Text="{Binding Players, StringFormat='\{0\} users'}"/>
-                                            <TextBlock Text="{Binding SourceString}"/>
+            <ScrollViewer Margin="0,16,0,16" 
+                          Height="765" 
+                          Background="rgba(41,54,62,96)" 
+                          Grid.Row="3">
+				<ItemsRepeater Name="PluginList" 
+                                HorizontalAlignment="Stretch" 
+                                ItemsSource="{Binding Plugins}">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+					    <DataTemplate x:DataType="vm2:PluginViewModel">
+                            <Border BorderThickness="1" 
+                                    Name="PluginItem" 
+                                    Margin="20,20,0,0" 
+                                    Width="505" 
+                                    Height="241" 
+                                    Background="rgba(60,76,82,56)"
+                                    PointerPressed="PluginItem_PointerPressed">
+                                <Border.Styles>
+								    <Style Selector="Border:pointerover">
+	                                    <Setter Property="BorderBrush" 
+                                                Value="White"/>	
+                                    </Style>
+                                </Border.Styles>
+							    <Grid Margin="20">
+							        <Grid.RowDefinitions>
+				                        <RowDefinition Height="*"/>
+				                        <RowDefinition Height="Auto"/>
+			                        </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <StackPanel>
+									        <TextBlock Text="{Binding FriendlyName}" 
+							                        FontSize="23"
+							                        FontWeight="Normal"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Left"
+                                                    MaxWidth="420"/>
+                                            <TextBlock Text="{Binding Author}" 
+                                                       Margin="0,4,0,0" FontSize="19" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Left"/>
+                                            <TextBlock Text="{Binding ShortDescription}" 
+                                                       Margin="0,4,0,0"
+                                                       TextWrapping="Wrap" 
+                                                       MaxHeight="90" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Left"/>
                                         </StackPanel>
-                                        <StackPanel IsVisible="{Binding ShowStatElements}" Orientation="Horizontal" Grid.Column="1" VerticalAlignment="Bottom" HorizontalAlignment="Right">
-										    <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock Name="UpvotesText" Text="{Binding Upvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,10,0"/>
-                                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" MaxHeight="32"/>
-                                            <TextBlock Name="DownvotesText" Text="{Binding Downvotes}" VerticalAlignment="Center" HorizontalAlignment="Center" FontWeight="Normal" Margin="5,0,5,0"/>
+                                        <CheckBox Name="PluginEnabledCheckbox" 
+                                                  Grid.Column="1" 
+                                                  VerticalAlignment="Top" 
+                                                  HorizontalAlignment="Right" 
+                                                  IsChecked="{Binding DraftEnabled}"/>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <StackPanel VerticalAlignment="Bottom">
+                                            <TextBlock Name="UsersText" 
+                                                       IsVisible="{Binding ShowStatElements}" 
+                                                       Text="{Binding Players, StringFormat='\{0\} users'}"
+                                                       FontWeight="Normal"
+                                                       Foreground="White"/>
+                                            <TextBlock Text="{Binding SourceString}" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"/>
+                                        </StackPanel>
+                                        <StackPanel IsVisible="{Binding ShowStatElements}" 
+                                                    Orientation="Horizontal" 
+                                                    VerticalAlignment="Bottom" 
+                                                    HorizontalAlignment="Right">
+										    <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" 
+                                                   MaxHeight="32"/>
+                                            <TextBlock Name="UpvotesText" 
+                                                       Text="{Binding Upvotes}" 
+                                                       VerticalAlignment="Center" 
+									                   HorizontalAlignment="Center" 
+									                   FontWeight="Normal" 
+									                   Foreground="White"
+									                   Margin="5,0,5,0" 
+									                   MinWidth="20"/>
+                                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" 
+                                                   MaxHeight="32"/>
+                                            <TextBlock Name="DownvotesText" 
+                                                       Text="{Binding Downvotes}" 
+                                                       VerticalAlignment="Center" 
+									                   HorizontalAlignment="Center" 
+									                   FontWeight="Normal" 
+									                   Foreground="White"
+									                   Margin="5,0,5,0" 
+									                   MinWidth="20"/>
                                         </StackPanel>
                                     </Grid>
                                 </Grid>
-                                <CheckBox Name="PluginEnabledCheckbox" Grid.Column="1" VerticalAlignment="Top" HorizontalAlignment="Right" Margin="0,20,20,0" IsChecked="{Binding DraftEnabled}"/>
-                            </Grid>
-                        </Border>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-            </ListBox>
-        </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+        </Grid>
     </Border>
 </UserControl>

@@ -1,5 +1,6 @@
 ﻿using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
+using Pulsar.Modern.Loader;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
@@ -105,22 +106,64 @@ namespace Pulsar.Modern.Screens
             }
         }
 
+        public bool HasSettingsMenu
+        {
+            get
+            {
+                if (pluginInstance == null)
+                    return false;
+
+                return pluginInstance.HasConfigDialog;
+            }
+        }
+
+        public bool IsHidden => PluginData.Hidden;
+        public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
+
         private Profile draft;
+        private PluginInstance pluginInstance;
 
         public PluginViewModel(PluginData pluginData, Profile draft)
         {
-            PluginStats stats = null;
-
-            if (!Design.IsDesignMode)
-                stats = ConfigManager.Instance.Stats ?? new PluginStats();
-
             PluginData = pluginData;
             this.draft = draft;
 
-            if (!Design.IsDesignMode)
-                PluginStat = stats.GetStatsForPlugin(PluginData);
-            else
+            if (Design.IsDesignMode)
+            {
                 PluginStat = new PluginStat();
+                return;
+            }
+
+            PluginStats stats = ConfigManager.Instance.Stats ?? new PluginStats();
+            PluginStat = stats.GetStatsForPlugin(PluginData);
+
+            if (PluginLoader.Instance.TryGetPluginInstance(PluginData.Id, out PluginInstance instance))
+                pluginInstance = instance;
+        }
+
+        public static PluginViewModel GetDummyPlugin()
+        {
+            GitHubPlugin dummyPlugin = new()
+            {
+                Source = "PluginHub",
+                Status = PluginStatus.Updated,
+                FriendlyName = "A Dummy Plugin",
+                Tooltip = "A Dummy Plugin",
+                Author = "No One",
+                Description = "Dummy plugin for Avalonia designer preview\n" +
+                            "Line2\n" +
+                            "Line3 https://example.com\n" +
+                            "LongLine4-------------------------------------------------------\n" +
+                            "Line5\n" +
+                            "Line6"
+            };
+
+            return new(dummyPlugin, new());
+        }
+
+        public void TryOpenSettingsScreen()
+        {
+            pluginInstance.OpenConfig();
         }
 
         public void TryVote(int vote)
@@ -151,6 +194,11 @@ namespace Pulsar.Modern.Screens
             OnPropertyChanged(nameof(Upvotes));
             OnPropertyChanged(nameof(Downvotes));
             OnPropertyChanged(nameof(VoteStatusString));
+        }
+
+        public long Rank(string query)
+        {
+            return PluginData.Rank(query);
         }
     }
 }

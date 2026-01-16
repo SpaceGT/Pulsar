@@ -1,12 +1,13 @@
 ﻿using Avalonia.Controls;
 using Avalonia.Interactivity;
-using Keen.Game2.Game.Plugins;
+using DynamicData;
 using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
@@ -14,6 +15,12 @@ namespace Pulsar.Modern.Screens.PluginsScreen;
 internal class PluginsScreenViewModel : ScreenViewModel
 {
     public Profile Draft { get; private set; }
+
+    public List<PluginViewModel> Plugins { get; private set; } = [];
+    public List<PluginViewModel> ModPlugins { get; private set; } = [];
+
+    public ObservableCollection<PluginViewModel> EnabledPlugins { get; private set; }
+    public ObservableCollection<PluginViewModel> EnabledModPlugins { get; private set; }
 
     private ConfigManager configManager;
 
@@ -23,8 +30,6 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public bool ConsentGiven = PlayerConsent.ConsentGiven;
 
-    public event Action OnListRefreshed;
-
     public PluginsScreenViewModel(ConfigManager configManager)
     {
         KeepsOtherScreensVisible = false;
@@ -33,6 +38,21 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
         this.configManager = configManager;
         Draft = Tools.DeepCopy(this.configManager.Profiles.Current);
+        
+        foreach (PluginData plugin in this.configManager.List)
+        {
+            if (plugin is ModPlugin modPlugin)
+                ModPlugins.Add(new PluginViewModel(modPlugin, Draft));
+            else
+                Plugins.Add(new PluginViewModel(plugin, Draft));
+        }
+
+        ModPlugins.Sort(ComparePluginsByName);
+        Plugins.Sort(ComparePluginsByName);
+
+        EnabledModPlugins = [.. ModPlugins.Where(x => x.DraftEnabled)];
+        EnabledPlugins = [.. Plugins.Where(x => x.DraftEnabled)];
+
         PluginList = this.configManager.List;
         Profiles = this.configManager.Profiles;
         Sources = this.configManager.Sources;
@@ -65,7 +85,30 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public void RefreshPluginLists()
     {
-        OnListRefreshed?.Invoke();
+        ModPlugins.Clear();
+        Plugins.Clear();
+
+        EnabledPlugins.Clear();
+        EnabledModPlugins.Clear();
+
+        foreach (PluginData plugin in this.configManager.List)
+        {
+            if (plugin is ModPlugin modPlugin)
+                ModPlugins.Add(new PluginViewModel(modPlugin, Draft));
+            else
+                Plugins.Add(new PluginViewModel(plugin, Draft));
+        }
+
+        ModPlugins.Sort(ComparePluginsByName);
+        Plugins.Sort(ComparePluginsByName);
+
+        EnabledModPlugins.AddRange([.. ModPlugins.Where(x => x.DraftEnabled)]);
+        EnabledPlugins.AddRange([.. Plugins.Where(x => x.DraftEnabled)]);
+    }
+
+    private int ComparePluginsByName(PluginViewModel x, PluginViewModel y)
+    {
+        return x.FriendlyName.CompareTo(y.FriendlyName, StringComparison.OrdinalIgnoreCase);
     }
 
     public void ReplaceDraft(Profile profile)
@@ -73,6 +116,8 @@ internal class PluginsScreenViewModel : ScreenViewModel
         SyncDevFolders(profile, Draft);
         profile.Name = Draft.Name;
         Draft = profile;
+
+        RefreshPluginLists();
     }
 
     public bool SyncPluginConfigs()

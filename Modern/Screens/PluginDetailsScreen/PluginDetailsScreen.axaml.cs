@@ -14,22 +14,7 @@ public partial class PluginDetailsScreen : PluginScreenBase
 
         if (Design.IsDesignMode)
         {
-            PluginData dummyPlugin = new GitHubPlugin()
-            {
-                FriendlyName = "TEST PLUGIN",
-                Author = "A user",
-                Status = PluginStatus.Updated,
-                Tooltip = "TEST MOD DESCRIPTION\nTEST MOD DESCRIPTION\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nLine4\nLine5",
-                Source = "Local",
-                Description = "TEST MOD DESCRIPTION\nTEST MOD DESCRIPTION\nAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\nLine4\nLine5\nhttps://example.com"
-            };
-
-            DataContext = new PluginDetailsScreenViewModel(new PluginViewModel(dummyPlugin, (DataContext as PluginDetailsScreenViewModel).Draft), null);
-            PluginEnabledCheckbox.IsChecked = true;
-        }
-        else
-        {
-            PluginEnabledCheckbox.IsChecked = (DataContext as PluginDetailsScreenViewModel).Draft.Contains((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.Id);
+            DataContext = new PluginDetailsScreenViewModel(PluginViewModel.GetDummyPlugin());
         }
 
         TitleText.Text = (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin ? "Mod Details" : "Plugin Details";
@@ -47,7 +32,7 @@ public partial class PluginDetailsScreen : PluginScreenBase
 
     private void SettingsButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as PluginDetailsScreenViewModel).PluginInstance?.OpenConfig();
+        (DataContext as PluginDetailsScreenViewModel).Plugin.TryOpenSettingsScreen();
     }
 
     private void UpvoteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

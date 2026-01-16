@@ -5,14 +5,14 @@ namespace Pulsar.Modern.Screens.ProfilesScreen
 {
     internal class ProfileViewModel : AttachedViewModel
     {
-        public string Name => profile.Name;
-        public string Description => profile.GetDescription();
+        public readonly Profile Profile;
 
-        private Profile profile;
+        public string Name => Profile.Name;
+        public string Description => Profile.GetDescription();
 
         public ProfileViewModel(Profile profile)
         {
-            this.profile = profile;
+            Profile = profile;
         }
     }
 }

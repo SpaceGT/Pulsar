@@ -9,27 +9,27 @@ namespace Pulsar.Modern.Screens.ProfilesScreen;
 
 internal class ProfilesScreenViewModel : ScreenViewModel
 {
-    public event Action<Profile> OnDraftChange;
-
-    public event Action OnScreenClose;
-
     public readonly ProfilesConfig Config = ConfigManager.Instance.Profiles;
 
-    public readonly Profile Draft;
+    public readonly Profile draft;
+    private event Action<Profile> onDraftChange;
 
-    public ProfilesScreenViewModel(Profile draft)
+    public ProfilesScreenViewModel(Profile draft, Action<Profile> onDraftChange)
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;
+
+        this.draft = draft;
+        this.onDraftChange = onDraftChange;
+
         InitializeInputContext();
-        this.Draft = draft;
     }
 
     public void LoadProfile(Profile p)
     {
         Profile newDraft = Tools.DeepCopy(p);
-        OnDraftChange(newDraft);
+        onDraftChange(newDraft);
     }
 
     public Profile CreateProfile(string name)
@@ -37,7 +37,7 @@ internal class ProfilesScreenViewModel : ScreenViewModel
         if (string.IsNullOrWhiteSpace(name))
             return null;
 
-        Profile newProfile = Tools.DeepCopy(Draft);
+        Profile newProfile = Tools.DeepCopy(draft);
         newProfile.Name = name;
 
         if (Config.Exists(newProfile.Key))
@@ -57,11 +57,5 @@ internal class ProfilesScreenViewModel : ScreenViewModel
         definition.Content = ScreenTools.GetKeyFromString($"A profile called {name} already exists!\n" + "Please enter a different name.");
 
         ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
-    }
-
-    public override void OnClose()
-    {
-        base.OnClose();
-        OnScreenClose?.Invoke();
     }
 }

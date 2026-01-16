@@ -6,7 +6,7 @@
              x:Class="Pulsar.Modern.Screens.PluginsScreen.PluginsScreen"
 			 xmlns:vm="using:Pulsar.Modern.Screens.PluginsScreen"
 			 xmlns:vm2="using:Pulsar.Modern.Screens"
-			 x:DataType="vm:PluginsScreen">
+			 x:DataType="vm:PluginsScreenViewModel">
 	<Border Background="Transparent"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
@@ -28,7 +28,7 @@
 							   FontSize="23"
 							   FontWeight="Normal"
 							   Foreground="White">Plugins</TextBlock>
-					<ListBox HorizontalAlignment="Center" Width="680" Height="660" Name="PluginsList" ItemsSource="{Binding}">
+					<ListBox HorizontalAlignment="Center" Width="680" Height="660" Name="PluginsList" ItemsSource="{Binding EnabledPlugins}">
 						<ListBox.Template>
 							<ControlTemplate>
 								<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">
@@ -90,7 +90,7 @@
 						   FontSize="23"
 						   FontWeight="Normal"
 						   Foreground="White">Mods</TextBlock>
-					<ListBox Name="ModsList" HorizontalAlignment="Center" Width="400" Height="660" ItemsSource="{Binding}">
+					<ListBox Name="ModsList" HorizontalAlignment="Center" Width="400" Height="660" ItemsSource="{Binding EnabledModPlugins}">
 						<ListBox.Template>
 							<ControlTemplate>
 								<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">

@@ -10,8 +10,8 @@ namespace Pulsar.Modern.Screens.ProfilesScreen;
 [NeedsWindowStyles]
 public partial class ProfilesScreen : PluginScreenBase
 {
-    private bool selected = false;
-    private bool justSelected = false;
+    private bool itemSelected = false;
+    private bool itemJustSelected = false;
 
     public ProfilesScreen()
     {
@@ -43,13 +43,13 @@ public partial class ProfilesScreen : PluginScreenBase
                 Profile p = (DataContext as ProfilesScreenViewModel).CreateProfile(name);
                 ProfilesList.Items.Add(p);
                 ProfilesList.SelectedItem = p;
-                selected = true;
+                itemSelected = true;
                 UpdateButtons();
             }), true);
         }
         else if (ProfilesList.SelectedItem is Profile profile)
         {
-            Profile newProfile = Tools.DeepCopy((DataContext as ProfilesScreenViewModel).Draft);
+            Profile newProfile = Tools.DeepCopy((DataContext as ProfilesScreenViewModel).draft);
             newProfile.Name = profile.Name;
             ProfilesList.Items.Insert(ProfilesList.SelectedIndex, newProfile);
             ProfilesList.Items.Remove(ProfilesList.SelectedItem);
@@ -61,9 +61,9 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void LoadButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (ProfilesList.SelectedItem as Profile is not null)
+        if (ProfilesList.SelectedItem is ProfileViewModel profile)
         {
-            (DataContext as ProfilesScreenViewModel).LoadProfile((Profile)ProfilesList.SelectedItem);
+            (DataContext as ProfilesScreenViewModel).LoadProfile(profile.Profile);
             Dispose();
         }
     }
@@ -109,8 +109,8 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void ProfilesList_SelectionChanged(object? sender, Avalonia.Controls.SelectionChangedEventArgs e)
     {
-        justSelected = true;
-        selected = true;
+        itemJustSelected = true;
+        itemSelected = true;
         UpdateButtons();
     }
 
@@ -130,16 +130,16 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void ProfilesList_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
     {
-        if (justSelected)
+        if (itemJustSelected)
         {
-            justSelected = false;
+            itemJustSelected = false;
             return;
         }
 
-        if (ProfilesList.SelectedItem as Profile is not null && selected)
+        if (ProfilesList.SelectedItem as Profile is not null && itemSelected)
         {
             ProfilesList.SelectedIndex = -1;
-            selected = false;
+            itemSelected = false;
         }
     }
 }

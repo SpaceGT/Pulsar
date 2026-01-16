@@ -1,7 +1,5 @@
-﻿using Keen.VRage.UI.Screens;
-using Pulsar.Shared.Config;
-using Pulsar.Shared.Data;
-using Pulsar.Shared.Stats.Model;
+﻿using DynamicData;
+using Keen.VRage.UI.Screens;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -11,15 +9,13 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
 {
     internal class AddPluginScreenViewModel : ScreenViewModel
     {
-        public event Action OnScreenClose;
-
-        public readonly List<PluginData> Plugins = [];
-        public readonly List<PluginData> Hidden = [];
-        public readonly Profile Draft;
-        private PluginStats stats;
+        public ObservableCollection<PluginViewModel> Plugins { get; private set; }
         public readonly bool Mods;
         public string Filter;
         public SortingMethod SortMethod = SortingMethod.Name;
+
+        private List<PluginViewModel> plugins;
+        private event Action onScreenClose;
 
         public enum SortingMethod : int
         {
@@ -29,20 +25,18 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             Rating,
         }
 
-        public AddPluginScreenViewModel(IEnumerable<PluginData> plugins, bool mods, Profile draft)
+        public AddPluginScreenViewModel(List<PluginViewModel> plugins, bool mods, Action onScreenClose)
         {
             KeepsOtherScreensVisible = false;
             AllowsInputBelowUI = false;
             AllowsInputFromLowerScreens = false;
             InitializeInputContext();
 
-            stats = ConfigManager.Instance.Stats ?? new PluginStats();
             Mods = mods;
-            this.Draft = draft;
 
-            var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime());
-            this.Plugins = [.. supported.Where(x => !x.Hidden)];
-            Hidden = [.. supported.Where(x => x.Hidden)];
+            this.plugins = plugins;
+            Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedRuntime)]);
+            this.onScreenClose = onScreenClose;
 
             SortPlugins(SortingMethod.Name);
         }
@@ -50,8 +44,7 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
         public override void OnDispose()
         {
             base.OnDispose();
-
-            OnScreenClose?.Invoke();
+            onScreenClose?.Invoke();
         }
 
         public void SortPlugins(SortingMethod sort)
@@ -59,21 +52,25 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             switch (sort)
             {
                 case SortingMethod.Name:
-                    Plugins.Sort(ComparePluginsByName);
+                    plugins.Sort(ComparePluginsByName);
                     break;
                 case SortingMethod.Usage:
-                    Plugins.Sort(ComparePluginsByUsage);
+                    plugins.Sort(ComparePluginsByUsage);
                     break;
                 case SortingMethod.Rating:
-                    Plugins.Sort(ComparePluginsByRating);
+                    plugins.Sort(ComparePluginsByRating);
                     break;
                 case SortingMethod.Search:
                     SortPluginsBySearch();
                     break;
                 default:
-                    Plugins.Sort(ComparePluginsByName);
+                    plugins.Sort(ComparePluginsByName);
                     break;
             }
+
+            Plugins.Clear();
+
+            Plugins.AddRange([.. plugins.Where(x => (!x.IsHidden || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase)) && x.IsSupportedRuntime)]);
         }
 
         public void SortPluginsBySearch()
@@ -81,37 +78,33 @@ namespace Pulsar.Modern.Screens.AddPluginScreen
             if (string.IsNullOrWhiteSpace(Filter))
                 return;
 
-            var scoreCache = Plugins.ToDictionary(p => p, p => p.Rank(Filter));
-            Plugins.Sort(Comparator);
+            var scoreCache = plugins.ToDictionary(p => p, p => p.Rank(Filter));
+            plugins.Sort(Comparator);
 
-            int Comparator(PluginData x, PluginData y)
+            int Comparator(PluginViewModel x, PluginViewModel y)
             {
                 int comp = scoreCache[y].CompareTo(scoreCache[x]);
                 return comp == 0 ? ComparePluginsByName(x, y) : comp;
             }
         }
 
-        private int ComparePluginsByName(PluginData x, PluginData y)
+        private int ComparePluginsByName(PluginViewModel x, PluginViewModel y)
         {
             return x.FriendlyName.CompareTo(y.FriendlyName, StringComparison.OrdinalIgnoreCase);
         }
 
-        private int ComparePluginsByUsage(PluginData x, PluginData y)
+        private int ComparePluginsByUsage(PluginViewModel x, PluginViewModel y)
         {
-            PluginStat statX = stats.GetStatsForPlugin(x);
-            PluginStat statY = stats.GetStatsForPlugin(y);
-            int usage = -statX.Players.CompareTo(statY.Players);
+            int usage = -x.Players.CompareTo(y.Players);
             if (usage != 0)
                 return usage;
             return ComparePluginsByName(x, y);
         }
 
-        private int ComparePluginsByRating(PluginData x, PluginData y)
+        private int ComparePluginsByRating(PluginViewModel x, PluginViewModel y)
         {
-            PluginStat statX = stats.GetStatsForPlugin(x);
-            int ratingX = statX.Upvotes - statX.Downvotes;
-            PluginStat statY = stats.GetStatsForPlugin(y);
-            int ratingY = statY.Upvotes - statY.Downvotes;
+            int ratingX = x.Upvotes - x.Downvotes;
+            int ratingY = y.Upvotes - y.Downvotes;
             int rating = -ratingX.CompareTo(ratingY);
             if (rating != 0)
                 return rating;
