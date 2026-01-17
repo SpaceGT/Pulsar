@@ -7,6 +7,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using LibGit2Sharp;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
 
@@ -299,4 +300,72 @@ public static class Tools
     private static extern short GetAsyncKeyState(int vKey);
 
     public static bool IsKeyPressed(Keys key) => GetAsyncKeyState((int)key) < 0;
+
+    private static void CloneSubmodulesRecursive(Repository repo, int maxDepth)
+    {
+        if (maxDepth == 0)
+        {
+            throw new Exception("Max submodule recursion depth reached.");
+        }
+
+        maxDepth--;
+
+        // restore submodules
+        foreach (var submodule in repo.Submodules)
+        {
+            repo.Submodules.Update(submodule.Name, new SubmoduleUpdateOptions
+            {
+                Init = true,
+            });
+
+            CloneSubmodulesRecursive(new Repository(Path.Combine(repo.Info.WorkingDirectory, submodule.Path)), maxDepth);
+        }
+    }
+
+    /// <summary>
+    /// git clone --revision=<paramref name="commitHash"/> --depth=1 --recurse-submodules <paramref name="repoUrl"/>
+    /// </summary>
+    /// <param name="repoDir"></param>
+    /// <param name="repoUrl"></param>
+    /// <param name="commitHash"></param>
+    public static void ShallowCloneRecurseSubmodules(string repoDir, string repoUrl, string commitHash)
+    {
+        using (var repo = new Repository(Repository.Init(repoDir)))
+        {
+            if (!(repo.Head?.Tip?.Sha?.Equals(commitHash, StringComparison.OrdinalIgnoreCase) ?? false) || repo.RetrieveStatus().IsDirty)
+            {
+                repo.RemoveUntrackedFiles();
+
+                Remote remote = repo.Network.Remotes["origin"] ?? repo.Network.Remotes.Add("origin", repoUrl);
+
+                FetchOptions fetchOptions = new()
+                {
+                    Depth = 1,
+                    TagFetchMode = TagFetchMode.None,
+                };
+
+                Commands.Fetch(repo, remote.Name, [commitHash], fetchOptions, null);
+                Commit commit = repo.Lookup<Commit>(commitHash) ?? throw new Exception("Commit not found in remote repository.");
+                repo.Reset(ResetMode.Hard, commit, new CheckoutOptions { CheckoutModifiers = CheckoutModifiers.Force });
+            }
+
+            CloneSubmodulesRecursive(repo, 10);
+        }
+    }
+
+    /// <summary>
+    /// Recursively delete a directory containing readonly items.
+    /// </summary>
+    /// <param name="path">Path to the directory.</param>
+    public static void DeleteDirectoryRecursiveSafe(string path)
+    {
+        var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
+
+        foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
+        {
+            info.Attributes = FileAttributes.Normal;
+        }
+
+        directory.Delete(true);
+    }
 }

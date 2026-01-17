@@ -18,16 +18,19 @@ public partial class GitHubPlugin
         private const string commitFile = "commit.sha1";
         private const string assetFolder = "Assets";
         private const string libFolder = "Bin";
+        private const string srcFolder = "src";
 
         private string cacheDir;
         private string assetDir;
         private string libDir;
+        private string srcDir;
         private Dictionary<string, AssetFile> assetFiles = [];
 
         [XmlIgnore]
         public string DllFile { get; private set; }
         public string AssetFolder => assetDir;
         public string LibDir => libDir;
+        public string SrcDir => srcDir;
 
         public string Commit { get; set; }
 
@@ -60,6 +63,7 @@ public partial class GitHubPlugin
             assetDir = Path.Combine(cacheDir, assetFolder);
             libDir = Path.Combine(cacheDir, libFolder);
             DllFile = Path.Combine(cacheDir, pluginFile);
+            srcDir = Path.Combine(cacheDir, srcFolder);
 
             foreach (AssetFile file in assetFiles.Values)
                 SetBaseDir(file);

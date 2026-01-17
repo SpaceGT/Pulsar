@@ -217,15 +217,18 @@ public partial class GitHubPlugin : PluginData
     )
     {
         ICompiler compiler = Tools.Compiler.Create();
-        using (Stream s = GitHub.GetRepoArchive(repo, commit))
-        using (ZipArchive zip = new(s))
+    
+        Tools.ShallowCloneRecurseSubmodules(manifest.SrcDir, $"https://github.com/{repo}", commit);
+        callback?.Invoke(0);
+    
+        string[] repoFiles = Directory.GetFiles(manifest.SrcDir, "*.*", SearchOption.AllDirectories);
+        for (int i = 0; i < repoFiles.Length; i++)
         {
-            callback?.Invoke(0);
-            for (int i = 0; i < zip.Entries.Count; i++)
+            string normalizedFile = repoFiles[i].Replace('\\', '/');
+            if (!normalizedFile.Contains("/.git/"))
             {
-                ZipArchiveEntry entry = zip.Entries[i];
-                CompileFromSource(compiler, entry);
-                callback?.Invoke(i / (float)zip.Entries.Count);
+                CompileFromSource(compiler, normalizedFile);
+                callback?.Invoke(i / (float)repoFiles.Length);
             }
         }
         if (NuGetReferences?.PackageIds is not null)
@@ -237,14 +240,14 @@ public partial class GitHubPlugin : PluginData
         return compiler.Compile(assemblyName, out _);
     }
 
-    private void CompileFromSource(ICompiler compiler, ZipArchiveEntry entry)
+    private void CompileFromSource(ICompiler compiler, string filePath)
     {
-        string path = RemoveRoot(entry.FullName);
+        string path = RemoveRoot(filePath);
         if (NuGetReferences is not null && path == NuGetReferences.PackagesConfigNormalized)
         {
             nuget = new NuGetClient();
             NuGetPackage[] packages;
-            using (Stream entryStream = entry.Open())
+            using (Stream entryStream = File.OpenRead(filePath))
             {
                 packages = nuget.DownloadFromConfig(entryStream);
             }
@@ -252,8 +255,8 @@ public partial class GitHubPlugin : PluginData
         }
         if (AllowedZipPath(path))
         {
-            using Stream entryStream = entry.Open();
-            string relFile = string.Join("\\", entry.FullName.Split('/').Skip(1));
+            using Stream entryStream = File.OpenRead(filePath);
+            string relFile = path.Replace('/', '\\');
             compiler.Load(entryStream, relFile, embedFile: null);
         }
         if (IsAssetZipPath(path, out string assetFilePath))
@@ -261,7 +264,7 @@ public partial class GitHubPlugin : PluginData
             AssetFile newFile = manifest.CreateAsset(assetFilePath);
             if (!manifest.IsAssetValid(newFile))
             {
-                using Stream entryStream = entry.Open();
+                using Stream entryStream = File.OpenRead(filePath);
                 manifest.SaveAsset(newFile, entryStream);
             }
         }
@@ -335,11 +338,7 @@ public partial class GitHubPlugin : PluginData
 
     private string RemoveRoot(string path)
     {
-        path = path.Replace('\\', '/').TrimStart('/');
-        int index = path.IndexOf('/');
-        if (index >= 0 && (index + 1) < path.Length)
-            return path.Substring(index + 1);
-        return path;
+        return path.Replace('\\', '/').Replace(manifest.SrcDir.Replace('\\', '/'), "").TrimStart('/');
     }
 
     public override void UpdateProfile(Profile draft, bool enabled)
