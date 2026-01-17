@@ -29,7 +29,6 @@ internal class PluginLoader : IPlugin, IDisposable
     {
         Instance = this;
         AppDomain.CurrentDomain.FirstChanceException += OnException;
-        PlayerConsent.OnConsentChanged += OnConsentChanged;
 
         StringBuilder debugCompileResults = new();
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
@@ -86,14 +85,8 @@ internal class PluginLoader : IPlugin, IDisposable
             p.Dispose();
         plugins.Clear();
 
-        PlayerConsent.OnConsentChanged -= OnConsentChanged;
         LogFile.Dispose();
         Instance = null;
-    }
-
-    private void OnConsentChanged()
-    {
-        ConfigManager.Instance.UpdatePlayerStats();
     }
 
     private void OnException(object sender, FirstChanceExceptionEventArgs e)

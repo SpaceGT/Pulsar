@@ -22,7 +22,7 @@ internal class Patch_MainMenuButtons
             return;
         }
 
-        Button pluginsButton = __instance.CreateButton("Plugins", () => PluginsScreenViewModel.Open());
+        Button pluginsButton = __instance.CreateButton("Plugins", () => PluginsScreenViewModel.OpenMenu());
 
         __instance._buttonsPanel.Children.Insert(__instance._buttonsPanel.Children.Count - 2, pluginsButton);
 

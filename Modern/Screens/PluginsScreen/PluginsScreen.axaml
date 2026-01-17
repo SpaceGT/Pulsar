@@ -7,147 +7,264 @@
 			 xmlns:vm="using:Pulsar.Modern.Screens.PluginsScreen"
 			 xmlns:vm2="using:Pulsar.Modern.Screens"
 			 x:DataType="vm:PluginsScreenViewModel">
-	<Border Background="Transparent"
+	<!-- Change width to 1450 when enabling mods list -->
+	<Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
 			Width="1450" 
 			Height="975">
-		<Grid Background="rgba(37,47,53,96)"
-			RowDefinitions="Auto,Auto,Auto,Auto,Auto">
-			<TextBlock Grid.Row="0" 
-					   HorizontalAlignment="Center"
-					   Margin="0,40,0,0"
-					   FontSize="25"
-					   FontWeight="Normal"
-					   Foreground="White">Pulsar</TextBlock>
-			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="100,16,100,0"/>
-			<Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto" Margin="35,28,35,0">
-				<StackPanel Grid.Column="0" HorizontalAlignment="Center">
+		<Grid 
+			RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+			Margin="30">
+			<Grid Grid.Row="0">
+				<TextBlock Name="TitleText" 
+						HorizontalAlignment="Center"
+						FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+						Text="Pulsar"/>
+				<Button Name="CornerCancelButton" Classes="Menu" 
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_OnClick">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto" Margin="0,16,0,0">
+				<StackPanel Grid.Column="0" HorizontalAlignment="Stretch">
 					<TextBlock Grid.Row="0"
 							   HorizontalAlignment="Center"
 							   FontSize="23"
 							   FontWeight="Normal"
-							   Foreground="White">Plugins</TextBlock>
-					<ListBox HorizontalAlignment="Center" Width="680" Height="660" Name="PluginsList" ItemsSource="{Binding EnabledPlugins}">
-						<ListBox.Template>
-							<ControlTemplate>
-								<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">
-									<Grid DockPanel.Dock="Top" Height="30" Background="rgba(60,76,82,96)">
+							   Foreground="White" 
+							   Text="Plugins"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="430"/>
+							<ColumnDefinition Width="100"/>
+							<ColumnDefinition Width="80"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+										 Margin="8,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Name"/>
+						<TextBlock Grid.Column="1" 
+										 Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Status"/>
+						<TextBlock Grid.Column="2" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Version"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)">
+						<ItemsRepeater Name="PluginsList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding EnabledPlugins}"
+										Height="630">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm2:PluginViewModel">
+									<Grid Margin="0,2" ToolTip.Tip="{Binding ToolTip}">
 										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="385"/>
+											<ColumnDefinition Width="430"/>
+											<ColumnDefinition Width="100"/>
 											<ColumnDefinition Width="80"/>
-											<ColumnDefinition Width="80"/>
-											<ColumnDefinition Width="70"/>
+											<ColumnDefinition Width="Auto"/>
 										</Grid.ColumnDefinitions>
-										<Label Grid.Column="0">Name</Label>
-										<Label Grid.Column="1">Status</Label>
-										<Label Grid.Column="2">Version</Label>
-										<Label Grid.Column="3">Enabled</Label>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,0"
+													FontWeight="Normal"
+													Foreground="White" >
+											<Run Text="{Binding FriendlyName}"/>
+											<LineBreak/>
+											<Run Text="{Binding Author}"/>
+										</TextBlock>
+										<TextBlock Text="{Binding StatusString}" 
+													 Grid.Column="1" 
+													 Margin="0,8,0,0" 
+													 FontWeight="Normal"		
+													 Foreground="White"/>
+										<TextBlock Text="{Binding VersionString}" 
+													 Grid.Column="2" 
+													 Margin="0,8,0,0" 
+													 FontWeight="Normal"		
+													 Foreground="White"/>
+										<CheckBox IsChecked="{Binding DraftEnabled}" 
+													Grid.Column="3" 
+													Margin="16,8,0,0"/>
 									</Grid>
-									<ScrollViewer>
-										<ItemsPresenter></ItemsPresenter>
-									</ScrollViewer>
-								</DockPanel>
-							</ControlTemplate>
-						</ListBox.Template>
-						<ListBox.ItemTemplate>
-							<DataTemplate x:DataType="vm2:PluginViewModel">
-								<Grid Margin="0,2" ToolTip.Tip="{Binding ToolTip}">
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="375"/>
-										<ColumnDefinition Width="80"/>
-										<ColumnDefinition Width="100"/>
-										<ColumnDefinition Width="70"/>
-									</Grid.ColumnDefinitions>
-									<TextBlock Grid.Column="0">
-										<Run Text="{Binding FriendlyName}"/>
-										<LineBreak/>
-										<Run Text="{Binding Author}"/>
-									</TextBlock>
-									<TextBlock Text="{Binding StatusString}" Grid.Column="1"/>
-									<TextBlock Text="{Binding VersionString}" Grid.Column="2"/>
-									<CheckBox IsChecked="{Binding DraftEnabled}" Grid.Column="3"/>
-								</Grid>
-							</DataTemplate>
-						</ListBox.ItemTemplate>
-					</ListBox>
-					<StackPanel Orientation="Horizontal" Grid.Column="3" Margin="0,12,0,0" HorizontalAlignment="Right">
-						<Button Name="PluginSettingsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Open plugin settings, in-game hotkey: Ctrl+Alt+/"></Button>
-						<Button Name="PluginDetailsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
-						<Button Name="PluginAddButton" Classes="Menu" Width="30" Height="30" ToolTip.Tip="Add plugin" Click="PluginAddButton_Click">
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="70"
-									   FontWeight="Medium"
-									   Margin="0,0,0,8"
-									   Foreground="White">+</TextBlock>
-							</Button>
-					</StackPanel>
-				</StackPanel>
-				<StackPanel Grid.Column="1" HorizontalAlignment="Center" Margin="12,0,0,0">
-				<TextBlock Grid.Row="0"
-						   HorizontalAlignment="Center"
-						   FontSize="23"
-						   FontWeight="Normal"
-						   Foreground="White">Mods</TextBlock>
-					<ListBox Name="ModsList" HorizontalAlignment="Center" Width="400" Height="660" ItemsSource="{Binding EnabledModPlugins}">
-						<ListBox.Template>
-							<ControlTemplate>
-								<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">
-									<Grid DockPanel.Dock="Top" Height="30" Background="rgba(60,76,82,96)">
-										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="300"/>
-											<ColumnDefinition Width="70"/>
-										</Grid.ColumnDefinitions>
-										<Label Grid.Column="0">Name</Label>
-										<Label Grid.Column="3">Enabled</Label>
-									</Grid>
-									<ScrollViewer>
-										<ItemsPresenter></ItemsPresenter>
-									</ScrollViewer>
-								</DockPanel>
-							</ControlTemplate>
-						</ListBox.Template>
-						<ListBox.ItemTemplate>
-							<DataTemplate x:DataType="vm2:PluginViewModel">
-								<Grid Margin="0,2">
-									<Grid.ColumnDefinitions>
-										<ColumnDefinition Width="310"/>
-										<ColumnDefinition Width="70"/>
-									</Grid.ColumnDefinitions>
-									<TextBlock Grid.Column="0">
-										<Run Text="{Binding FriendlyName}"/>
-										<LineBreak/>
-										<Run Text="{Binding Author}"/>
-									</TextBlock>
-									<CheckBox IsChecked="{Binding DraftEnabled}" Grid.Column="3"/>
-								</Grid>
-							</DataTemplate>
-						</ListBox.ItemTemplate>
-					</ListBox>
-					<StackPanel Orientation="Horizontal" Grid.Column="3" Margin="0,12,0,0" HorizontalAlignment="Right">
-						<Button Name="ModDetailsButton" Classes="Menu" Width="30" Height="30" Margin="0,0,6,0" IsEnabled="False" ToolTip.Tip="Show details"></Button>
-						<Button Name="ModAddButton" Classes="Menu" Width="30" Height="30" ToolTip.Tip="Add mod" Click="ModAddButton_Click">
-							<TextBlock HorizontalAlignment="Center"
-									   VerticalAlignment="Center"
-									   FontSize="70"
-									   FontWeight="Medium"
-									   Foreground="White"
-									   Margin="0,0,0,8">+</TextBlock>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,16,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="PluginSettingsButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Open plugin settings, in-game hotkey: Ctrl+Alt+/">
+							<Image Source="{DynamicResource IconsConfiguration_SettingIcon}"/>
+						</Button>
+						<Button Name="PluginDetailsButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Show details" >
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="PluginAddButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add plugin" 
+								  Click="PluginAddButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
 						</Button>
 					</StackPanel>
 				</StackPanel>
-				<StackPanel Grid.Column="3" Margin="16,30,0,0">
-					<Button Name="ProfilesButton" Classes="Menu" Width="256" Height="50" Click="ProfilesButton_OnClick" ToolTip.Tip="Load or edit profiles">Profiles</Button>
-					<Button Name="RefreshButton" Classes="Menu" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Refresh all plugin sources" Click="RefreshButton_Click">Refresh</Button>
-					<Button Name="SourcesButton" Classes="Menu" Width="256" Height="50" Margin="0,16,0,0" ToolTip.Tip="Add or remove plugin source" IsVisible="False">Sources</Button>
-					<CheckBox Margin="0,16,0,0" ToolTip.Tip="Consent to use your data for usage tracking" Name="ConsentBox">Track Usage</CheckBox>
+				<StackPanel Grid.Column="1" HorizontalAlignment="Left" Margin="16,0,0,0">
+					<TextBlock Grid.Row="0"
+						   HorizontalAlignment="Center"
+						   FontSize="23"
+						   FontWeight="Normal"
+						   Foreground="White" Text="Mods"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="335"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+									 Margin="8,8,0,0" 
+									 FontWeight="Normal"
+									 Foreground="White" 
+									 Text="Name"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" FontWeight="Normal"
+									 Foreground="White" 
+									 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)">
+						<ItemsRepeater Name="ModsList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding EnabledModPlugins}"
+										Height="630">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm2:PluginViewModel">
+									<Grid Margin="0,2">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="335"/>
+											<ColumnDefinition Width="78"/>
+										</Grid.ColumnDefinitions>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,0"
+													FontWeight="Normal"
+													Foreground="White" >
+											<Run Text="{Binding FriendlyName}"/>
+											<LineBreak/>
+											<Run Text="{Binding Author}"/>
+										</TextBlock>
+										<CheckBox IsChecked="{Binding DraftEnabled}" 
+													Grid.Column="3" 
+													Margin="16,8,0,0"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,12,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="ModDetailsButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Show details">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="ModAddButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add mod" 
+								  Click="ModAddButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Grid.Column="3" Margin="16,44,0,0" HorizontalAlignment="Left">
+					<Button Name="ProfilesButton" 
+							 Classes="Menu" 
+							 Width="256" 
+							 Height="50" 
+							 Click="ProfilesButton_OnClick" 
+							 ToolTip.Tip="Load or edit profiles" 
+							 Content="Profiles" />
+					<Button Name="RefreshButton" 
+							 Classes="Menu" 
+							 Width="256" 
+							 Height="50" 
+							 Margin="0,16,0,0" 
+							 ToolTip.Tip="Refresh all plugin sources" 
+							 Click="RefreshButton_Click" 
+							 Content="Refresh" />
+					<Button Name="SourcesButton" 
+							 Classes="Menu" 
+							 Width="256" 
+							 Height="50" 
+							 Margin="0,16,0,0" 
+							 ToolTip.Tip="Add or remove plugin source" 
+							 IsVisible="False" 
+							 Content="Sources" />
+					<CheckBox Margin="0,16,0,0" 
+							  ToolTip.Tip="Consent to use your data for usage tracking" 
+							  Name="ConsentBox" 
+							  Click="ConsentBox_Click" 
+							  IsChecked="{Binding ConsentGiven}">
+						<TextBlock FontWeight="Normal"
+								   Foreground="White"
+								   Text="Track Usage"/>
+					</CheckBox>
 				</StackPanel>
 			</Grid>
-			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="100,16,100,0"/>
-			<StackPanel Orientation="Horizontal" Grid.Row="4" HorizontalAlignment="Center" Margin="0,16,0,0">
-				<Button Name="ApplyButton" Classes="Menu" Width="264" Height="55" Click="ApplyButton_OnClick">Apply</Button>
-				<Button Name="CancelButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="CancelButton_OnClick">Cancel</Button>
+			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<StackPanel Orientation="Horizontal" 
+					    Grid.Row="4" 
+					    HorizontalAlignment="Center" 
+					    Margin="0,16,0,0">
+				<Button Name="ApplyButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Click="ApplyButton_OnClick" 
+						Content="Apply" />
+				<Button Name="CancelButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0" 
+						Click="CancelButton_OnClick" 
+						Content="Cancel" />
 			</StackPanel>
 		</Grid>
 	</Border>

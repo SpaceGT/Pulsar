@@ -7,8 +7,6 @@ using System;
 namespace Pulsar.Modern.Screens;
 public static class PlayerConsent
 {
-    public static event Action OnConsentChanged;
-
     public static void ShowDialog(Action continuation = null)
     {
         var definition = ScreenTools.GetDefaultYesNoCancelDialog();
@@ -97,7 +95,7 @@ public static class PlayerConsent
             StatsClient.Track([.. profiles.Current.GetPluginIDs(false)]);
         }
 
-        OnConsentChanged?.Invoke();
+        ConfigManager.Instance.UpdatePlayerStats();
 
         continuation?.Invoke();
     }

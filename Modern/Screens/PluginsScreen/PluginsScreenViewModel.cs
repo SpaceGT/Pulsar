@@ -1,6 +1,4 @@
-﻿using Avalonia.Controls;
-using Avalonia.Interactivity;
-using DynamicData;
+﻿using DynamicData;
 using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -14,21 +12,20 @@ namespace Pulsar.Modern.Screens.PluginsScreen;
 
 internal class PluginsScreenViewModel : ScreenViewModel
 {
-    public Profile Draft { get; private set; }
-
     public List<PluginViewModel> Plugins { get; private set; } = [];
     public List<PluginViewModel> ModPlugins { get; private set; } = [];
 
-    public ObservableCollection<PluginViewModel> EnabledPlugins { get; private set; }
-    public ObservableCollection<PluginViewModel> EnabledModPlugins { get; private set; }
+    public ObservableCollection<PluginViewModel> EnabledPlugins { get; private set; } = [];
+    public ObservableCollection<PluginViewModel> EnabledModPlugins { get; private set; } = [];
 
-    private ConfigManager configManager;
+    public Profile Draft { get; private set; }
 
-    public readonly PluginList PluginList;
-    public readonly ProfilesConfig Profiles;
-    public readonly SourcesConfig Sources;
+    public bool ConsentGiven => configManager.Core.DataHandlingConsent;
 
-    public bool ConsentGiven = PlayerConsent.ConsentGiven;
+    private readonly ConfigManager configManager;
+    private readonly ProfilesConfig profiles;
+    
+    private readonly PluginList pluginlist;
 
     public PluginsScreenViewModel(ConfigManager configManager)
     {
@@ -37,50 +34,20 @@ internal class PluginsScreenViewModel : ScreenViewModel
         AllowsInputFromLowerScreens = false;
 
         this.configManager = configManager;
+        profiles = this.configManager.Profiles;
         Draft = Tools.DeepCopy(this.configManager.Profiles.Current);
-        
-        foreach (PluginData plugin in this.configManager.List)
-        {
-            if (plugin is ModPlugin modPlugin)
-                ModPlugins.Add(new PluginViewModel(modPlugin, Draft));
-            else
-                Plugins.Add(new PluginViewModel(plugin, Draft));
-        }
+        pluginlist = this.configManager.List;
 
-        ModPlugins.Sort(ComparePluginsByName);
-        Plugins.Sort(ComparePluginsByName);
-
-        EnabledModPlugins = [.. ModPlugins.Where(x => x.DraftEnabled)];
-        EnabledPlugins = [.. Plugins.Where(x => x.DraftEnabled)];
-
-        PluginList = this.configManager.List;
-        Profiles = this.configManager.Profiles;
-        Sources = this.configManager.Sources;
+        RefreshPluginLists();
 
         InitializeInputContext();
     }
 
-    public static void Open()
+    public static void OpenMenu()
     {
         var configManager = ConfigManager.Instance;
         PluginsScreenViewModel menu = new(configManager);
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginsScreen>(menu, true);
-    }
-
-    public void OnConsentBoxChanged(object sender, RoutedEventArgs e)
-    {
-        PlayerConsent.ShowDialog();
-        UpdateConsentBox((CheckBox)sender);
-    }
-
-    public void UpdateConsentBox(CheckBox checkbox)
-    {
-        if (checkbox.IsChecked != PlayerConsent.ConsentGiven)
-        {
-            checkbox.IsCheckedChanged -= OnConsentBoxChanged;
-            checkbox.IsChecked = PlayerConsent.ConsentGiven;
-            checkbox.IsCheckedChanged += OnConsentBoxChanged;
-        }
     }
 
     public void RefreshPluginLists()
@@ -91,7 +58,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
         EnabledPlugins.Clear();
         EnabledModPlugins.Clear();
 
-        foreach (PluginData plugin in this.configManager.List)
+        foreach (PluginData plugin in pluginlist)
         {
             if (plugin is ModPlugin modPlugin)
                 ModPlugins.Add(new PluginViewModel(modPlugin, Draft));
@@ -120,9 +87,32 @@ internal class PluginsScreenViewModel : ScreenViewModel
         RefreshPluginLists();
     }
 
+    public void RefreshSources()
+    {
+        pluginlist.UpdateRemoteList();
+        pluginlist.UpdateLocalList();
+        configManager.Sources.Save();
+    }
+
+    public void ShowConsentScreen() => PlayerConsent.ShowDialog(() => OnPropertyChanged(nameof(ConsentGiven)));
+
+    public bool ApplyChanges()
+    {
+        if (!SyncPluginConfigs())
+            return false;
+
+        foreach (string id in Draft.GetPluginIDs())
+            pluginlist.SubscribeToItem(id);
+
+        profiles.Current = Draft;
+        profiles.Save();
+
+        return true;
+    }
+
     public bool SyncPluginConfigs()
     {
-        Profile current = Profiles.Current;
+        Profile current = profiles.Current;
         bool hasDiff = false;
 
         foreach (string id in current.GetPluginIDs().Concat(Draft.GetPluginIDs()))
@@ -152,7 +142,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
                     cFolder.DataFile != dFolder.DataFile
                     || cFolder.DebugBuild != dFolder.DebugBuild;
 
-            if (diff && PluginList.TryGetPlugin(id, out PluginData plugin))
+            if (diff && pluginlist.TryGetPlugin(id, out PluginData plugin))
                 plugin.LoadData(dConfig);
 
             hasDiff |= diff;
@@ -174,21 +164,9 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
             if (
                 tFolder?.DataFile != pFolder?.DataFile
-                && PluginList.TryGetPlugin(configID, out PluginData plugin)
+                && pluginlist.TryGetPlugin(configID, out PluginData plugin)
             )
                 plugin.LoadData(tFolder);
         }
-    }
-
-    // TODO
-    public void Save()
-    {
-
-    }
-
-    //TODO
-    public bool RequiresRestart()
-    {
-        return true;
     }
 }

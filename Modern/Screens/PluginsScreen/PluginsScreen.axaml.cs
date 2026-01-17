@@ -5,7 +5,6 @@ using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared;
-using Pulsar.Shared.Data;
 using System.Collections.Generic;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
@@ -19,42 +18,20 @@ public partial class PluginsScreen : PluginScreenBase
 
         if (!Design.IsDesignMode)
         {
-            ConsentBox.IsChecked = (DataContext as PluginsScreenViewModel).ConsentGiven;
-            ConsentBox.IsCheckedChanged += (DataContext as PluginsScreenViewModel).OnConsentBoxChanged;
-            PlayerConsent.OnConsentChanged += OnConsentChanged;
-
             SourcesButton.IsVisible = Flags.CustomSources;
         }
         else
         {
-            PluginData dummyPlugin = new GitHubPlugin()
-            {
-                FriendlyName = "TEST PLUGIN",
-                Author = "A user",
-                Status = PluginStatus.Updated
-            };
-
-            List<PluginData> dummyPlugins = [];
+            List<PluginViewModel> dummyPlugins = [];
 
             for (int i = 0; i < 25; i++)
             {
-                dummyPlugins.Add(dummyPlugin);
+                dummyPlugins.Add(PluginViewModel.GetDummyPlugin());
             }
 
-            PluginsList.DataContext = dummyPlugins;
-            ModsList.DataContext = dummyPlugins;
+            PluginsList.ItemsSource = dummyPlugins;
+            ModsList.ItemsSource = dummyPlugins;
         }
-    }
-
-    public override void OnDispose()
-    {
-        base.OnDispose();
-        PlayerConsent.OnConsentChanged -= OnConsentChanged;
-    }
-
-    private void OnConsentChanged()
-    {
-        (DataContext as PluginsScreenViewModel).UpdateConsentBox(ConsentBox);
     }
 
     private void CancelButton_OnClick(object sender, RoutedEventArgs e)
@@ -66,15 +43,8 @@ public partial class PluginsScreen : PluginScreenBase
     {
         Dispose();
 
-        if (!(DataContext as PluginsScreenViewModel).SyncPluginConfigs())
+        if (!(DataContext as PluginsScreenViewModel).ApplyChanges())
             return;
-
-        foreach (string id in (DataContext as PluginsScreenViewModel).Draft.GetPluginIDs())
-            (DataContext as PluginsScreenViewModel).PluginList.SubscribeToItem(id);
-
-        (DataContext as PluginsScreenViewModel).Profiles.Current = (DataContext as PluginsScreenViewModel).Draft;
-        (DataContext as PluginsScreenViewModel).Profiles.Save();
-
 
         var definition = ScreenTools.GetDefaultYesNoDialog();
         definition.Title = ScreenTools.GetKeyFromString("Apply Changes?");
@@ -84,13 +54,8 @@ public partial class PluginsScreen : PluginScreenBase
         {
             ConfirmAction = () =>
             {
-                    
-                   
-            },
-            CancelAction = () =>
-            {
-                    
-                    
+
+
             }
         });
 
@@ -105,16 +70,13 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
-        (DataContext as PluginsScreenViewModel).PluginList.UpdateRemoteList();
-        (DataContext as PluginsScreenViewModel).PluginList.UpdateLocalList();
-        (DataContext as PluginsScreenViewModel).Sources.Save();
-
+        (DataContext as PluginsScreenViewModel).RefreshSources();
         RefreshButton.IsEnabled = false;
     }
 
     private void PluginAddButton_Click(object sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate()
+        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate ()
         {
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();
         });
@@ -128,5 +90,20 @@ public partial class PluginsScreen : PluginScreenBase
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();
         });
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
+    }
+
+    private void ConsentBox_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is not CheckBox checkBox)
+            return;
+
+        // This is to maintain the state of the checkbox as it mainly acts more like a indicator and button.
+
+        if (checkBox.IsChecked.Value)
+            checkBox.IsChecked = false;
+        else
+            checkBox.IsChecked = true;
+
+        (DataContext as PluginsScreenViewModel).ShowConsentScreen();
     }
 }
