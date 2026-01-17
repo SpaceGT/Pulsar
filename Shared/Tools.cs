@@ -352,20 +352,4 @@ public static class Tools
             CloneSubmodulesRecursive(repo, 10);
         }
     }
-
-    /// <summary>
-    /// Recursively delete a directory containing readonly items.
-    /// </summary>
-    /// <param name="path">Path to the directory.</param>
-    public static void DeleteDirectoryRecursiveSafe(string path)
-    {
-        var directory = new DirectoryInfo(path) { Attributes = FileAttributes.Normal };
-
-        foreach (var info in directory.GetFileSystemInfos("*", SearchOption.AllDirectories))
-        {
-            info.Attributes = FileAttributes.Normal;
-        }
-
-        directory.Delete(true);
-    }
 }
