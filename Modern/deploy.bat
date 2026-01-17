@@ -102,8 +102,8 @@ copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "LibGit2Sharp.dll"
 copy /y /b "%SOURCE%\LibGit2Sharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
-echo Copying "lib\win32\x64\*.dll"
-copy /y "%SOURCE%\lib\win32\x64\*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+echo Copying "runtimes\win-x64\native\*.dll"
+copy /y "%SOURCE%\runtimes\win-x64\native\*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 REM Get the compiler directory
 set COMPILER_DIR=%LIBRARY_DIR%\Compiler
