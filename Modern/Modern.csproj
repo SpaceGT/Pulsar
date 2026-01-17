@@ -99,6 +99,7 @@
 	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
+	<Publicize Include="0Harmony" />
 	<Publicize Include="Game2.Client" />
 	<Publicize Include="SpaceEngineers2" />
 	<Publicize Include="VRage.Client" />

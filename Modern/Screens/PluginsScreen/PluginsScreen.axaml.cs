@@ -7,7 +7,6 @@ using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared;
 using Pulsar.Shared.Data;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -58,12 +57,12 @@ public partial class PluginsScreen : PluginScreenBase
         (DataContext as PluginsScreenViewModel).UpdateConsentBox(ConsentBox);
     }
 
-    private void CancelButton_OnClick(object? sender, RoutedEventArgs e)
+    private void CancelButton_OnClick(object sender, RoutedEventArgs e)
     {
         Dispose();
     }
 
-    private void ApplyButton_OnClick(object? sender, RoutedEventArgs e)
+    private void ApplyButton_OnClick(object sender, RoutedEventArgs e)
     {
         Dispose();
 
@@ -97,14 +96,14 @@ public partial class PluginsScreen : PluginScreenBase
 
     }
 
-    private void ProfilesButton_OnClick(object? sender, RoutedEventArgs e)
+    private void ProfilesButton_OnClick(object sender, RoutedEventArgs e)
     {
         var viewModel = new ProfilesScreenViewModel((DataContext as PluginsScreenViewModel).Draft, (DataContext as PluginsScreenViewModel).ReplaceDraft);
 
         ScreenTools.GetSharedUIComponent().CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel, true);
     }
 
-    private void RefreshButton_Click(object? sender, RoutedEventArgs e)
+    private void RefreshButton_Click(object sender, RoutedEventArgs e)
     {
         (DataContext as PluginsScreenViewModel).PluginList.UpdateRemoteList();
         (DataContext as PluginsScreenViewModel).PluginList.UpdateLocalList();
@@ -113,7 +112,7 @@ public partial class PluginsScreen : PluginScreenBase
         RefreshButton.IsEnabled = false;
     }
 
-    private void PluginAddButton_Click(object? sender, RoutedEventArgs e)
+    private void PluginAddButton_Click(object sender, RoutedEventArgs e)
     {
         var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate()
         {
@@ -122,7 +121,7 @@ public partial class PluginsScreen : PluginScreenBase
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 
-    private void ModAddButton_Click(object? sender, RoutedEventArgs e)
+    private void ModAddButton_Click(object sender, RoutedEventArgs e)
     {
         var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).ModPlugins], true, delegate ()
         {

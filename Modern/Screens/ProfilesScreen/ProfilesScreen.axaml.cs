@@ -34,7 +34,7 @@ public partial class ProfilesScreen : PluginScreenBase
         DeleteButton.IsEnabled = selected;
     }
 
-    private void NewButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void NewButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (ProfilesList.SelectedItem is null)
         {
@@ -59,7 +59,7 @@ public partial class ProfilesScreen : PluginScreenBase
         }
     }
 
-    private void LoadButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void LoadButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (ProfilesList.SelectedItem is ProfileViewModel profile)
         {
@@ -68,7 +68,7 @@ public partial class ProfilesScreen : PluginScreenBase
         }
     }
 
-    private void RenameButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void RenameButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (ProfilesList.SelectedItem is not Profile profile)
             return;
@@ -87,7 +87,7 @@ public partial class ProfilesScreen : PluginScreenBase
         }), true);
     }
 
-    private void DeleteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (ProfilesList.SelectedItem is not Profile profile)
             return;
@@ -107,14 +107,14 @@ public partial class ProfilesScreen : PluginScreenBase
         });
     }
 
-    private void ProfilesList_SelectionChanged(object? sender, Avalonia.Controls.SelectionChangedEventArgs e)
+    private void ProfilesList_SelectionChanged(object sender, Avalonia.Controls.SelectionChangedEventArgs e)
     {
         itemJustSelected = true;
         itemSelected = true;
         UpdateButtons();
     }
 
-    private void ProfilesList_DoubleTapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private void ProfilesList_DoubleTapped(object sender, Avalonia.Input.TappedEventArgs e)
     {
         if (ProfilesList.SelectedItem as Profile is not null)
         {
@@ -123,12 +123,12 @@ public partial class ProfilesScreen : PluginScreenBase
         }
     }
 
-    private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Dispose();
     }
 
-    private void ProfilesList_Tapped(object? sender, Avalonia.Input.TappedEventArgs e)
+    private void ProfilesList_Tapped(object sender, Avalonia.Input.TappedEventArgs e)
     {
         if (itemJustSelected)
         {

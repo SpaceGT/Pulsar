@@ -20,27 +20,27 @@ public partial class PluginDetailsScreen : PluginScreenBase
         TitleText.Text = (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin ? "Mod Details" : "Plugin Details";
     }
 
-    private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Dispose();
     }
 
-    private void MoreInfoButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void MoreInfoButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.Show();
     }
 
-    private void SettingsButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void SettingsButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         (DataContext as PluginDetailsScreenViewModel).Plugin.TryOpenSettingsScreen();
     }
 
-    private void UpvoteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void UpvoteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         (DataContext as PluginDetailsScreenViewModel).Plugin.TryVote(1);
     }
 
-    private void DownvoteButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void DownvoteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         (DataContext as PluginDetailsScreenViewModel).Plugin.TryVote(-1);
     }

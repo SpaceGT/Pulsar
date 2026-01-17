@@ -36,7 +36,7 @@ public partial class AddPluginScreen : PluginScreenBase
         }
     }
 
-    private void SearchBox_TextChanged(object? sender, TextChangedEventArgs e)
+    private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         if (SearchBox.Text != string.Empty)
             SearchClearButton.IsVisible = true;
@@ -48,22 +48,22 @@ public partial class AddPluginScreen : PluginScreenBase
         (DataContext as AddPluginScreenViewModel).SortPlugins(SortingMethod.Search);
     }
 
-    private void SearchClearButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void SearchClearButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         SearchBox.Text = string.Empty;
     }
 
-    private void SortButton_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void SortButton_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         (DataContext as AddPluginScreenViewModel).SortPlugins((SortingMethod)SortButton.SelectedIndex);
     }
 
-    private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Dispose();
     }
 
-    private void PluginItem_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void PluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if ((sender as Border).DataContext is not PluginViewModel pluginVM)
             return;

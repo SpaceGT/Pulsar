@@ -4,7 +4,6 @@ using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
-using System.Security.Cryptography.Xml;
 
 namespace Pulsar.Modern.Compiler;
 
@@ -49,7 +48,6 @@ file class CompilerWrapper : ICompiler
             throw e.InnerException;
         }
     }
-
 }
 
 file sealed class CompilerLoadContext : AssemblyLoadContext
@@ -60,7 +58,7 @@ file sealed class CompilerLoadContext : AssemblyLoadContext
         : base("Pulsar", isCollectible: true)
     {
         string applicationBase = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-        binPath = Path.Combine(applicationBase, "Libraries", "Interim", "Compiler");
+        binPath = Path.Combine(applicationBase, "Libraries", "Modern", "Compiler");
     }
 
     protected override Assembly Load(AssemblyName assemblyName)
