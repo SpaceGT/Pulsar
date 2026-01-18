@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
+using LibGit2Sharp;
 using Pulsar.Compiler;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
@@ -14,8 +14,6 @@ namespace Pulsar.Shared.Data;
 
 public class LocalFolderPlugin : PluginData
 {
-    const int GitTimeout = 10000;
-
     public override bool IsLocal => true;
     public override bool IsCompiled => true;
     private string[] sourceDirectories;
@@ -160,56 +158,31 @@ public class LocalFolderPlugin : PluginData
 
     private IEnumerable<string> GetProjectFilesGit(string folder)
     {
-        string gitError = null;
         try
         {
-            ProcessStartInfo startInfo = new()
-            {
-                UseShellExecute = false,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                CreateNoWindow = true,
-                FileName = "git",
-                Arguments = "ls-files --cached --others --exclude-standard",
-                WorkingDirectory = folder,
-            };
+            if (!Repository.IsValid(folder))
+                return null;
 
-            using Process process = new();
-            process.StartInfo = startInfo;
-            process.Start();
-
-            // Do not wait for the child process to exit before
-            // reading to the end of its redirected stream.
-            // Read the output stream first and then wait.
-            string gitOutput = process.StandardOutput.ReadToEnd();
-            gitError = process.StandardError.ReadToEnd();
-            if (!process.WaitForExit(GitTimeout))
+            using (var repo = new Repository(folder))
             {
-                process.Kill();
-                throw new TimeoutException("Git operation timed out.");
-            }
-
-            if (process.ExitCode == 0)
-            {
-                string[] files = gitOutput.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
-                return files
-                    .Where(x => x.EndsWith(".cs"))
-                    .Select(x =>
-                        Path.Combine(folder, x.Trim().Replace('/', Path.DirectorySeparatorChar))
-                    )
-                    .Where(x => IsValidProjectFile(x) && File.Exists(x));
-            }
-            else
-            {
-                StringBuilder sb = new StringBuilder(
-                    "An error occurred while checking git for project files."
-                ).AppendLine();
-                if (!string.IsNullOrWhiteSpace(gitError))
+                var statusOptions = new StatusOptions()
                 {
-                    sb.AppendLine("Git output: ");
-                    sb.Append(gitError).AppendLine();
-                }
-                LogFile.WriteLine(sb.ToString());
+                    IncludeIgnored = false,
+                    IncludeUntracked = true,
+                    RecurseUntrackedDirs = true,
+                    IncludeUnaltered = true,
+                    Show = StatusShowOption.WorkDirOnly,
+                };
+
+                RepositoryStatus status = repo.RetrieveStatus(statusOptions);
+
+                return status
+                    .Where(i => (i.State & FileStatus.DeletedFromWorkdir) == 0)
+                    .Where(i => i.FilePath.EndsWith(".cs", StringComparison.OrdinalIgnoreCase))
+                    .Select(i =>
+                        Path.Combine(folder, i.FilePath.Trim().Replace('/', Path.DirectorySeparatorChar))
+                    )
+                    .Where(i => IsValidProjectFile(i) && File.Exists(i));
             }
         }
         catch (Exception e)
@@ -217,11 +190,6 @@ public class LocalFolderPlugin : PluginData
             StringBuilder sb = new StringBuilder(
                 "An error occurred while checking git for project files."
             ).AppendLine();
-            if (!string.IsNullOrWhiteSpace(gitError))
-            {
-                sb.AppendLine(" Git output: ");
-                sb.Append(gitError).AppendLine();
-            }
             sb.AppendLine("Exception: ");
             sb.Append(e).AppendLine();
             LogFile.WriteLine(sb.ToString());
