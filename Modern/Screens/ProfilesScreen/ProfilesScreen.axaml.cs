@@ -1,126 +1,67 @@
 using Avalonia.Controls;
-using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
+using Keen.Game2.Client.UI.Menu.News;
 using Keen.VRage.UI.AvaloniaInterface.Services;
-using Pulsar.Modern.Screens.TextInputDialog;
-using Pulsar.Shared;
-using Pulsar.Shared.Data;
-
+using Pulsar.Modern.Screens.PluginsScreen;
+using System.Collections.Generic;
 namespace Pulsar.Modern.Screens.ProfilesScreen;
 
 [NeedsWindowStyles]
 public partial class ProfilesScreen : PluginScreenBase
 {
+    private Control selectedProfileControl;
     private bool itemSelected = false;
-    private bool itemJustSelected = false;
 
     public ProfilesScreen()
     {
         InitializeComponent();
 
-        if (!Design.IsDesignMode)
+        if (Design.IsDesignMode)
         {
-            foreach (Profile p in (DataContext as ProfilesScreenViewModel).Config.Profiles)
-                ProfilesList.Items.Add(new ProfileViewModel(p));
-            UpdateButtons();
-        }
-    }
+            List<ProfileViewModel> dummyProfiles = [];
 
-    private void UpdateButtons()
-    {
-        bool selected = ProfilesList.SelectedItem is not null;
-        NewButton.Content = selected ? "Update" : "New";
-        LoadButton.IsEnabled = selected;
-        RenameButton.IsEnabled = selected;
-        DeleteButton.IsEnabled = selected;
+            for (int i = 0; i < 25; i++)
+            {
+                dummyProfiles.Add(ProfileViewModel.GetDummyProfileViewModel());
+            }
+
+            ProfilesList.ItemsSource = dummyProfiles;
+        }
     }
 
     private void NewButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (ProfilesList.SelectedItem is null)
+        if (selectedProfileControl is null)
         {
-            ScreenTools.GetSharedUIComponent().CreateScreen<TextInputDialog.TextInputDialog>(new TextInputDialogViewModel("Profile Name", onComplete: delegate (string name)
-            {
-                Profile p = (DataContext as ProfilesScreenViewModel).CreateProfile(name);
-                ProfilesList.Items.Add(p);
-                ProfilesList.SelectedItem = p;
-                itemSelected = true;
-                UpdateButtons();
-            }), true);
+            (DataContext as ProfilesScreenViewModel).CreateProfile();
         }
-        else if (ProfilesList.SelectedItem is Profile profile)
+        else if (selectedProfileControl.DataContext is ProfileViewModel profile)
         {
-            Profile newProfile = Tools.DeepCopy((DataContext as ProfilesScreenViewModel).draft);
-            newProfile.Name = profile.Name;
-            ProfilesList.Items.Insert(ProfilesList.SelectedIndex, newProfile);
-            ProfilesList.Items.Remove(ProfilesList.SelectedItem);
-
-            (DataContext as ProfilesScreenViewModel).Config.Remove(profile.Key);
-            (DataContext as ProfilesScreenViewModel).Config.Add(newProfile);
+            (DataContext as ProfilesScreenViewModel).UpdateProfile();
         }
     }
 
     private void LoadButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (ProfilesList.SelectedItem is ProfileViewModel profile)
-        {
-            (DataContext as ProfilesScreenViewModel).LoadProfile(profile.Profile);
-            Dispose();
-        }
+        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
+            return;
+
+        (DataContext as ProfilesScreenViewModel).LoadProfile();
     }
 
     private void RenameButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (ProfilesList.SelectedItem is not Profile profile)
+        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
             return;
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<TextInputDialog.TextInputDialog>(new TextInputDialogViewModel("Profile Name", profile.Name, delegate (string name)
-        {
-            if (!(DataContext as ProfilesScreenViewModel).Config.Exists(Tools.CleanFileName(name)))
-            {
-                (DataContext as ProfilesScreenViewModel).Config.Rename(profile.Key, name);
-                profile.Name = name;
-                ProfilesList.Items.Insert(ProfilesList.SelectedIndex + 1, profile);
-                ProfilesList.Items.Remove(ProfilesList.SelectedItem);
-            }
-            else
-                (DataContext as ProfilesScreenViewModel).ShowDuplicateWarning(name);
-        }), true);
+        (DataContext as ProfilesScreenViewModel).RenameProfile();
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (ProfilesList.SelectedItem is not Profile profile)
+        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
             return;
 
-        var definition = ScreenTools.GetDefaultYesNoDialog();
-        definition.Title = ScreenTools.GetKeyFromString("Delete Profile");
-        definition.Content = ScreenTools.GetKeyFromString($"Are you sure you want to delete \"{profile.Name}\"?");
-
-        ScreenTools.GetSharedUIComponent().ShowDialog(new TwoOptionsDialogViewModel(definition) 
-        {
-            ConfirmAction = () =>
-            {
-                (DataContext as ProfilesScreenViewModel).Config.Remove(profile.Key);
-                ProfilesList.Items.Remove(ProfilesList.SelectedItem);
-                UpdateButtons();
-            },
-        });
-    }
-
-    private void ProfilesList_SelectionChanged(object sender, Avalonia.Controls.SelectionChangedEventArgs e)
-    {
-        itemJustSelected = true;
-        itemSelected = true;
-        UpdateButtons();
-    }
-
-    private void ProfilesList_DoubleTapped(object sender, Avalonia.Input.TappedEventArgs e)
-    {
-        if (ProfilesList.SelectedItem as Profile is not null)
-        {
-            (DataContext as ProfilesScreenViewModel).LoadProfile((Profile)ProfilesList.SelectedItem);
-            Dispose();
-        }
+        (DataContext as ProfilesScreenViewModel).DeleteProfile();
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -128,18 +69,42 @@ public partial class ProfilesScreen : PluginScreenBase
         Dispose();
     }
 
-    private void ProfilesList_Tapped(object sender, Avalonia.Input.TappedEventArgs e)
+    private void ProfileItem_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (itemJustSelected)
+        if (selectedProfileControl != null)
+            (selectedProfileControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedProfileControl = sender as Control;
+        (selectedProfileControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        (DataContext as ProfilesScreenViewModel).SelectedProfile = (ProfileViewModel)(sender as Control).DataContext;
+
+        NewButton.Content = "Update";
+        LoadButton.IsEnabled = true;
+        RenameButton.IsEnabled = true;
+        DeleteButton.IsEnabled = true;
+
+        itemSelected = true;
+    }
+
+    private void UserControl_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (itemSelected)
         {
-            itemJustSelected = false;
+            itemSelected = false;
             return;
         }
 
-        if (ProfilesList.SelectedItem as Profile is not null && itemSelected)
-        {
-            ProfilesList.SelectedIndex = -1;
-            itemSelected = false;
-        }
+        if (selectedProfileControl != null)
+            (selectedProfileControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedProfileControl = null;
+
+        NewButton.Content = "New";
+        LoadButton.IsEnabled = false;
+        RenameButton.IsEnabled = false;
+        DeleteButton.IsEnabled = false;
     }
 }

@@ -36,6 +36,8 @@ public partial class PluginsScreen : PluginScreenBase
 
             PluginsList.ItemsSource = dummyPlugins;
             ModsList.ItemsSource = dummyPlugins;
+
+            SourcesButton.IsVisible = Flags.CustomSources;
         }
     }
 
@@ -145,7 +147,7 @@ public partial class PluginsScreen : PluginScreenBase
 
         ModDetailsButton.IsEnabled = true;
 
-        if (e.ClickCount == 2)
+        if (e.ClickCount > 1)
             ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
     }
 

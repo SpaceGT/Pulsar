@@ -1,18 +1,34 @@
 ﻿using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
+using Keen.Game2.Client.UI.Library.Dialogs.TextInputDialog;
+using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
 using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using System;
+using System.Collections.ObjectModel;
 
 namespace Pulsar.Modern.Screens.ProfilesScreen;
 
 internal class ProfilesScreenViewModel : ScreenViewModel
 {
-    public readonly ProfilesConfig Config = ConfigManager.Instance.Profiles;
+    public ObservableCollection<ProfileViewModel> Profiles { get; private set; } = [];
 
-    public readonly Profile draft;
+    public ProfileViewModel SelectedProfile { get; set; }
+
+    private readonly Profile draft;
+    private readonly ProfilesConfig profilesConfig = ConfigManager.Instance?.Profiles;
+    
     private event Action<Profile> onDraftChange;
+
+    private readonly TwoOptionsDialogDefinition renameProfileDialogDef = new()
+    {
+        SelectedOption = TwoOptionsDialogSelectedOption.Confirm,
+        ConfirmOption = ScreenTools.GetKeyFromString("Ok"),
+        CancelOption = ScreenTools.GetKeyFromString("Cancel"),
+        Title = ScreenTools.GetKeyFromString("Enter Profile Name"),
+        Content = ScreenTools.GetKeyFromString("Please enter a name for the profile.")
+    };
 
     public ProfilesScreenViewModel(Profile draft, Action<Profile> onDraftChange)
     {
@@ -23,31 +39,111 @@ internal class ProfilesScreenViewModel : ScreenViewModel
         this.draft = draft;
         this.onDraftChange = onDraftChange;
 
+        RefreshProfileList();
+
         InitializeInputContext();
     }
 
-    public void LoadProfile(Profile p)
+    public void RefreshProfileList()
     {
-        Profile newDraft = Tools.DeepCopy(p);
+        Profiles.Clear();
+
+        foreach (Profile profile in profilesConfig.Profiles)
+        {
+            Profiles.Add(new ProfileViewModel(profile));
+        }
+    }
+
+    public void LoadProfile()
+    {
+        Profile newDraft = Tools.DeepCopy(SelectedProfile.Profile);
         onDraftChange(newDraft);
     }
 
-    public Profile CreateProfile(string name)
+    public void CreateProfile()
     {
-        if (string.IsNullOrWhiteSpace(name))
-            return null;
-
-        Profile newProfile = Tools.DeepCopy(draft);
-        newProfile.Name = name;
-
-        if (Config.Exists(newProfile.Key))
+        ScreenTools.GetSharedUIComponent().ShowDialog(new TextInputDialogViewModel(renameProfileDialogDef, string.Empty)
         {
-            ShowDuplicateWarning(name);
-            return null;
-        }
+            ConfirmAction = delegate (string text)
+            {
+                if (string.IsNullOrWhiteSpace(text))
+                    return;
 
-        Config.Add(newProfile);
-        return newProfile;
+                Profile newProfile = Tools.DeepCopy(draft);
+                newProfile.Name = text;
+
+                if (profilesConfig.Exists(newProfile.Key))
+                {
+                    ShowDuplicateWarning(text);
+                    return;
+                }
+
+                profilesConfig.Add(newProfile);
+
+                SelectedProfile = null;
+
+                RefreshProfileList();
+            }
+        });
+
+        
+    }
+
+    public void UpdateProfile()
+    {
+        Profile newProfile = Tools.DeepCopy(draft);
+        newProfile.Name = SelectedProfile.Name;
+
+        profilesConfig.Remove(SelectedProfile.Profile.Key);
+        profilesConfig.Add(newProfile);
+
+        SelectedProfile = null;
+
+        RefreshProfileList();
+    }
+
+    public void RenameProfile()
+    {
+        string name = string.Empty;
+
+        ScreenTools.GetSharedUIComponent().ShowDialog(new TextInputDialogViewModel(renameProfileDialogDef, string.Empty)
+        {
+            ConfirmAction = delegate (string text)
+            {
+                if (profilesConfig.Exists(Tools.CleanFileName(text)))
+                {
+                    ShowDuplicateWarning(text);
+                    return;
+                }
+
+                profilesConfig.Rename(SelectedProfile.Profile.Key, text);
+
+                SelectedProfile = null;
+
+                RefreshProfileList();
+            }
+        });
+
+       
+    }
+
+    public void DeleteProfile()
+    {
+        var definition = ScreenTools.GetDefaultYesNoDialog();
+        definition.Title = ScreenTools.GetKeyFromString("Delete Profile");
+        definition.Content = ScreenTools.GetKeyFromString($"Are you sure you want to delete \"{SelectedProfile.Name}\"?");
+
+        ScreenTools.GetSharedUIComponent().ShowDialog(new TwoOptionsDialogViewModel(definition)
+        {
+            ConfirmAction = () =>
+            {
+                profilesConfig.Remove(SelectedProfile.Profile.Key);
+
+                SelectedProfile = null;
+
+                RefreshProfileList();
+            },
+        });
     }
 
     public void ShowDuplicateWarning(string name)

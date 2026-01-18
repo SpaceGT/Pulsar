@@ -5,71 +5,128 @@
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
              x:Class="Pulsar.Modern.Screens.ProfilesScreen.ProfilesScreen"
 			 xmlns:vm="using:Pulsar.Modern.Screens.ProfilesScreen"
-			 x:DataType="vm:ProfilesScreenViewModel">
-    <Border Background="Transparent"
+			 x:DataType="vm:ProfilesScreenViewModel" PointerPressed="UserControl_PointerPressed">
+    <Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
-			Width="1224" 
-			Height="561">
-        <StackPanel Background="rgba(37,47,53,96)">
-			<Grid>
-				<TextBlock HorizontalAlignment="Center"
-					   Margin="0,40,0,0"
-					   FontSize="25"
-					   FontWeight="Normal"
-					   Foreground="White">Profiles</TextBlock>
-			<Button Name="CancelButton" Classes="Menu" Width="40" Height="40" Margin="0,16,26,0" 
-		   HorizontalAlignment="Right" 
-		   HorizontalContentAlignment="Center" 
-		   VerticalContentAlignment="Center"
-		   FontSize="40"
-		   Click="CancelButton_Click">X</Button>
+			Width="850" 
+			Height="600">
+        <StackPanel Margin="30">
+			<Grid Grid.Row="0">
+				<TextBlock Name="TitleText" 
+						HorizontalAlignment="Center"
+						FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+						Text="Pulsar"/>
+				<Button Name="CornerCancelButton" Classes="Menu" 
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_Click">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
 			</Grid>
-            <Separator Background="rgb(77,99,96)" Margin="100,16,100,16"/>
-            <ListBox Name="ProfilesList" 
-					 HorizontalAlignment="Center" 
-					 Width="1150" 
-					 Height="345" 
-					 SelectionChanged="ProfilesList_SelectionChanged" 
-					 DoubleTapped="ProfilesList_DoubleTapped"
-					 Tapped="ProfilesList_Tapped">
-				<ListBox.Template>
-					<ControlTemplate>
-						<DockPanel LastChildFill="True" Background="rgba(41,54,62,96)">
-							<Grid DockPanel.Dock="Top" Height="30" Background="rgba(60,76,82,96)">
-								<Grid.ColumnDefinitions>
-									<ColumnDefinition Width="400"/>
-									<ColumnDefinition Width="600"/>
-								</Grid.ColumnDefinitions>
-								<Label Grid.Column="0">Name</Label>
-								<Label Grid.Column="1">Enabled Count</Label>
-							</Grid>
-							<ScrollViewer>
-								<ItemsPresenter></ItemsPresenter>
-							</ScrollViewer>
-						</DockPanel>
-					</ControlTemplate>
-				</ListBox.Template>
-				<ListBox.ItemTemplate>
-					<DataTemplate x:DataType="vm:ProfileViewModel">
-						<Grid Margin="0,2">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="400"/>
-								<ColumnDefinition Width="600"/>
-							</Grid.ColumnDefinitions>
-							<TextBlock Text="{Binding Name}" Grid.Column="0"/>
-							<TextBlock Text="{Binding Description}" Grid.Column="1"/>
-						</Grid>
-					</DataTemplate>
-				</ListBox.ItemTemplate>
-			</ListBox>
-			<Separator Background="rgb(77,99,96)" Margin="100,16,100,0"/>
-			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-				<Button Name="NewButton" Classes="Menu" Width="264" Height="55" Click="NewButton_Click">New</Button>
-				<Button Name="LoadButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="LoadButton_Click">Load</Button>
-				<Button Name="RenameButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="RenameButton_Click">Rename</Button>
-				<Button Name="DeleteButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="DeleteButton_Click">Delete</Button>
+			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<Grid ColumnDefinitions="505,Auto">
+				<StackPanel Grid.Column="0">
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="210"/>
+							<ColumnDefinition Width="295"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+											Margin="8,8,0,0" 
+											FontWeight="Normal"
+											Foreground="White" 
+											Text="Name"/>
+						<TextBlock Grid.Column="1" 
+											Margin="0,8,0,0" 
+											FontWeight="Normal"
+											Foreground="White" 
+											Text="Enabled Count"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+									Height="400">
+						<ItemsRepeater Name="ProfilesList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding Profiles}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm:ProfileViewModel">
+									<Grid Margin="0,2" 
+											Name="ProfileItem" 
+											PointerPressed="ProfileItem_PointerPressed">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="210"/>
+											<ColumnDefinition Width="295"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.ProfileText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.ProfileText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Text="{Binding Name}"
+													Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="ProfileText"/>
+										<TextBlock Text="{Binding Description}" 
+													Grid.Column="1" 
+													Margin="0,8,0,8" 
+													FontWeight="Normal"
+													Classes="ProfileText"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+				</StackPanel>
+				<StackPanel HorizontalAlignment="Center" Margin="16,16,0,0" Grid.Column="1">
+				<Button Name="NewButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Click="NewButton_Click">New</Button>
+				<Button Name="LoadButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="0,8,0,0" 
+						Click="LoadButton_Click" 
+						IsEnabled="False">Load</Button>
+				<Button Name="RenameButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="0,8,0,0" 
+						Click="RenameButton_Click" 
+						IsEnabled="False">Rename</Button>
+				<Button Name="DeleteButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="0,8,0,0" 
+						Click="DeleteButton_Click" 
+						IsEnabled="False">Delete</Button>
 			</StackPanel>
+			</Grid>
+			<Separator Background="rgb(77,99,96)" Margin="0,16,0,0"/>
 		</StackPanel>
     </Border>
 </UserControl>

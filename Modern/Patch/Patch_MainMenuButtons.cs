@@ -28,8 +28,5 @@ internal class Patch_MainMenuButtons
 
         if (__instance.DataContext is MainMenuScreenViewModel)
             (__instance._buttonsPanel.Children[__instance._buttonsPanel.Children.Count - 1] as Button).Content = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
-
-        if (Flags.DebugMenu)
-            (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(new KeyGesture(Key.F12, KeyModifiers.Shift));
     }
 }

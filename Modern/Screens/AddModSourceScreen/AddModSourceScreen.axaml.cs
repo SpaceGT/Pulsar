@@ -1,25 +1,25 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 
-namespace Pulsar.Modern.Screens.TextInputDialog;
+namespace Pulsar.Modern.Screens.AddModSourceScreen;
 
 [NeedsWindowStyles]
-public partial class TextInputDialog : PluginScreenBase
+public partial class AddModSourceScreen : PluginScreenBase
 {
-    public TextInputDialog()
+    public AddModSourceScreen()
     {
         InitializeComponent();
     }
 
     private void TextInputBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        (DataContext as TextInputDialogViewModel).Text = (sender as TextBox).Text;
+        (DataContext as AddModSourceScreenViewModel).Text = (sender as TextBox).Text;
     }
 
     private void OkButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (!string.IsNullOrWhiteSpace((DataContext as TextInputDialogViewModel).Text))
-            (DataContext as TextInputDialogViewModel).OnComplete?.Invoke((DataContext as TextInputDialogViewModel).Text);
+        if (!string.IsNullOrWhiteSpace((DataContext as AddModSourceScreenViewModel).Text))
+            (DataContext as AddModSourceScreenViewModel).OnComplete?.Invoke((DataContext as AddModSourceScreenViewModel).Text);
         Dispose();
     }
 
