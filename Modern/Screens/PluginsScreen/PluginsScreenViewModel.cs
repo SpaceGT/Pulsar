@@ -18,6 +18,10 @@ internal class PluginsScreenViewModel : ScreenViewModel
     public ObservableCollection<PluginViewModel> EnabledPlugins { get; private set; } = [];
     public ObservableCollection<PluginViewModel> EnabledModPlugins { get; private set; } = [];
 
+    public PluginViewModel SelectedPlugin { get; set; }
+
+    public PluginViewModel SelectedModPlugin { get; set; }
+
     public Profile Draft { get; private set; }
 
     public bool ConsentGiven => configManager.Core.DataHandlingConsent;

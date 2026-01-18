@@ -68,6 +68,8 @@ public partial class AddPluginScreen : PluginScreenBase
         if ((sender as Border).DataContext is not PluginViewModel pluginVM)
             return;
 
+        ScreenTools.PlayClickSound((Control)sender);
+
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel(pluginVM), true);
     }
 }

@@ -3,6 +3,7 @@ using Avalonia.Interactivity;
 using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
+using Pulsar.Modern.Screens.PluginDetailsScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Shared;
 using System.Collections.Generic;
@@ -12,6 +13,10 @@ namespace Pulsar.Modern.Screens.PluginsScreen;
 [NeedsWindowStyles]
 public partial class PluginsScreen : PluginScreenBase
 {
+    private Control selectedPluginControl;
+
+    private Control selectedModPluginControl;
+
     public PluginsScreen()
     {
         InitializeComponent();
@@ -105,5 +110,57 @@ public partial class PluginsScreen : PluginScreenBase
             checkBox.IsChecked = true;
 
         (DataContext as PluginsScreenViewModel).ShowConsentScreen();
+    }
+
+    private void PluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (selectedPluginControl != null)
+            (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedPluginControl = sender as Control;
+        (selectedPluginControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        (DataContext as PluginsScreenViewModel).SelectedPlugin = (PluginViewModel)(sender as Control).DataContext;
+
+        PluginSettingsButton.IsEnabled = (DataContext as PluginsScreenViewModel).SelectedPlugin.HasSettingsMenu;
+        PluginDetailsButton.IsEnabled = true;
+
+        if (e.ClickCount > 1)
+            ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedPlugin), true);
+    }
+
+    private void ModPluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (selectedModPluginControl != null)
+            (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedModPluginControl = sender as Control;
+        (selectedModPluginControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        (DataContext as PluginsScreenViewModel).SelectedModPlugin = (PluginViewModel)(sender as Control).DataContext;
+
+        ModDetailsButton.IsEnabled = true;
+
+        if (e.ClickCount == 2)
+            ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
+    }
+
+    private void PluginSettingsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        (DataContext as PluginsScreenViewModel).SelectedPlugin.TryOpenSettingsScreen();
+    }
+
+    private void PluginDetailsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedPlugin), true);
+    }
+
+    private void ModDetailsButton_Click(object? sender, RoutedEventArgs e)
+    {
+        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
     }
 }
