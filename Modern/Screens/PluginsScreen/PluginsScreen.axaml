@@ -69,11 +69,11 @@
 										 Foreground="White" 
 										 Text="Enabled"/>
 					</Grid>
-					<ScrollViewer Background="rgba(41,54,62,96)">
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="630">
 						<ItemsRepeater Name="PluginsList"
 										HorizontalAlignment="Stretch"
-										ItemsSource="{Binding EnabledPlugins}"
-										Height="630">
+										ItemsSource="{Binding EnabledPlugins}">
 							<ItemsRepeater.ItemTemplate>
 								<DataTemplate x:DataType="vm2:PluginViewModel">
 									<Grid Margin="0,2" 
@@ -184,11 +184,11 @@
 									 Foreground="White" 
 									 Text="Enabled"/>
 					</Grid>
-					<ScrollViewer Background="rgba(41,54,62,96)">
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="630">
 						<ItemsRepeater Name="ModsList"
 										HorizontalAlignment="Stretch"
-										ItemsSource="{Binding EnabledModPlugins}"
-										Height="630">
+										ItemsSource="{Binding EnabledModPlugins}">
 							<ItemsRepeater.ItemTemplate>
 								<DataTemplate x:DataType="vm2:PluginViewModel">
 									<Grid Margin="0,2" 
