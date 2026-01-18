@@ -11,7 +11,7 @@
 	<Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
-			Width="1450" 
+			Width="1025" 
 			Height="975">
 		<Grid 
 			RowDefinitions="Auto,Auto,Auto,Auto,Auto"
@@ -164,7 +164,11 @@
 						</Button>
 					</StackPanel>
 				</StackPanel>
-				<StackPanel Grid.Column="1" HorizontalAlignment="Left" Margin="16,0,0,0">
+				<!-- Remove IsVisible="False" to enable mod list. -->
+				<StackPanel Grid.Column="1" 
+							HorizontalAlignment="Left" 
+							Margin="16,0,0,0"
+							IsVisible="False">
 					<TextBlock Grid.Row="0"
 						   HorizontalAlignment="Center"
 						   FontSize="23"
