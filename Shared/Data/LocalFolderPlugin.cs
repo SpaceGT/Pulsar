@@ -165,7 +165,7 @@ public class LocalFolderPlugin : PluginData
 
             using (var repo = new Repository(folder))
             {
-                return GetCurrentRepoFiles(repo, true)
+                return Tools.GetCurrentRepoFiles(repo, true)
                     .Where(i => i.EndsWith(".cs", StringComparison.CurrentCultureIgnoreCase))
                     .Select(i => i.Replace('/', Path.DirectorySeparatorChar))
                     .Where(IsValidProjectFile);
@@ -182,41 +182,6 @@ public class LocalFolderPlugin : PluginData
         }
 
         return null;
-    }
-
-    private static IEnumerable<string> GetCurrentRepoFiles(Repository repo, bool recurseSubmodules)
-    {
-        var statusOptions = new StatusOptions()
-        {
-            IncludeIgnored = false,
-            IncludeUntracked = true,
-            RecurseUntrackedDirs = true,
-            IncludeUnaltered = true,
-            ExcludeSubmodules = true,
-            Show = StatusShowOption.WorkDirOnly,
-        };
-
-        RepositoryStatus status = repo.RetrieveStatus(statusOptions);
-
-        var files = status
-            .Where(i => (i.State & FileStatus.DeletedFromWorkdir) == 0)
-            .Select(i => Path.Combine(repo.Info.WorkingDirectory, i.FilePath))
-            .Where(File.Exists);
-
-        if (recurseSubmodules)
-        {
-            foreach (var submodule in repo.Submodules)
-            {
-                string submoduleRepoDir = Path.Combine(repo.Info.WorkingDirectory, submodule.Path);
-                if (Repository.IsValid(submoduleRepoDir))
-                {
-                    using var submoduleRepo = new Repository(submoduleRepoDir);
-                    files = files.Concat(GetCurrentRepoFiles(submoduleRepo, recurseSubmodules));
-                }
-            }
-        }
-
-        return files;
     }
 
     private IEnumerable<string> GetProjectFilesFallback(string folder)

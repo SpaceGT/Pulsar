@@ -353,4 +353,45 @@ public static class Tools
             CloneSubmodulesRecursive(repo, 10);
         }
     }
+
+    /// <summary>
+    /// Get non-ignored existing tracked and untracked files in the working directory.
+    /// </summary>
+    /// <param name="repo"></param>
+    /// <param name="recurseSubmodules"></param>
+    /// <returns></returns>
+    public static IEnumerable<string> GetCurrentRepoFiles(Repository repo, bool recurseSubmodules)
+    {
+        var statusOptions = new StatusOptions()
+        {
+            IncludeIgnored = false,
+            IncludeUntracked = true,
+            RecurseUntrackedDirs = true,
+            IncludeUnaltered = true,
+            ExcludeSubmodules = true,
+            Show = StatusShowOption.WorkDirOnly,
+        };
+
+        RepositoryStatus status = repo.RetrieveStatus(statusOptions);
+
+        var files = status
+            .Where(i => (i.State & FileStatus.DeletedFromWorkdir) == 0)
+            .Select(i => Path.Combine(repo.Info.WorkingDirectory, i.FilePath))
+            .Where(File.Exists);
+
+        if (recurseSubmodules)
+        {
+            foreach (var submodule in repo.Submodules)
+            {
+                string submoduleRepoDir = Path.Combine(repo.Info.WorkingDirectory, submodule.Path);
+                if (Repository.IsValid(submoduleRepoDir))
+                {
+                    using var submoduleRepo = new Repository(submoduleRepoDir);
+                    files = files.Concat(GetCurrentRepoFiles(submoduleRepo, recurseSubmodules));
+                }
+            }
+        }
+
+        return files;
+    }
 }

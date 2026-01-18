@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
+using LibGit2Sharp;
 using ProtoBuf;
 using Pulsar.Compiler;
 using Pulsar.Shared.Config;
@@ -153,7 +153,7 @@ public partial class GitHubPlugin : PluginData
 
         resolver = new AssemblyResolver();
 
-        Version gameVersion = ConfigManager.Instance.GameVersion;
+        System.Version gameVersion = ConfigManager.Instance.GameVersion;
         GitHubSource selectedVersion = GetSelectedVersion();
         string selectedRepo = selectedVersion?.Repo ?? RepoId;
         string selectedCommit = selectedVersion?.Commit ?? Commit;
@@ -220,16 +220,14 @@ public partial class GitHubPlugin : PluginData
     
         Tools.ShallowCloneRecurseSubmodules(manifest.SrcDir, $"https://github.com/{repo}", commit);
         callback?.Invoke(0);
-    
-        string[] repoFiles = Directory.GetFiles(manifest.SrcDir, "*.*", SearchOption.AllDirectories);
+
+        using var srcRepo = new Repository(manifest.SrcDir);
+        string[] repoFiles = Tools.GetCurrentRepoFiles(srcRepo, true).ToArray();
         for (int i = 0; i < repoFiles.Length; i++)
         {
             string normalizedFile = repoFiles[i].Replace('\\', '/');
-            if (!normalizedFile.Contains("/.git/"))
-            {
-                CompileFromSource(compiler, normalizedFile);
-                callback?.Invoke(i / (float)repoFiles.Length);
-            }
+            CompileFromSource(compiler, normalizedFile);
+            callback?.Invoke(i / (float)repoFiles.Length);
         }
         if (NuGetReferences?.PackageIds is not null)
         {
