@@ -75,7 +75,8 @@
                           Grid.Row="3">
 				<ItemsRepeater Name="PluginList" 
                                 HorizontalAlignment="Stretch" 
-                                ItemsSource="{Binding Plugins}">
+                                ItemsSource="{Binding Plugins}"
+                                Margin="0,0,0,16">
                     <ItemsRepeater.Layout>
                         <UniformGridLayout />
                     </ItemsRepeater.Layout>
