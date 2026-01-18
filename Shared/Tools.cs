@@ -318,7 +318,8 @@ public static class Tools
                 Init = true,
             });
 
-            CloneSubmodulesRecursive(new Repository(Path.Combine(repo.Info.WorkingDirectory, submodule.Path)), maxDepth);
+            using var submoduleRepo = new Repository(Path.Combine(repo.Info.WorkingDirectory, submodule.Path));
+            CloneSubmodulesRecursive(submoduleRepo, maxDepth);
         }
     }
 

@@ -210,7 +210,8 @@ public class LocalFolderPlugin : PluginData
                 string submoduleRepoDir = Path.Combine(repo.Info.WorkingDirectory, submodule.Path);
                 if (Repository.IsValid(submoduleRepoDir))
                 {
-                    files = files.Concat(GetCurrentRepoFiles(new Repository(submoduleRepoDir), recurseSubmodules));
+                    using var submoduleRepo = new Repository(submoduleRepoDir);
+                    files = files.Concat(GetCurrentRepoFiles(submoduleRepo, recurseSubmodules));
                 }
             }
         }
