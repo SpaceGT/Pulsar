@@ -1,6 +1,7 @@
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
-using System.Collections.Generic;
+
 namespace Pulsar.Modern.Screens.ProfilesScreen;
 
 [NeedsWindowStyles]
@@ -32,7 +33,7 @@ public partial class ProfilesScreen : PluginScreenBase
         {
             (DataContext as ProfilesScreenViewModel).CreateProfile();
         }
-        else if (selectedProfileControl.DataContext is ProfileViewModel profile)
+        else if (selectedProfileControl.DataContext is ProfileViewModel)
         {
             (DataContext as ProfilesScreenViewModel).UpdateProfile();
         }
@@ -40,7 +41,7 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void LoadButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
+        if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
         (DataContext as ProfilesScreenViewModel).LoadProfile();
@@ -48,7 +49,7 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void RenameButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
+        if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
         (DataContext as ProfilesScreenViewModel).RenameProfile();
@@ -56,7 +57,7 @@ public partial class ProfilesScreen : PluginScreenBase
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (selectedProfileControl.DataContext is not ProfileViewModel profile)
+        if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
         (DataContext as ProfilesScreenViewModel).DeleteProfile();
@@ -77,7 +78,8 @@ public partial class ProfilesScreen : PluginScreenBase
 
         ScreenTools.PlayClickSound((Control)sender);
 
-        (DataContext as ProfilesScreenViewModel).SelectedProfile = (ProfileViewModel)(sender as Control).DataContext;
+        (DataContext as ProfilesScreenViewModel).SelectedProfile = (ProfileViewModel)
+            (sender as Control).DataContext;
 
         NewButton.Content = "Update";
         LoadButton.IsEnabled = true;

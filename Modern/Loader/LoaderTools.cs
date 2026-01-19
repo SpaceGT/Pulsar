@@ -1,23 +1,17 @@
-﻿using HarmonyLib;
-using Keen.Game2;
-using Keen.Game2.Client.UI.InGame;
-using Keen.Game2.Client.UI.Library.Dialogs.LoadingDialog;
-using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
-using Keen.Game2.Game.SessionComponents;
-using Keen.Game2.Simulation.Replication;
-using Keen.Game2.Simulation.RuntimeSystems.Saves;
-using Keen.VRage.Core;
-using Keen.VRage.Core.Platform.CrashReporting;
-using Keen.VRage.Library.Threading;
-using Keen.VRage.Library.Utils;
-using Pulsar.Modern.Screens;
-using Pulsar.Shared;
-using Steamworks;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Forms;
+using HarmonyLib;
+using Keen.Game2;
+using Keen.Game2.Client.UI.InGame;
+using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
+using Keen.VRage.Core;
+using Keen.VRage.Core.Platform.CrashReporting;
+using Keen.VRage.Library.Utils;
+using Pulsar.Modern.Screens;
+using Pulsar.Shared;
 
 namespace Pulsar.Modern.Loader;
 
@@ -28,7 +22,8 @@ internal static class LoaderTools
 
     public static void AskToRestart()
     {
-        bool isInGame = Singleton<VRageCore>.Instance.Engine.Get<GameAppComponent>().MainMenu is null;
+        bool isInGame =
+            Singleton<VRageCore>.Instance.Engine.Get<GameAppComponent>().MainMenu is null;
 
         void RestartGame()
         {
@@ -49,19 +44,25 @@ internal static class LoaderTools
         definition.Content = ScreenTools.GetKeyFromString("Save changes before restarting game?");
         definition.CancelOption = ScreenTools.GetKeyFromString("Don't Restart");
 
-        ScreenTools.GetSharedUIComponent().ShowDialog(new ThreeOptionsDialogViewModel(definition)
-        {
-            ConfirmAction = async () =>
-            {
-                var inGameUi = Singleton<VRageCore>.Instance.Engine.Get<GameAppComponent>().ClientSession.SessionComponents.Get<SessionInGameUISessionComponent>();
+        ScreenTools
+            .GetSharedUIComponent()
+            .ShowDialog(
+                new ThreeOptionsDialogViewModel(definition)
+                {
+                    ConfirmAction = async () =>
+                    {
+                        var inGameUi = Singleton<VRageCore>
+                            .Instance.Engine.Get<GameAppComponent>()
+                            .ClientSession.SessionComponents.Get<SessionInGameUISessionComponent>();
 
-                await inGameUi.SaveAndExecute(afterMenu);
-            },
-            DefaultAction = () =>
-            {
-                afterMenu();
-            },
-        });
+                        await inGameUi.SaveAndExecute(afterMenu);
+                    },
+                    DefaultAction = () =>
+                    {
+                        afterMenu();
+                    },
+                }
+            );
     }
 
     private static void Unload()
@@ -71,7 +72,8 @@ internal static class LoaderTools
 
         // Disable DiagnosticReporter so it does not throw an exception to report.
         // An exception being thrown would prevent the game from restarting.
-        AccessTools.Field(typeof(DiagnosticReporter), "<Active>k__BackingField")
+        AccessTools
+            .Field(typeof(DiagnosticReporter), "<Active>k__BackingField")
             .SetValue(Singleton<DiagnosticReporter>.Instance, false);
 
         Singleton<VRageCore>.Instance.Dispose();

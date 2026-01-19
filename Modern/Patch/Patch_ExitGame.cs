@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Diagnostics;
+using HarmonyLib;
 using Keen.Game2;
-using System.Diagnostics;
 
 namespace Pulsar.Modern.Patch;
 

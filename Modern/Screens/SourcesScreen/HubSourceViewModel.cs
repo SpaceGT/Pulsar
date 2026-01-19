@@ -40,9 +40,8 @@ internal class HubSourceViewModel : AttachedViewModel
         }
     }
 
-
-    private bool isDummy = false;
-    private object config;
+    private readonly bool isDummy = false;
+    private readonly object config;
 
     public HubSourceViewModel(RemoteHubConfig config)
     {

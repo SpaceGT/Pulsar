@@ -1,12 +1,8 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Input;
+﻿using Avalonia.Controls;
 using HarmonyLib;
 using Keen.Game2.Client.UI.Menu;
 using Keen.Game2.Client.UI.Menu.MainMenu;
-using Keen.VRage.UI.AvaloniaInterface;
 using Pulsar.Modern.Screens.PluginsScreen;
-using Pulsar.Shared;
 using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Patch;
@@ -22,11 +18,18 @@ internal class Patch_MainMenuButtons
             return;
         }
 
-        Button pluginsButton = __instance.CreateButton("Plugins", () => PluginsScreenViewModel.OpenMenu());
+        Button pluginsButton = __instance.CreateButton(
+            "Plugins",
+            () => PluginsScreenViewModel.OpenMenu()
+        );
 
-        __instance._buttonsPanel.Children.Insert(__instance._buttonsPanel.Children.Count - 2, pluginsButton);
+        __instance._buttonsPanel.Children.Insert(
+            __instance._buttonsPanel.Children.Count - 2,
+            pluginsButton
+        );
 
         if (__instance.DataContext is MainMenuScreenViewModel)
-            (__instance._buttonsPanel.Children[__instance._buttonsPanel.Children.Count - 1] as Button).Content = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+            (__instance._buttonsPanel.Children[^1] as Button).Content =
+                $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
     }
 }

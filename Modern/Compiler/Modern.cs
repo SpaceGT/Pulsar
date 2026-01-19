@@ -1,9 +1,9 @@
-﻿using Pulsar.Compiler;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
+using Pulsar.Compiler;
 
 namespace Pulsar.Modern.Compiler;
 

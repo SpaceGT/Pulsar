@@ -46,7 +46,7 @@ internal class Folder
         // Windows can handle forward slashes in paths so all we need to
         // do is point it to where the system root is mounted under.
 
-        if (!Tools.IsNative() && path.StartsWith("/"))
+        if (!Tools.IsNative() && path.StartsWith('/'))
             return "Z:" + path;
         return path;
     }

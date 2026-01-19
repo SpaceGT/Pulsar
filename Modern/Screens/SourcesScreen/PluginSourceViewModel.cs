@@ -40,12 +40,11 @@ internal class PluginSourceViewModel : AttachedViewModel
         }
     }
 
+    private readonly bool isDummy = false;
+    private readonly object config;
 
-    private bool isDummy = false;
-    private object config;
-
-    public PluginSourceViewModel(RemotePluginConfig config) 
-    { 
+    public PluginSourceViewModel(RemotePluginConfig config)
+    {
         this.config = config;
     }
 

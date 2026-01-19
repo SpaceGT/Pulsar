@@ -31,11 +31,7 @@ internal static class References
         "Game2*.dll",
     ];
 
-    private static readonly string[] excludeGlobs = 
-        [
-        "*.Generator.dll", 
-        "*.Native.dll"
-    ];
+    private static readonly string[] excludeGlobs = ["*.Generator.dll", "*.Native.dll"];
 
     public static IEnumerable<string> GetReferences(string exeLocation, bool native = true)
     {

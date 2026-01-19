@@ -1,8 +1,8 @@
+using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
-using System;
-using System.Collections.Generic;
 using static Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreenViewModel;
 
 namespace Pulsar.Modern.Screens.AddPluginScreen;
@@ -19,7 +19,7 @@ public partial class AddPluginScreen : PluginScreenBase
             if ((DataContext as AddPluginScreenViewModel).Mods)
                 TitleText.Text = "Mod List";
 
-            string[] sortMethods = Enum.GetNames(typeof(SortingMethod));
+            string[] sortMethods = Enum.GetNames<SortingMethod>();
             for (int i = 0; i < sortMethods.Length; i++)
                 SortButton.Items.Add(sortMethods[i]);
         }
@@ -55,7 +55,9 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void SortButton_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        (DataContext as AddPluginScreenViewModel).SortPlugins((SortingMethod)SortButton.SelectedIndex);
+        (DataContext as AddPluginScreenViewModel).SortPlugins(
+            (SortingMethod)SortButton.SelectedIndex
+        );
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -70,6 +72,11 @@ public partial class AddPluginScreen : PluginScreenBase
 
         ScreenTools.PlayClickSound((Control)sender);
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel(pluginVM), true);
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
+                new PluginDetailsScreenViewModel(pluginVM),
+                true
+            );
     }
 }

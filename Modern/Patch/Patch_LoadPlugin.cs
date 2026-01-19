@@ -1,7 +1,7 @@
-﻿using HarmonyLib;
-using Keen.Game2.Game.Plugins;
-using System;
+﻿using System;
 using System.Collections.Generic;
+using HarmonyLib;
+using Keen.Game2.Game.Plugins;
 
 namespace Pulsar.Modern.Patch;
 
@@ -13,7 +13,7 @@ internal class Patch_LoadPlugin
 
     private static void Postfix(PluginHost __instance)
     {
-        foreach (var plugin in PluginsToLoad) 
+        foreach (var plugin in PluginsToLoad)
         {
             __instance.Add(plugin);
         }

@@ -1,18 +1,15 @@
-﻿using HarmonyLib;
-using Keen.Game2.Game.Plugins;
-using Keen.VRage.Core.EngineComponents;
-using Keen.VRage.Core.Project;
-using Keen.VRage.Library.Extensions;
-using Pulsar.Modern.Screens;
-using Pulsar.Shared;
-using Pulsar.Shared.Config;
-using Pulsar.Shared.Splash;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Windows.Forms;
+using HarmonyLib;
+using Keen.Game2.Game.Plugins;
+using Keen.VRage.Library.Extensions;
+using Pulsar.Shared;
+using Pulsar.Shared.Config;
+using Pulsar.Shared.Splash;
 using SharedLoader = Pulsar.Shared.Loader;
 
 namespace Pulsar.Modern.Loader;
@@ -21,7 +18,7 @@ internal class PluginLoader : IPlugin, IDisposable
 {
     public static PluginLoader Instance;
 
-    private bool init;
+    private readonly bool init;
     private readonly List<PluginInstance> plugins = [];
     public List<PluginInstance> Plugins => plugins;
 

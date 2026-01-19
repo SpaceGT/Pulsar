@@ -1,12 +1,12 @@
-﻿using DynamicData;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
+using DynamicData;
 using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Linq;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -30,7 +30,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     private readonly ConfigManager configManager;
     private readonly ProfilesConfig profiles;
-    
+
     private readonly PluginList pluginlist;
 
     public PluginsScreenViewModel(ConfigManager configManager)
@@ -100,7 +100,8 @@ internal class PluginsScreenViewModel : ScreenViewModel
         configManager.Sources.Save();
     }
 
-    public void ShowConsentScreen() => PlayerConsent.ShowDialog(() => OnPropertyChanged(nameof(ConsentGiven)));
+    public void ShowConsentScreen() =>
+        PlayerConsent.ShowDialog(() => OnPropertyChanged(nameof(ConsentGiven)));
 
     public bool ApplyChanges()
     {

@@ -1,6 +1,6 @@
-﻿using Keen.VRage.UI.Screens;
+﻿using System.Collections.ObjectModel;
+using Keen.VRage.UI.Screens;
 using Pulsar.Shared.Config;
-using System.Collections.ObjectModel;
 
 namespace Pulsar.Modern.Screens.SourcesScreen;
 
@@ -11,6 +11,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
     public ObservableCollection<HubSourceViewModel> ModSources { get; private set; } = [];
 
     private readonly SourcesConfig sourcesConfig;
+
     public SourcesScreenViewModel(SourcesConfig config)
     {
         KeepsOtherScreensVisible = false;
@@ -20,6 +21,5 @@ internal class SourcesScreenViewModel : ScreenViewModel
         sourcesConfig = config;
 
         InitializeInputContext();
-
     }
 }

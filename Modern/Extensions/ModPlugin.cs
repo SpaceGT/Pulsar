@@ -7,7 +7,8 @@ internal static class ModPluginExtensions
 {
     public static void Show(this ModPlugin modPlugin)
     {
-        ScreenTools.GetSharedUIComponent()
+        ScreenTools
+            .GetSharedUIComponent()
             .OpenUrl($"https://steamcommunity.com/workshop/filedetails/?id={modPlugin.WorkshopId}");
     }
 }

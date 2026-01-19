@@ -4,21 +4,16 @@ using Pulsar.Shared.Data;
 
 namespace Pulsar.Modern.Screens.ProfilesScreen
 {
-    internal class ProfileViewModel : AttachedViewModel
+    internal class ProfileViewModel(Profile profile) : AttachedViewModel
     {
-        public readonly Profile Profile;
+        public readonly Profile Profile = profile;
 
         public string Name => Profile.Name;
         public string Description => Profile.GetDescription();
 
-        public ProfileViewModel(Profile profile)
-        {
-            Profile = profile;
-        }
-
         public static ProfileViewModel GetDummyProfileViewModel()
         {
-            Profile dummyProfile = new Profile("Dummy Profile");
+            Profile dummyProfile = new("Dummy Profile");
             dummyProfile.GitHub.Add(new GitHubPluginConfig());
             dummyProfile.Local.Add(string.Empty);
             dummyProfile.Mods.Add(0);

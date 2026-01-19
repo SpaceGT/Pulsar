@@ -1,13 +1,4 @@
-﻿using Avalonia;
-using Avalonia.ReactiveUI;
-using HarmonyLib;
-using Pulsar.Modern.Compiler;
-using Pulsar.Modern.Launcher;
-using Pulsar.Modern.Loader;
-using Pulsar.Shared;
-using Pulsar.Shared.Config;
-using Pulsar.Shared.Splash;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -16,6 +7,15 @@ using System.Runtime.InteropServices;
 using System.Runtime.Loader;
 using System.Text;
 using System.Threading;
+using Avalonia;
+using Avalonia.ReactiveUI;
+using HarmonyLib;
+using Pulsar.Modern.Compiler;
+using Pulsar.Modern.Launcher;
+using Pulsar.Modern.Loader;
+using Pulsar.Shared;
+using Pulsar.Shared.Config;
+using Pulsar.Shared.Splash;
 using Application = System.Windows.Forms.Application;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
@@ -63,7 +63,7 @@ static class Program
         SetupCoreData(baseDir);
         Updater updater = TryUpdate(baseDir);
         SetupGameData(updater);
-        CheckCanStart(updater);
+        CheckCanStart();
         SetupSteam();
         SetupPlugins(baseDir);
         SetupGame(args);
@@ -153,7 +153,7 @@ static class Program
         }
     }
 
-    private static void CheckCanStart(Updater updater)
+    private static void CheckCanStart()
     {
         string game2Dir = ConfigManager.Instance.GameDir;
         string originalLoaderPath = Path.Combine(game2Dir, OldLauncher);
@@ -247,12 +247,16 @@ static class Program
         LogFile.GameLog = new GameLog();
 
         // This is to prevent the game from loading the wrong System.Management assembly in the Game2 folder.
-        Assembly.LoadFrom(Path.Combine(game2Dir, "runtimes\\win\\lib\\netcoreapp2.0\\System.Management.dll"));
+        Assembly.LoadFrom(
+            Path.Combine(game2Dir, "runtimes\\win\\lib\\netcoreapp2.0\\System.Management.dll")
+        );
 
         // This is to fix errors on game startup.
         // Game code uses GetEntryAssembly() and APP_CONTEXT_BASE_DIRECTORY AppContext variable,
         // which would point to the Pulsar folder instead.
-        Assembly.SetEntryAssembly(AssemblyLoadContext.Default.LoadFromAssemblyPath(originalLoaderPath));
+        Assembly.SetEntryAssembly(
+            AssemblyLoadContext.Default.LoadFromAssemblyPath(originalLoaderPath)
+        );
         AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", game2Dir);
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
@@ -292,12 +296,11 @@ static class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
     {
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([Path.Combine(Environment.CurrentDirectory, "Libraries", "Modern")]);
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([
+            Path.Combine(Environment.CurrentDirectory, "Libraries", "Modern"),
+        ]);
         AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([Folder.GetGame2()]);
 
-        return AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .UseReactiveUI();
+        return AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().UseReactiveUI();
     }
 }

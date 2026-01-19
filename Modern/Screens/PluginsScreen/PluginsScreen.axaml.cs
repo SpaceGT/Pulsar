@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
@@ -9,7 +10,6 @@ using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Modern.Screens.SourcesScreen;
 using Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 using Pulsar.Shared;
-using System.Collections.Generic;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -59,23 +59,33 @@ public partial class PluginsScreen : PluginScreenBase
 
         var definition = ScreenTools.GetDefaultYesNoDialog();
         definition.Title = ScreenTools.GetKeyFromString("Apply Changes?");
-        definition.Content = ScreenTools.GetKeyFromString("A restart is required to apply changes. Would you like to restart the game now?");
+        definition.Content = ScreenTools.GetKeyFromString(
+            "A restart is required to apply changes. Would you like to restart the game now?"
+        );
 
-        ScreenTools.GetSharedUIComponent().ShowDialog(new TwoOptionsDialogViewModel(definition)
-        {
-            ConfirmAction = () =>
-            {
-                LoaderTools.AskToRestart();
-            }
-        });
-
+        ScreenTools
+            .GetSharedUIComponent()
+            .ShowDialog(
+                new TwoOptionsDialogViewModel(definition)
+                {
+                    ConfirmAction = () =>
+                    {
+                        LoaderTools.AskToRestart();
+                    },
+                }
+            );
     }
 
     private void ProfilesButton_OnClick(object sender, RoutedEventArgs e)
     {
-        var viewModel = new ProfilesScreenViewModel((DataContext as PluginsScreenViewModel).Draft, (DataContext as PluginsScreenViewModel).ReplaceDraft);
+        var viewModel = new ProfilesScreenViewModel(
+            (DataContext as PluginsScreenViewModel).Draft,
+            (DataContext as PluginsScreenViewModel).ReplaceDraft
+        );
 
-        ScreenTools.GetSharedUIComponent().CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel, true);
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<ProfilesScreen.ProfilesScreen>(viewModel, true);
     }
 
     private void RefreshButton_Click(object sender, RoutedEventArgs e)
@@ -86,38 +96,50 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void PluginAddButton_Click(object sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate ()
-        {
-            (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+        var viewModel = new AddPluginScreenViewModel(
+            [.. (DataContext as PluginsScreenViewModel).Plugins],
+            false,
+            delegate()
+            {
+                (DataContext as PluginsScreenViewModel).RefreshPluginLists();
 
-            if (selectedPluginControl != null)
-                (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+                if (selectedPluginControl != null)
+                    (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
 
-            if (selectedModPluginControl != null)
-                (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+                if (selectedModPluginControl != null)
+                    (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
 
-            selectedPluginControl = null;
-            selectedModPluginControl = null;
-        });
-        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
+                selectedPluginControl = null;
+                selectedModPluginControl = null;
+            }
+        );
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 
     private void ModAddButton_Click(object sender, RoutedEventArgs e)
     {
-        var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).ModPlugins], true, delegate ()
-        {
-            (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+        var viewModel = new AddPluginScreenViewModel(
+            [.. (DataContext as PluginsScreenViewModel).ModPlugins],
+            true,
+            delegate()
+            {
+                (DataContext as PluginsScreenViewModel).RefreshPluginLists();
 
-            if (selectedPluginControl != null)
-                (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+                if (selectedPluginControl != null)
+                    (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
 
-            if (selectedModPluginControl != null)
-                (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+                if (selectedModPluginControl != null)
+                    (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
 
-            selectedPluginControl = null;
-            selectedModPluginControl = null;
-        });
-        ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
+                selectedPluginControl = null;
+                selectedModPluginControl = null;
+            }
+        );
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
 
     private void ConsentBox_Click(object sender, RoutedEventArgs e)
@@ -145,16 +167,29 @@ public partial class PluginsScreen : PluginScreenBase
 
         ScreenTools.PlayClickSound((Control)sender);
 
-        (DataContext as PluginsScreenViewModel).SelectedPlugin = (PluginViewModel)(sender as Control).DataContext;
+        (DataContext as PluginsScreenViewModel).SelectedPlugin = (PluginViewModel)
+            (sender as Control).DataContext;
 
-        PluginSettingsButton.IsEnabled = (DataContext as PluginsScreenViewModel).SelectedPlugin.HasSettingsMenu;
+        PluginSettingsButton.IsEnabled = (DataContext as PluginsScreenViewModel)
+            .SelectedPlugin
+            .HasSettingsMenu;
         PluginDetailsButton.IsEnabled = true;
 
         if (e.ClickCount > 1)
-            ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedPlugin), true);
+            ScreenTools
+                .GetSharedUIComponent()
+                .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
+                    new PluginDetailsScreenViewModel(
+                        (DataContext as PluginsScreenViewModel).SelectedPlugin
+                    ),
+                    true
+                );
     }
 
-    private void ModPluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void ModPluginItem_PointerPressed(
+        object sender,
+        Avalonia.Input.PointerPressedEventArgs e
+    )
     {
         if (selectedModPluginControl != null)
             (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
@@ -164,12 +199,20 @@ public partial class PluginsScreen : PluginScreenBase
 
         ScreenTools.PlayClickSound((Control)sender);
 
-        (DataContext as PluginsScreenViewModel).SelectedModPlugin = (PluginViewModel)(sender as Control).DataContext;
+        (DataContext as PluginsScreenViewModel).SelectedModPlugin = (PluginViewModel)
+            (sender as Control).DataContext;
 
         ModDetailsButton.IsEnabled = true;
 
         if (e.ClickCount > 1)
-            ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
+            ScreenTools
+                .GetSharedUIComponent()
+                .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
+                    new PluginDetailsScreenViewModel(
+                        (DataContext as PluginsScreenViewModel).SelectedModPlugin
+                    ),
+                    true
+                );
     }
 
     private void PluginSettingsButton_Click(object sender, RoutedEventArgs e)
@@ -179,22 +222,56 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void PluginDetailsButton_Click(object sender, RoutedEventArgs e)
     {
-        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedPlugin), true);
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
+                new PluginDetailsScreenViewModel(
+                    (DataContext as PluginsScreenViewModel).SelectedPlugin
+                ),
+                true
+            );
     }
 
     private void ModDetailsButton_Click(object sender, RoutedEventArgs e)
     {
-        ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
+                new PluginDetailsScreenViewModel(
+                    (DataContext as PluginsScreenViewModel).SelectedModPlugin
+                ),
+                true
+            );
     }
 
     private void SourcesButton_Click(object sender, RoutedEventArgs e)
     {
         if ((DataContext as PluginsScreenViewModel).Sources.ShowWarning)
-            ScreenTools.GetSharedUIComponent().CreateScreen<SourceWarningScreen>(new SourceWarningScreenViewModel((DataContext as PluginsScreenViewModel).Sources, delegate
-            {
-                ScreenTools.GetSharedUIComponent().CreateScreen<SourcesScreen.SourcesScreen>(new SourcesScreenViewModel((DataContext as PluginsScreenViewModel).Sources), true);
-            }), true);
+            ScreenTools
+                .GetSharedUIComponent()
+                .CreateScreen<SourceWarningScreen>(
+                    new SourceWarningScreenViewModel(
+                        (DataContext as PluginsScreenViewModel).Sources,
+                        delegate
+                        {
+                            ScreenTools
+                                .GetSharedUIComponent()
+                                .CreateScreen<SourcesScreen.SourcesScreen>(
+                                    new SourcesScreenViewModel(
+                                        (DataContext as PluginsScreenViewModel).Sources
+                                    ),
+                                    true
+                                );
+                        }
+                    ),
+                    true
+                );
         else
-            ScreenTools.GetSharedUIComponent().CreateScreen<SourcesScreen.SourcesScreen>(new SourcesScreenViewModel((DataContext as PluginsScreenViewModel).Sources), true);
+            ScreenTools
+                .GetSharedUIComponent()
+                .CreateScreen<SourcesScreen.SourcesScreen>(
+                    new SourcesScreenViewModel((DataContext as PluginsScreenViewModel).Sources),
+                    true
+                );
     }
 }

@@ -1,6 +1,6 @@
-﻿using Keen.VRage.UI.Screens;
+﻿using System;
+using Keen.VRage.UI.Screens;
 using Pulsar.Shared.Config;
-using System;
 
 namespace Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 
@@ -29,6 +29,6 @@ internal class SourceWarningScreenViewModel : ScreenViewModel
         {
             sourcesConfig.ShowWarning = false;
             sourcesConfig.Save();
-        } 
+        }
     }
 }

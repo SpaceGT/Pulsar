@@ -1,12 +1,9 @@
-﻿using Keen.Game2.Game.Plugins;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
 using Keen.VRage.Library.Diagnostics;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 
 namespace Pulsar.Modern.Launcher;
 

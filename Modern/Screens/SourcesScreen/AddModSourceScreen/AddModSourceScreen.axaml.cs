@@ -19,7 +19,9 @@ public partial class AddModSourceScreen : PluginScreenBase
     private void OkButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         if (!string.IsNullOrWhiteSpace((DataContext as AddModSourceScreenViewModel).Text))
-            (DataContext as AddModSourceScreenViewModel).OnComplete?.Invoke((DataContext as AddModSourceScreenViewModel).Text);
+            (DataContext as AddModSourceScreenViewModel).OnComplete?.Invoke(
+                (DataContext as AddModSourceScreenViewModel).Text
+            );
         Dispose();
     }
 

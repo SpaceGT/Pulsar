@@ -11,14 +11,13 @@ internal class ModSourceViewModel : AttachedViewModel
         {
             if (isDummy)
                 return "Dummy Mod";
-            
+
             return config.Name;
         }
     }
 
-
-    private bool isDummy = false;
-    private ModConfig config;
+    private readonly bool isDummy = false;
+    private readonly ModConfig config;
 
     public ModSourceViewModel(ModConfig config)
     {

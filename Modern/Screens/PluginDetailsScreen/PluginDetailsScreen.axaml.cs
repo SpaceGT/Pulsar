@@ -17,7 +17,10 @@ public partial class PluginDetailsScreen : PluginScreenBase
             DataContext = new PluginDetailsScreenViewModel(PluginViewModel.GetDummyPlugin());
         }
 
-        TitleText.Text = (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin ? "Mod Details" : "Plugin Details";
+        TitleText.Text =
+            (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin
+                ? "Mod Details"
+                : "Plugin Details";
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

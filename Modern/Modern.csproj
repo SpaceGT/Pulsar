@@ -7,9 +7,9 @@
     <Description>Plugin and Mod loader for Space Engineers 2</Description>
   </PropertyGroup>
   <PropertyGroup>
-	<RootNamespace>Pulsar.Modern</RootNamespace>
-	<PackageId>Pulsar</PackageId>
-	<IsPackable>false</IsPackable>
+    <RootNamespace>Pulsar.Modern</RootNamespace>
+    <PackageId>Pulsar</PackageId>
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -17,11 +17,11 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
-	<AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup>
-	<AssemblyName>Modern</AssemblyName>
-	<StartProgram>$(Pulsar)\Modern.exe</StartProgram>
+    <AssemblyName>Modern</AssemblyName>
+    <StartProgram>$(Pulsar)\Modern.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
@@ -48,14 +48,14 @@
     <ApplicationIcon>..\Shared\Splash\icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
-	<ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
   <PropertyGroup>
-	<StartAction>Program</StartAction>
+    <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup>
-	<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
@@ -67,45 +67,53 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
-	<Reference Include="Game2.Client" HintPath="$(Game2)\Game2.Client.dll" Private="False" />
-	<Reference Include="Game2.Game" HintPath="$(Game2)\Game2.Game.dll" Private="False" />
-	<Reference Include="Game2.Simulation" HintPath="$(Game2)\Game2.Simulation.dll" Private="False" />
+    <Reference Include="Game2.Client" HintPath="$(Game2)\Game2.Client.dll" Private="False" />
+    <Reference Include="Game2.Game" HintPath="$(Game2)\Game2.Game.dll" Private="False" />
+    <Reference
+      Include="Game2.Simulation"
+      HintPath="$(Game2)\Game2.Simulation.dll"
+      Private="False"
+    />
     <Reference Include="SpaceEngineers2" HintPath="$(Game2)\SpaceEngineers2.dll" Private="False" />
-	<Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
-	<Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
-	<Reference Include="VRage.Core" HintPath="$(Game2)\VRage.Core.dll" Private="False" />
-	<Reference Include="VRage.Core.Game" HintPath="$(Game2)\VRage.Core.Game.dll" Private="False" />
-	<Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
-	<Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
-	<Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
-    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)\VRage.Platform.Windows.dll" Private="False" />
-	<Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
-	<Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
-	<Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
+    <Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
+    <Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
+    <Reference Include="VRage.Core" HintPath="$(Game2)\VRage.Core.dll" Private="False" />
+    <Reference Include="VRage.Core.Game" HintPath="$(Game2)\VRage.Core.Game.dll" Private="False" />
+    <Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
+    <Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
+    <Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
+    <Reference
+      Include="VRage.Platform.Windows"
+      HintPath="$(Game2)\VRage.Platform.Windows.dll"
+      Private="False"
+    />
+    <Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
+    <Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
+    <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
-	<PackageReference Include="Avalonia" Version="11.0.10" />
-	<PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.0.10" />
-	<PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-	<PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" />
-	<PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
-	<PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
-	<PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="Avalonia" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Controls.ItemsRepeater" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Diagnostics" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.10" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
-	<PackageReference Include="Krafs.Publicizer" Version="2.3.0">
-	  <PrivateAssets>all</PrivateAssets>
-	  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-	</PackageReference>
+    <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-	<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
-	<Publicize Include="0Harmony" />
-	<Publicize Include="Game2.Client" />
-	<Publicize Include="Game2.Game" />
-	<Publicize Include="SpaceEngineers2" />
-	<Publicize Include="VRage.Client" />
-	<Publicize Include="VRage.Steam" />
-	<Publicize Include="VRage.UI" />
+    <Publicize Include="0Harmony" />
+    <Publicize Include="Game2.Client" />
+    <Publicize Include="Game2.Game" />
+    <Publicize Include="SpaceEngineers2" />
+    <Publicize Include="VRage.Client" />
+    <Publicize Include="VRage.Steam" />
+    <Publicize Include="VRage.UI" />
   </ItemGroup>
 </Project>

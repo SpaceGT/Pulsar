@@ -7,7 +7,6 @@ internal static class GitHubPluginExtensions
 {
     public static void Show(this GitHubPlugin gitHubPlugin)
     {
-        ScreenTools.GetSharedUIComponent()
-            .OpenUrl($"https://github.com/{gitHubPlugin.RepoId}");
+        ScreenTools.GetSharedUIComponent().OpenUrl($"https://github.com/{gitHubPlugin.RepoId}");
     }
 }

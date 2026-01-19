@@ -15,10 +15,7 @@ internal static class ScreenTools
 {
     public static LocKey GetKeyFromString(string text)
     {
-        return new LocKey()
-        {
-            TextId = StringId.Get(text)
-        };
+        return new LocKey() { TextId = StringId.Get(text) };
     }
 
     public static ThreeOptionsDialogDefinition GetDefaultYesNoCancelDialog()
@@ -28,7 +25,7 @@ internal static class ScreenTools
             SelectedOption = ThreeOptionsDialogSelectedOption.Confirm,
             ConfirmOption = GetKeyFromString("Yes"),
             DefaultOption = GetKeyFromString("No"),
-            CancelOption = GetKeyFromString("Cancel")
+            CancelOption = GetKeyFromString("Cancel"),
         };
     }
 
@@ -38,16 +35,13 @@ internal static class ScreenTools
         {
             SelectedOption = TwoOptionsDialogSelectedOption.Confirm,
             ConfirmOption = GetKeyFromString("Yes"),
-            CancelOption = GetKeyFromString("No")
+            CancelOption = GetKeyFromString("No"),
         };
     }
 
     public static OneOptionDialogDefinition GetDefaultOkDialog()
     {
-        return new OneOptionDialogDefinition()
-        {
-            ConfirmOption = GetKeyFromString("Yes"),
-        };
+        return new OneOptionDialogDefinition() { ConfirmOption = GetKeyFromString("Yes") };
     }
 
     public static SharedUIComponent GetSharedUIComponent()

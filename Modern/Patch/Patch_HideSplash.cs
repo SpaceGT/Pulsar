@@ -4,7 +4,6 @@ using Avalonia.Input;
 using HarmonyLib;
 using Keen.Game2;
 using Keen.VRage.UI.AvaloniaInterface;
-using Pulsar.Shared;
 using Pulsar.Shared.Splash;
 
 namespace Pulsar.Modern.Patch;
@@ -20,6 +19,8 @@ internal static class Patch_HideSplash
 #if !DEBUG
         if (Flags.DebugMenu)
 #endif
-            (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(new KeyGesture(Key.F12, KeyModifiers.Shift));
+            (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(
+                new KeyGesture(Key.F12, KeyModifiers.Shift)
+            );
     }
 }
