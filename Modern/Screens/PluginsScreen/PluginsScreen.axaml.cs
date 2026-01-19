@@ -2,6 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
 using Keen.VRage.UI.AvaloniaInterface.Services;
+using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
@@ -39,7 +40,8 @@ public partial class PluginsScreen : PluginScreenBase
             PluginsList.ItemsSource = dummyPlugins;
             ModsList.ItemsSource = dummyPlugins;
 
-            SourcesButton.IsVisible = Flags.CustomSources;
+            // Disabled until sources screen is ready.
+            //SourcesButton.IsVisible = Flags.CustomSources;
         }
     }
 
@@ -63,8 +65,7 @@ public partial class PluginsScreen : PluginScreenBase
         {
             ConfirmAction = () =>
             {
-
-
+                LoaderTools.AskToRestart();
             }
         });
 
@@ -88,6 +89,15 @@ public partial class PluginsScreen : PluginScreenBase
         var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).Plugins], false, delegate ()
         {
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+
+            if (selectedPluginControl != null)
+                (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+            if (selectedModPluginControl != null)
+                (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+            selectedPluginControl = null;
+            selectedModPluginControl = null;
         });
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }
@@ -97,6 +107,15 @@ public partial class PluginsScreen : PluginScreenBase
         var viewModel = new AddPluginScreenViewModel([.. (DataContext as PluginsScreenViewModel).ModPlugins], true, delegate ()
         {
             (DataContext as PluginsScreenViewModel).RefreshPluginLists();
+
+            if (selectedPluginControl != null)
+                (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+            if (selectedModPluginControl != null)
+                (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+            selectedPluginControl = null;
+            selectedModPluginControl = null;
         });
         ScreenTools.GetSharedUIComponent().CreateScreen<AddPluginScreen.AddPluginScreen>(viewModel, true);
     }

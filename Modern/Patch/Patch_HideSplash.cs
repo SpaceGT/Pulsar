@@ -17,7 +17,9 @@ internal static class Patch_HideSplash
     {
         SplashManager.Instance?.Delete();
 
+#if !DEBUG
         if (Flags.DebugMenu)
+#endif
             (AvaloniaApp.Instance.MainWindow as Window)?.AttachDevTools(new KeyGesture(Key.F12, KeyModifiers.Shift));
     }
 }

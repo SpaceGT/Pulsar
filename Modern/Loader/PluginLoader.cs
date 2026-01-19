@@ -30,7 +30,6 @@ internal class PluginLoader : IPlugin, IDisposable
         Instance = this;
         AppDomain.CurrentDomain.FirstChanceException += OnException;
 
-        StringBuilder debugCompileResults = new();
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
@@ -41,24 +40,14 @@ internal class PluginLoader : IPlugin, IDisposable
         }
         else
         {
+            LogFile.WriteLine($"Initializing plugins");
+            SplashManager.Instance?.SetText($"Initializing plugins");
             InstantiatePlugins(host);
-            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
-
-            if (Flags.CheckAllPlugins)
-            {
-                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
-            }
+            LogFile.WriteLine($"Initialized {plugins.Count} plugins");
+            SplashManager.Instance?.SetText($"Initialized {plugins.Count} plugins");
         }
 
         init = true;
-
-        if (Flags.CheckAllPlugins)
-        {
-            MessageBox.Show("All plugins compiled, log file will now open");
-            LogFile.WriteLine(debugCompileResults.ToString());
-            LogFile.Open();
-        }
     }
 
     public bool TryGetPluginInstance(string id, out PluginInstance instance)
@@ -110,6 +99,11 @@ internal class PluginLoader : IPlugin, IDisposable
 
     private void InstantiatePlugins(PluginHost host)
     {
+        StringBuilder debugCompileResults = new();
+
+        if (Flags.CheckAllPlugins)
+            debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
+
         foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
             if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
                 plugins.Add(instance);
@@ -119,6 +113,22 @@ internal class PluginLoader : IPlugin, IDisposable
             PluginInstance p = plugins[i];
             if (!p.Instantiate(host))
                 plugins.RemoveAtFast(i);
+
+            if (Flags.CheckAllPlugins)
+                debugCompileResults
+                    .Append(p.FriendlyName ?? "(null)")
+                    .Append(" - ")
+                    .Append(p.Id ?? "(null)")
+                    .Append(" by ")
+                    .Append(p.Author ?? "(null)")
+                    .AppendLine();
+        }
+
+        if (Flags.CheckAllPlugins)
+        {
+            MessageBox.Show("All plugins compiled, log file will now open");
+            LogFile.WriteLine(debugCompileResults.ToString());
+            LogFile.Open();
         }
     }
 }

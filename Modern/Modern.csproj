@@ -74,6 +74,7 @@
 	<Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
 	<Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
 	<Reference Include="VRage.Core" HintPath="$(Game2)\VRage.Core.dll" Private="False" />
+	<Reference Include="VRage.Core.Game" HintPath="$(Game2)\VRage.Core.Game.dll" Private="False" />
 	<Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
 	<Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
 	<Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
@@ -101,6 +102,7 @@
   <ItemGroup>
 	<Publicize Include="0Harmony" />
 	<Publicize Include="Game2.Client" />
+	<Publicize Include="Game2.Game" />
 	<Publicize Include="SpaceEngineers2" />
 	<Publicize Include="VRage.Client" />
 	<Publicize Include="VRage.Steam" />
