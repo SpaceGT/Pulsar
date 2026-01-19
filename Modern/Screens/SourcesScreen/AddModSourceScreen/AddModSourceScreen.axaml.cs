@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 
-namespace Pulsar.Modern.Screens.AddModSourceScreen;
+namespace Pulsar.Modern.Screens.SourcesScreen.AddModSourceScreen;
 
 [NeedsWindowStyles]
 public partial class AddModSourceScreen : PluginScreenBase

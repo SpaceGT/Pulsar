@@ -3,10 +3,10 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
-             x:Class="Pulsar.Modern.Screens.AddModSourceScreen.AddModSourceScreen"
-			 xmlns:vm="using:Pulsar.Modern.Screens.AddModSourceScreen"
+             x:Class="Pulsar.Modern.Screens.SourcesScreen.AddModSourceScreen.AddModSourceScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.SourcesScreen.AddModSourceScreen"
 			 x:DataType="vm:AddModSourceScreenViewModel">
-<Border Background="Transparent"
+	<Border Background="Transparent"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
 			Width="649" 

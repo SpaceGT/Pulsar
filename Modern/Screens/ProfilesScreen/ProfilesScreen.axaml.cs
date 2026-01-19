@@ -69,7 +69,7 @@ public partial class ProfilesScreen : PluginScreenBase
         Dispose();
     }
 
-    private void ProfileItem_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void ProfileItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (selectedProfileControl != null)
             (selectedProfileControl.Classes as IPseudoClasses).Remove(":selected");
@@ -89,7 +89,7 @@ public partial class ProfilesScreen : PluginScreenBase
         itemSelected = true;
     }
 
-    private void UserControl_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void UserControl_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (itemSelected)
         {

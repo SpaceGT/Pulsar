@@ -1,7 +1,7 @@
 ﻿using Keen.VRage.UI.Screens;
 using System;
 
-namespace Pulsar.Modern.Screens.AddModSourceScreen;
+namespace Pulsar.Modern.Screens.SourcesScreen.AddModSourceScreen;
 internal class AddModSourceScreenViewModel : ScreenViewModel
 {
     public string Title { get; private set; }

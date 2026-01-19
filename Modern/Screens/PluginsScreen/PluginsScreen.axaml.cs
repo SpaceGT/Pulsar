@@ -5,6 +5,7 @@ using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
+using Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 using Pulsar.Shared;
 using System.Collections.Generic;
 
@@ -151,18 +152,27 @@ public partial class PluginsScreen : PluginScreenBase
             ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
     }
 
-    private void PluginSettingsButton_Click(object? sender, RoutedEventArgs e)
+    private void PluginSettingsButton_Click(object sender, RoutedEventArgs e)
     {
         (DataContext as PluginsScreenViewModel).SelectedPlugin.TryOpenSettingsScreen();
     }
 
-    private void PluginDetailsButton_Click(object? sender, RoutedEventArgs e)
+    private void PluginDetailsButton_Click(object sender, RoutedEventArgs e)
     {
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedPlugin), true);
     }
 
-    private void ModDetailsButton_Click(object? sender, RoutedEventArgs e)
+    private void ModDetailsButton_Click(object sender, RoutedEventArgs e)
     {
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(new PluginDetailsScreenViewModel((DataContext as PluginsScreenViewModel).SelectedModPlugin), true);
+    }
+
+    private void SourcesButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((DataContext as PluginsScreenViewModel).Sources.ShowWarning)
+            ScreenTools.GetSharedUIComponent().CreateScreen<SourceWarningScreen>(new SourceWarningScreenViewModel((DataContext as PluginsScreenViewModel).Sources, delegate
+            {
+
+            }), true);
     }
 }

@@ -5,7 +5,8 @@
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
              x:Class="Pulsar.Modern.Screens.ProfilesScreen.ProfilesScreen"
 			 xmlns:vm="using:Pulsar.Modern.Screens.ProfilesScreen"
-			 x:DataType="vm:ProfilesScreenViewModel" PointerPressed="UserControl_PointerPressed">
+			 x:DataType="vm:ProfilesScreenViewModel" 
+			 PointerPressed="UserControl_PointerPressed">
     <Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 

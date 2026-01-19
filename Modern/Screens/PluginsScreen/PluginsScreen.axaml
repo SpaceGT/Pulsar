@@ -284,7 +284,8 @@
 							 Margin="0,16,0,0" 
 							 ToolTip.Tip="Add or remove plugin source" 
 							 IsVisible="False" 
-							 Content="Sources" />
+							 Content="Sources"
+							 Click="SourcesButton_Click"/>
 					<CheckBox Margin="0,16,0,0" 
 							  ToolTip.Tip="Consent to use your data for usage tracking" 
 							  Name="ConsentBox" 

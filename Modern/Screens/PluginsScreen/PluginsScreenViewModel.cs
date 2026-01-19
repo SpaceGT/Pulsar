@@ -24,6 +24,8 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public Profile Draft { get; private set; }
 
+    public SourcesConfig Sources => configManager.Sources;
+
     public bool ConsentGiven => configManager.Core.DataHandlingConsent;
 
     private readonly ConfigManager configManager;
