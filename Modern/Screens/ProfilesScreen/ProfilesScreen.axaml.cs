@@ -87,6 +87,12 @@ public partial class ProfilesScreen : PluginScreenBase
         DeleteButton.IsEnabled = true;
 
         itemSelected = true;
+
+        if (e.ClickCount > 1)
+        {
+            (DataContext as ProfilesScreenViewModel).LoadProfile();
+            Dispose();
+        }
     }
 
     private void UserControl_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
