@@ -3,11 +3,13 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
-             x:Class="Pulsar.Modern.Screens.SourcesScreen.SourcesScreen">
+             x:Class="Pulsar.Modern.Screens.SourcesScreen.SourcesScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.SourcesScreen"
+			 x:DataType="vm:SourcesScreenViewModel">
     <Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
-			Width="1441" 
+			Width="1295" 
 			Height="972">
         <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="30">
 			<Grid Grid.Row="0">
@@ -23,11 +25,336 @@
 						HorizontalContentAlignment="Center" 
 						VerticalContentAlignment="Center"
 						FontSize="40"
-						Click="CornerCancelButton_Click">
+						Click="CancelButton_Click">
 					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
 				</Button>
 			</Grid>
 			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto" Margin="0,16,0,0">
+				<StackPanel Grid.Column="0" HorizontalAlignment="Stretch">
+					<TextBlock Grid.Row="0"
+							   HorizontalAlignment="Center"
+							   FontSize="23"
+							   FontWeight="Normal"
+							   Foreground="White" 
+							   Text="Hubs"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="240"/>
+							<ColumnDefinition Width="120"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+										 Margin="8,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Name"/>
+						<TextBlock Grid.Column="1" 
+										 Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Update"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="600">
+						<ItemsRepeater Name="HubsList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding HubSources}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm:HubSourceViewModel">
+									<Grid Margin="0,2" 
+										  Name="HubItem" 
+										  PointerPressed="HubItem_PointerPressed">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="240"/>
+											<ColumnDefinition Width="120"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.PluginText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.PluginText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="PluginText"
+													Text="{Binding Name}"/>
+										<TextBlock Text="{Binding LastCheckString}" 
+													 Grid.Column="1" 
+													 Margin="0,8,0,8" 
+													 FontWeight="Normal"
+													 Classes="PluginText"/>
+										<CheckBox Name="HubItemCheckbox" 
+													Grid.Column="3" 
+													Margin="16,8,0,8"
+													IsCheckedChanged="HubItemCheckbox_IsCheckedChanged"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,16,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="AddHubButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  ToolTip.Tip="Add Remote Hub"
+								  Click="AddHubButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="AddLocalHubButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add Local Hub" 
+								  Click="AddLocalHubButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Grid.Column="1" HorizontalAlignment="Stretch" Margin="16,0,0,0">
+					<TextBlock Grid.Row="0"
+							   HorizontalAlignment="Center"
+							   FontSize="23"
+							   FontWeight="Normal"
+							   Foreground="White" 
+							   Text="Plugins"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="240"/>
+							<ColumnDefinition Width="120"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+										 Margin="8,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Name"/>
+						<TextBlock Grid.Column="1" 
+										 Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Update"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="600">
+						<ItemsRepeater Name="PluginsSourceList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding PluginSources}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm:PluginSourceViewModel">
+									<Grid Margin="0,2" 
+										  Name="PluginSourceItem" 
+										  PointerPressed="PluginSourceItem_PointerPressed">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="240"/>
+											<ColumnDefinition Width="120"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.PluginText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.PluginText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="PluginText"
+													Text="{Binding Name}" />
+										<TextBlock Text="{Binding LastCheckString}" 
+													 Grid.Column="1" 
+													 Margin="0,8,0,8" 
+													 FontWeight="Normal"
+													 Classes="PluginText"/>
+										<CheckBox Name="PluginSourceItemCheckBox" 
+													Grid.Column="3" 
+													Margin="16,8,0,8"
+													IsCheckedChanged="PluginSourceItemCheckBox_IsCheckedChanged"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,16,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="AddRemotePluginButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  ToolTip.Tip="Add Remote Plugin"
+								  Click="AddRemotePluginButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="AddDevFolderButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0"
+								  ToolTip.Tip="Add Development Folder" 
+								  Click="AddDevFolderButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+						<Button Name="AddLocalPluginButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add Precompiled Plugin" 
+								  Click="AddLocalPluginButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Grid.Column="2" HorizontalAlignment="Stretch" Margin="16,0,0,0">
+					<TextBlock Grid.Row="0"
+							   HorizontalAlignment="Center"
+							   FontSize="23"
+							   FontWeight="Normal"
+							   Foreground="White" 
+							   Text="Mods"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="240"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+										 Margin="8,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Name"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="600">
+						<ItemsRepeater Name="ModSourceList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding ModSources}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm:ModSourceViewModel">
+									<Grid Margin="0,2" 
+										  Name="ModItem" 
+										  PointerPressed="ModItem_PointerPressed">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="240"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.PluginText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.PluginText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="PluginText"
+													Text="{Binding Name}"/>
+										<CheckBox Name="ModSourceCheckbox" 
+													Grid.Column="3" 
+													Margin="16,8,0,8"
+													IsCheckedChanged="ModSourceCheckbox_IsCheckedChanged"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,16,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="AddModSourceButton" 
+								  Classes="Menu" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add Mod"
+								  Click="AddModSourceButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+			</Grid>
+			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<StackPanel Orientation="Horizontal" 
+					    Grid.Row="4" 
+					    HorizontalAlignment="Center" 
+					    Margin="0,16,0,0">
+				<Button Name="ApplyButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Click="ApplyButton_Click"
+						Content="Apply" />
+				<Button Name="RefreshButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0" 
+						Click="RefreshButton_Click"
+						Content="Refresh" />
+				<Button Name="CancelButton" 
+						Classes="Menu" 
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0" 
+						Click="CancelButton_Click" 
+						Content="Cancel" />
+			</StackPanel>
         </Grid>
     </Border>
 </UserControl>

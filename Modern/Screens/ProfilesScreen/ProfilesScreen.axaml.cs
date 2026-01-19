@@ -1,7 +1,5 @@
 using Avalonia.Controls;
-using Keen.Game2.Client.UI.Menu.News;
 using Keen.VRage.UI.AvaloniaInterface.Services;
-using Pulsar.Modern.Screens.PluginsScreen;
 using System.Collections.Generic;
 namespace Pulsar.Modern.Screens.ProfilesScreen;
 
