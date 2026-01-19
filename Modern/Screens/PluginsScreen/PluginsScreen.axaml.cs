@@ -5,6 +5,7 @@ using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.AddPluginScreen;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
 using Pulsar.Modern.Screens.ProfilesScreen;
+using Pulsar.Modern.Screens.SourcesScreen;
 using Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 using Pulsar.Shared;
 using System.Collections.Generic;
@@ -172,7 +173,9 @@ public partial class PluginsScreen : PluginScreenBase
         if ((DataContext as PluginsScreenViewModel).Sources.ShowWarning)
             ScreenTools.GetSharedUIComponent().CreateScreen<SourceWarningScreen>(new SourceWarningScreenViewModel((DataContext as PluginsScreenViewModel).Sources, delegate
             {
-
+                ScreenTools.GetSharedUIComponent().CreateScreen<SourcesScreen.SourcesScreen>(new SourcesScreenViewModel((DataContext as PluginsScreenViewModel).Sources), true);
             }), true);
+        else
+            ScreenTools.GetSharedUIComponent().CreateScreen<SourcesScreen.SourcesScreen>(new SourcesScreenViewModel((DataContext as PluginsScreenViewModel).Sources), true);
     }
 }

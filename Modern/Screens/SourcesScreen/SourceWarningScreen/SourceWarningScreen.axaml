@@ -7,7 +7,7 @@
 			 xmlns:config="using:Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen"
 			 x:DataType="config:SourceWarningScreenViewModel">
     <Border Background="rgba(37,47,53,1)"
-			BorderBrush="rgba(66,77,99,96)"
+			BorderBrush="rgba(66,77,99,1)"
 			BorderThickness="1.5" 
 			Width="720" 
 			Height="400">

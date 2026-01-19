@@ -1,5 +1,8 @@
+using Keen.VRage.UI.AvaloniaInterface.Services;
+
 namespace Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 
+[NeedsWindowStyles]
 public partial class SourceWarningScreen : PluginScreenBase
 {
     public SourceWarningScreen()
