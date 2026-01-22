@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.Controls.LocalPluginFolderControls">
+    <Grid RowDefinitions="Auto,Auto"
+          ColumnDefinitions="Auto,Auto"
+          HorizontalAlignment="Center">
+	    <Button Grid.Column="0" 
+                Name="RemoveFileButton"
+                Content="Remove File"
+                Width="264" 
+				Height="55"
+                Classes="Menu"/>
+        <Button Grid.Column="1" 
+                Name="LoadFileButton"
+                Content="Load File"
+                Margin="26,0,0,0"
+                Width="264" 
+				Height="55"
+                Classes="Menu"/>
+        <ComboBox Grid.Row="1" 
+                  Grid.ColumnSpan="2"
+                  HorizontalAlignment="Stretch"
+                  Margin="0,16,0,0"
+                  Height="55"/>
+    </Grid>
+</UserControl>

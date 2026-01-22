@@ -69,11 +69,7 @@
   <ItemGroup>
     <Reference Include="Game2.Client" HintPath="$(Game2)\Game2.Client.dll" Private="False" />
     <Reference Include="Game2.Game" HintPath="$(Game2)\Game2.Game.dll" Private="False" />
-    <Reference
-      Include="Game2.Simulation"
-      HintPath="$(Game2)\Game2.Simulation.dll"
-      Private="False"
-    />
+    <Reference Include="Game2.Simulation" HintPath="$(Game2)\Game2.Simulation.dll" Private="False" />
     <Reference Include="SpaceEngineers2" HintPath="$(Game2)\SpaceEngineers2.dll" Private="False" />
     <Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
     <Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
@@ -82,11 +78,7 @@
     <Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
     <Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
     <Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
-    <Reference
-      Include="VRage.Platform.Windows"
-      HintPath="$(Game2)\VRage.Platform.Windows.dll"
-      Private="False"
-    />
+    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)\VRage.Platform.Windows.dll" Private="False" />
     <Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
     <Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
     <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
