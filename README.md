@@ -8,9 +8,15 @@ This folder **must not** contain important data; It **will be cleaned** during a
 If you are building from source, the deploy script will copy all files to their required location.<br>
 An windows-only [installer](https://github.com/StarCpt/Pulsar-Installer) exists which can do all the work (including Steam configuration) for you.<br>
 
+## Executables
+`Legacy` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)<br>
+`Interim` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
+(via [se-dotnet-compat](https://github.com/viktor-ferenczi/se-dotnet-compat))<br>
+`Modern` runs [Space Engineers 2](https://steampowered.com/app/1133870) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)<br>
+
 ## Steam
 The Space Engineers [launch options](https://help.steampowered.com/en/faqs/view/7D01-D2DD-D75E-2955) may be modified so Steam starts Pulsar automatically.<br>
-Use a path to **Legacy.exe** for [Space Engineers 1](https://steampowered.com/app/244850) or **Modern.exe** for [Space Engineers 2](https://steampowered.com/app/1133870).<br>
+Replace `[PulsarPath]` with a path to the desired Pulsar executable.<br>
 For Windows: `[PulsarPath] %command% [Args]`<br>
 For Linux: `bash -c 'exec "${@:0:$#}" [PulsarPath] "${@:$#}" [Args]' %command%`<br>
 Starting Space Engineers from Steam will now open Pulsar as well!<br>
