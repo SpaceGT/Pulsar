@@ -7,7 +7,7 @@ namespace Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
 
 internal class SourceInfoScreenViewModel : ScreenViewModel
 {
-    public SourceInfoScreenViewModel(List<object> removeList, object sourceVm) 
+    public SourceInfoScreenViewModel(object originalList, List<object> removeList, object sourceVm) 
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;

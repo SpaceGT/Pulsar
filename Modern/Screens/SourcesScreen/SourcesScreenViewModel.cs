@@ -53,6 +53,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         HubSources.Clear();
         PluginSources.Clear();
         ModSources.Clear();
+        sourcesToRemove.Clear();
 
         foreach (RemoteHubConfig source in sourcesConfig.RemoteHubSources)
         {
@@ -80,10 +81,10 @@ internal class SourcesScreenViewModel : ScreenViewModel
         }
     }
 
-    public void OpenDetailsScreen(object vm)
+    public void OpenDetailsScreen(object list, object vm)
     {
         ScreenTools
             .GetSharedUIComponent()
-            .CreateScreen<SourceInfoScreen.SourceInfoScreen>(new SourceInfoScreenViewModel(sourcesToRemove, vm), true);
+            .CreateScreen<SourceInfoScreen.SourceInfoScreen>(new SourceInfoScreenViewModel(list, sourcesToRemove, vm), true);
     }
 }

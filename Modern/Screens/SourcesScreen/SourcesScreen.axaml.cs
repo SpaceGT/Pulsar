@@ -90,7 +90,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedHubControl.DataContext);
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(HubsList, selectedHubControl.DataContext);
         }
     }
 
@@ -109,7 +109,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedPluginControl.DataContext);
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(PluginsSourceList, selectedPluginControl.DataContext);
         }
     }
 
@@ -125,7 +125,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedModPluginControl.DataContext);
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(ModSourceList, selectedModPluginControl.DataContext);
         }
     }
 
