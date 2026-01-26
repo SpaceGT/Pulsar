@@ -40,6 +40,31 @@ internal class PluginSourceViewModel : AttachedViewModel
         }
     }
 
+    public bool IsTrusted
+    {
+        get
+        {
+            if (config is RemotePluginConfig remoteHub)
+                return remoteHub.Trusted;
+
+            return false;
+        }
+    }
+
+    public bool IsEnabled
+    {
+        get
+        {
+            if (config is RemotePluginConfig remoteHub)
+                return remoteHub.Enabled;
+
+            if (config is LocalPluginConfig localHub)
+                return localHub.Enabled;
+
+            return false;
+        }
+    }
+
     private readonly bool isDummy = false;
     private readonly object config;
 

@@ -40,6 +40,31 @@ internal class HubSourceViewModel : AttachedViewModel
         }
     }
 
+    public bool IsTrusted
+    {
+        get
+        {
+            if (config is RemoteHubConfig remoteHub)
+                return remoteHub.Trusted;
+
+            return false;
+        }
+    }
+
+    public bool IsEnabled
+    {
+        get
+        {
+            if (config is RemoteHubConfig remoteHub)
+                return remoteHub.Enabled;
+
+            if (config is LocalHubConfig localHub)
+                return localHub.Enabled;
+
+            return false;
+        }
+    }
+
     private readonly bool isDummy = false;
     private readonly object config;
 

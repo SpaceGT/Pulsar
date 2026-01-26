@@ -9,8 +9,8 @@
     <Border Background="rgba(37,47,53,96)"
 			BorderBrush="rgba(66,77,99,96)"
 			BorderThickness="1.5" 
-			Width="1295" 
-			Height="972">
+			Width="1375" 
+			Height="950">
         <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="30">
 			<Grid Grid.Row="0">
 				<TextBlock HorizontalAlignment="Center"
@@ -40,7 +40,7 @@
 							   Text="Hubs"/>
 					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="240"/>
+							<ColumnDefinition Width="280"/>
 							<ColumnDefinition Width="120"/>
 							<ColumnDefinition Width="78"/>
 						</Grid.ColumnDefinitions>
@@ -70,7 +70,7 @@
 										  Name="HubItem" 
 										  PointerPressed="HubItem_PointerPressed">
 										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="240"/>
+											<ColumnDefinition Width="280"/>
 											<ColumnDefinition Width="120"/>
 											<ColumnDefinition Width="Auto"/>
 										</Grid.ColumnDefinitions>
@@ -92,20 +92,29 @@
 														Value="#3C4C52"/>	
 											</Style>
 										</Grid.Styles>
-										<TextBlock Grid.Column="0" 
-													Margin="8,8,0,8"
-													FontWeight="Normal"
-													Classes="PluginText"
-													Text="{Binding Name}"/>
+										<StackPanel Orientation="Horizontal"
+													Grid.Column="0">
+											<Image 
+											   Source="{DynamicResource BlueprintAvaloniaConfiguration_DownloadIcon}"
+											   Width="30" 
+											   Height="30"
+											   IsVisible="{Binding IsTrusted}"
+											   Margin="8,0,0,0"/>
+											<TextBlock Margin="8,16,0,8"
+													   FontWeight="Normal"
+													   Classes="PluginText"
+													   Text="{Binding Name}"/>
+										</StackPanel>
 										<TextBlock Text="{Binding LastCheckString}" 
 													 Grid.Column="1" 
-													 Margin="0,8,0,8" 
+													 Margin="0,16,0,8" 
 													 FontWeight="Normal"
 													 Classes="PluginText"/>
 										<CheckBox Name="HubItemCheckbox" 
-													Grid.Column="3" 
+													Grid.Column="2" 
 													Margin="16,8,0,8"
-													IsCheckedChanged="HubItemCheckbox_IsCheckedChanged"/>
+													Click="HubItemCheckbox_Click"
+													IsChecked="{Binding IsEnabled}"/>
 									</Grid>
 								</DataTemplate>
 							</ItemsRepeater.ItemTemplate>
@@ -143,7 +152,7 @@
 							   Text="Plugins"/>
 					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
 						<Grid.ColumnDefinitions>
-							<ColumnDefinition Width="240"/>
+							<ColumnDefinition Width="280"/>
 							<ColumnDefinition Width="120"/>
 							<ColumnDefinition Width="78"/>
 						</Grid.ColumnDefinitions>
@@ -173,7 +182,7 @@
 										  Name="PluginSourceItem" 
 										  PointerPressed="PluginSourceItem_PointerPressed">
 										<Grid.ColumnDefinitions>
-											<ColumnDefinition Width="240"/>
+											<ColumnDefinition Width="280"/>
 											<ColumnDefinition Width="120"/>
 											<ColumnDefinition Width="Auto"/>
 										</Grid.ColumnDefinitions>
@@ -195,20 +204,29 @@
 														Value="#3C4C52"/>	
 											</Style>
 										</Grid.Styles>
-										<TextBlock Grid.Column="0" 
-													Margin="8,8,0,8"
-													FontWeight="Normal"
-													Classes="PluginText"
-													Text="{Binding Name}" />
+										<StackPanel Orientation="Horizontal"
+													Grid.Column="0">
+											<Image 
+											   Source="{DynamicResource BlueprintAvaloniaConfiguration_DownloadIcon}"
+											   Width="30" 
+											   Height="30"
+											   IsVisible="{Binding IsTrusted}"
+											   Margin="8,0,0,0"/>
+											<TextBlock Margin="8,16,0,8"
+													   FontWeight="Normal"
+													   Classes="PluginText"
+													   Text="{Binding Name}"/>
+										</StackPanel>
 										<TextBlock Text="{Binding LastCheckString}" 
 													 Grid.Column="1" 
-													 Margin="0,8,0,8" 
+													 Margin="0,16,0,8" 
 													 FontWeight="Normal"
 													 Classes="PluginText"/>
 										<CheckBox Name="PluginSourceItemCheckBox" 
-													Grid.Column="3" 
+													Grid.Column="2" 
 													Margin="16,8,0,8"
-													IsCheckedChanged="PluginSourceItemCheckBox_IsCheckedChanged"/>
+													Click="PluginSourceItemCheckBox_Click"
+													IsChecked="{Binding IsEnabled}"/>
 									</Grid>
 								</DataTemplate>
 							</ItemsRepeater.ItemTemplate>
@@ -308,7 +326,8 @@
 										<CheckBox Name="ModSourceCheckbox" 
 													Grid.Column="3" 
 													Margin="16,8,0,8"
-													IsCheckedChanged="ModSourceCheckbox_IsCheckedChanged"/>
+													Click="ModSourceCheckbox_Click"
+													IsChecked="{Binding IsEnabled}"/>
 									</Grid>
 								</DataTemplate>
 							</ItemsRepeater.ItemTemplate>

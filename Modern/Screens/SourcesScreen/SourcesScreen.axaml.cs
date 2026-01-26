@@ -15,7 +15,7 @@ public partial class SourcesScreen : PluginScreenBase
     {
         InitializeComponent();
 
-        if (true)
+        if (Design.IsDesignMode)
         {
             List<HubSourceViewModel> dummyHubs = [];
 
@@ -46,60 +46,72 @@ public partial class SourcesScreen : PluginScreenBase
         }
     }
 
-    private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
-
     private void AddHubButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) { }
 
     private void AddLocalHubButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
-
-    private void PluginSourceItem_PointerPressed(
-        object sender,
-        Avalonia.Input.PointerPressedEventArgs e
-    ) { }
+    )
+    { }
 
     private void AddRemotePluginButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
     private void AddDevFolderButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
     private void AddLocalPluginButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
-
-    private void ModItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
+    )
+    { }
 
     private void AddModSourceButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
-    private void HubItemCheckbox_IsCheckedChanged(
+    private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
+
+    private void PluginSourceItem_PointerPressed(
+        object sender,
+        Avalonia.Input.PointerPressedEventArgs e
+    )
+    { }
+
+    private void ModItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
+
+    private void HubItemCheckbox_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
-    private void PluginSourceItemCheckBox_IsCheckedChanged(
+    private void PluginSourceItemCheckBox_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
-    private void ModSourceCheckbox_IsCheckedChanged(
+    private void ModSourceCheckbox_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
-    ) { }
+    )
+    { }
 
     private void ApplyButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) { }
 
-    private void RefreshButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) { }
+    private void RefreshButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        (DataContext as SourcesScreenViewModel).RefreshSources();
+    }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {

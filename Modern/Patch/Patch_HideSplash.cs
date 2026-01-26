@@ -4,6 +4,7 @@ using Avalonia.Input;
 using HarmonyLib;
 using Keen.Game2;
 using Keen.VRage.UI.AvaloniaInterface;
+using Pulsar.Shared;
 using Pulsar.Shared.Splash;
 
 namespace Pulsar.Modern.Patch;

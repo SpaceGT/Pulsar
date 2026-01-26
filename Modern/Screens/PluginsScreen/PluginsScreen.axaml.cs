@@ -26,8 +26,7 @@ public partial class PluginsScreen : PluginScreenBase
 
         if (!Design.IsDesignMode)
         {
-            // Disabled until sources screen is ready.
-            //SourcesButton.IsVisible = Flags.CustomSources;
+            SourcesButton.IsVisible = Flags.CustomSources;
         }
         else
         {
