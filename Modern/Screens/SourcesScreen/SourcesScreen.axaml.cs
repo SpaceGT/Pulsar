@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
+using System.Collections.Generic;
 
 namespace Pulsar.Modern.Screens.SourcesScreen;
 
@@ -78,15 +78,56 @@ public partial class SourcesScreen : PluginScreenBase
     )
     { }
 
-    private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
+    private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) 
+    {
+        if (selectedHubControl != null)
+            (selectedHubControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedHubControl = sender as Control;
+        (selectedHubControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        if (e.ClickCount > 1)
+        {
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedHubControl.DataContext);
+        }
+    }
 
     private void PluginSourceItem_PointerPressed(
         object sender,
         Avalonia.Input.PointerPressedEventArgs e
     )
-    { }
+    {
+        if (selectedPluginControl != null)
+            (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
 
-    private void ModItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) { }
+        selectedPluginControl = sender as Control;
+        (selectedPluginControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        if (e.ClickCount > 1)
+        {
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedPluginControl.DataContext);
+        }
+    }
+
+    private void ModItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) 
+    {
+        if (selectedModPluginControl != null)
+            (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+
+        selectedModPluginControl = sender as Control;
+        (selectedModPluginControl.Classes as IPseudoClasses).Add(":selected");
+
+        ScreenTools.PlayClickSound((Control)sender);
+
+        if (e.ClickCount > 1)
+        {
+            (DataContext as SourcesScreenViewModel).OpenDetailsScreen(selectedModPluginControl.DataContext);
+        }
+    }
 
     private void HubItemCheckbox_Click(
         object sender,

@@ -19,7 +19,7 @@
 						FontSize="25"
 						FontWeight="Normal"
 						Foreground="White"
-						Text="Pulsar"/>
+						Text="Profiles"/>
 				<Button Name="CornerCancelButton" Classes="Menu" 
 						Width="40" 
 						Height="40" 

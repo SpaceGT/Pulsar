@@ -1,4 +1,5 @@
 ﻿using Keen.VRage.UI.Screens;
+using Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using System;
@@ -10,8 +11,16 @@ namespace Pulsar.Modern.Screens.SourcesScreen;
 internal class SourcesScreenViewModel : ScreenViewModel
 {
     public ObservableCollection<HubSourceViewModel> HubSources { get; private set; } = [];
+    public bool HubSourcesEmpty => HubSources.Count == 0;
     public ObservableCollection<PluginSourceViewModel> PluginSources { get; private set; } = [];
+    public bool PluginSourcesEmpty => PluginSources.Count == 0;
     public ObservableCollection<ModSourceViewModel> ModSources { get; private set; } = [];
+    public bool ModSourcesEmpty => ModSources.Count == 0;
+
+
+    private readonly Dictionary<object, bool> enabledSourceChanges = [];
+
+    private readonly List<object> sourcesToRemove = [];
 
     private SourcesConfig sourcesConfig;
 
@@ -69,5 +78,12 @@ internal class SourcesScreenViewModel : ScreenViewModel
         {
             ModSources.Add(new ModSourceViewModel(source));
         }
+    }
+
+    public void OpenDetailsScreen(object vm)
+    {
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<SourceInfoScreen.SourceInfoScreen>(new SourceInfoScreenViewModel(sourcesToRemove, vm), true);
     }
 }
