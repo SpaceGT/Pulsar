@@ -13,10 +13,10 @@ internal class HubSourceViewModel : AttachedViewModel
             if (isDummy)
                 return "Dummy Hub";
 
-            if (config is RemoteHubConfig remoteHub)
+            if (Config is RemoteHubConfig remoteHub)
                 return remoteHub.Name;
 
-            if (config is LocalHubConfig localHub)
+            if (Config is LocalHubConfig localHub)
                 return localHub.Name;
 
             return null;
@@ -30,10 +30,10 @@ internal class HubSourceViewModel : AttachedViewModel
             if (isDummy)
                 return "59 minutes ago";
 
-            if (config is RemoteHubConfig remoteHub)
+            if (Config is RemoteHubConfig remoteHub)
                 return Tools.DateToString(remoteHub.LastCheck);
 
-            if (config is LocalHubConfig)
+            if (Config is LocalHubConfig)
                 return "-";
 
             return null;
@@ -44,7 +44,7 @@ internal class HubSourceViewModel : AttachedViewModel
     {
         get
         {
-            if (config is RemoteHubConfig remoteHub)
+            if (Config is RemoteHubConfig remoteHub)
                 return remoteHub.Trusted;
 
             return false;
@@ -55,27 +55,42 @@ internal class HubSourceViewModel : AttachedViewModel
     {
         get
         {
-            if (config is RemoteHubConfig remoteHub)
+            if (Config is RemoteHubConfig remoteHub)
                 return remoteHub.Enabled;
 
-            if (config is LocalHubConfig localHub)
+            if (Config is LocalHubConfig localHub)
                 return localHub.Enabled;
 
             return false;
         }
     }
 
-    private readonly bool isDummy = false;
-    private readonly object config;
+    public string Hash
+    {
+        get 
+        {
+            if (Config is RemoteHubConfig remoteHub)
+                return remoteHub.Hash;
 
+            if (Config is LocalHubConfig localHub)
+                return localHub.Hash;
+
+            return null;
+        }
+    }
+
+    public readonly object Config;
+
+    private readonly bool isDummy = false;
+    
     public HubSourceViewModel(RemoteHubConfig config)
     {
-        this.config = config;
+        this.Config = config;
     }
 
     public HubSourceViewModel(LocalHubConfig config)
     {
-        this.config = config;
+        this.Config = config;
     }
 
     private HubSourceViewModel()

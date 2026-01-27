@@ -13,10 +13,10 @@ internal class PluginSourceViewModel : AttachedViewModel
             if (isDummy)
                 return "Dummy Plugin";
 
-            if (config is RemotePluginConfig remotePlugin)
+            if (Config is RemotePluginConfig remotePlugin)
                 return remotePlugin.Name;
 
-            if (config is LocalPluginConfig localPlugin)
+            if (Config is LocalPluginConfig localPlugin)
                 return localPlugin.Name;
 
             return null;
@@ -30,10 +30,10 @@ internal class PluginSourceViewModel : AttachedViewModel
             if (isDummy)
                 return "59 minutes ago";
 
-            if (config is RemotePluginConfig remotePlugin)
+            if (Config is RemotePluginConfig remotePlugin)
                 return Tools.DateToString(remotePlugin.LastCheck);
 
-            if (config is LocalPluginConfig)
+            if (Config is LocalPluginConfig)
                 return "-";
 
             return null;
@@ -44,7 +44,7 @@ internal class PluginSourceViewModel : AttachedViewModel
     {
         get
         {
-            if (config is RemotePluginConfig remoteHub)
+            if (Config is RemotePluginConfig remoteHub)
                 return remoteHub.Trusted;
 
             return false;
@@ -55,27 +55,29 @@ internal class PluginSourceViewModel : AttachedViewModel
     {
         get
         {
-            if (config is RemotePluginConfig remoteHub)
+            if (Config is RemotePluginConfig remoteHub)
                 return remoteHub.Enabled;
 
-            if (config is LocalPluginConfig localHub)
+            if (Config is LocalPluginConfig localHub)
                 return localHub.Enabled;
 
             return false;
         }
     }
 
+    public readonly object Config;
+
     private readonly bool isDummy = false;
-    private readonly object config;
+    
 
     public PluginSourceViewModel(RemotePluginConfig config)
     {
-        this.config = config;
+        this.Config = config;
     }
 
     public PluginSourceViewModel(LocalPluginConfig config)
     {
-        this.config = config;
+        this.Config = config;
     }
 
     private PluginSourceViewModel()

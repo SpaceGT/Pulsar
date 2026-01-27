@@ -1,6 +1,4 @@
-using Avalonia;
-using Avalonia.Controls;
-using Avalonia.Markup.Xaml;
+using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 
 namespace Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
@@ -16,5 +14,27 @@ public partial class SourceInfoScreen : PluginScreenBase
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Dispose();
+    }
+
+    private void RemoveButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        var definition = ScreenTools.GetDefaultYesNoDialog();
+        definition.Title = ScreenTools.GetKeyFromString("Remove Source?");
+        definition.Content = ScreenTools.GetKeyFromString(
+            $"Are you sure you want to remove {(DataContext as SourceInfoScreenViewModel).SourceName} from the list?"
+        );
+
+        ScreenTools
+            .GetSharedUIComponent()
+            .ShowDialog(
+                new TwoOptionsDialogViewModel(definition)
+                {
+                    ConfirmAction = () =>
+                    {
+                        (DataContext as SourceInfoScreenViewModel).RemoveSource();
+                        Dispose();
+                    },
+                }
+            );
     }
 }

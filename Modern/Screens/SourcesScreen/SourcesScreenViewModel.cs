@@ -5,6 +5,7 @@ using Pulsar.Shared.Config;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 
 namespace Pulsar.Modern.Screens.SourcesScreen;
 
@@ -29,6 +30,10 @@ internal class SourcesScreenViewModel : ScreenViewModel
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;
+
+        HubSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(HubSourcesEmpty));
+        PluginSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(PluginSourcesEmpty));
+        ModSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(ModSourcesEmpty));
 
         sourcesConfig = config;
 
@@ -56,29 +61,19 @@ internal class SourcesScreenViewModel : ScreenViewModel
         sourcesToRemove.Clear();
 
         foreach (RemoteHubConfig source in sourcesConfig.RemoteHubSources)
-        {
             HubSources.Add(new HubSourceViewModel(source));
-        }
 
         foreach (LocalHubConfig source in sourcesConfig.LocalHubSources)
-        {
             HubSources.Add(new HubSourceViewModel(source));
-        }
 
         foreach (RemotePluginConfig source in sourcesConfig.RemotePluginSources)
-        {
             PluginSources.Add(new PluginSourceViewModel(source));
-        }
 
         foreach (LocalPluginConfig source in sourcesConfig.LocalPluginSources)
-        {
             PluginSources.Add(new PluginSourceViewModel(source));
-        }
 
         foreach (ModConfig source in sourcesConfig.ModSources)
-        {
             ModSources.Add(new ModSourceViewModel(source));
-        }
     }
 
     public void OpenDetailsScreen(object list, object vm)

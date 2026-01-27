@@ -16,6 +16,8 @@ internal class ModSourceViewModel : AttachedViewModel
         }
     }
 
+    public long Id => config.ID;
+
     public bool IsEnabled => config.Enabled;
 
     private readonly bool isDummy = false;
