@@ -267,7 +267,10 @@ static class Program
 
         Game.SetupMyFakes();
         Game.ShowIntroVideo(Flags.GameIntroVideo);
-        Game.RegisterPlugin(new PluginLoader());
+
+        PluginLoader loader = new();
+        Game.RegisterPlugin(loader);
+        Game.RegisterHandleInputPlugin(loader);
 
 #if NETCOREAPP
         Game.AddCompilationSymbols("NETCOREAPP");

@@ -53,6 +53,16 @@ internal static class Game
         m_plugins.Add(plugin);
     }
 
+    public static void RegisterHandleInputPlugin(IHandleInputPlugin handleInputPlugin)
+    {
+        FieldInfo m_handleInputPluginsField = typeof(MyPlugins).GetField(
+            "m_handleInputPlugins",
+            BindingFlags.Static | BindingFlags.NonPublic
+        );
+        List<IHandleInputPlugin> m_handleInputPlugins = (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
+        m_handleInputPlugins.Add(handleInputPlugin);
+    }
+
     public static void SetMainAssembly(string assemblyPath)
     {
         string asmFolder = new FileInfo(assemblyPath).DirectoryName;
