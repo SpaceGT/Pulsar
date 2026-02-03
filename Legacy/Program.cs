@@ -254,6 +254,11 @@ static class Program
 
     private static void SetupGame(string[] args)
     {
+#if NETCOREAPP
+        if (OperatingSystem.IsWindows())
+            SetupNativeDllSearchPath(ConfigManager.Instance.GameDir);
+#endif
+
         string bin64Dir = ConfigManager.Instance.GameDir;
         string originalLoaderPath = Path.Combine(bin64Dir, OldLauncher);
         Patch_PrepareCrashReport.SpaceEngineersPath = originalLoaderPath;
@@ -301,4 +306,16 @@ static class Program
 
         return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
+
+#if NETCOREAPP
+    [DllImport("kernel32.dll", SetLastError = true)]
+    private static extern bool SetDllDirectory(string lpPathName);
+
+    private static void SetupNativeDllSearchPath(string gameDir)
+    {
+        // Ensure native game dependencies (e.g. Havok.dll) are discoverable under .NET Core/.NET 10
+        if (!string.IsNullOrEmpty(gameDir))
+            SetDllDirectory(gameDir);
+    }
+#endif
 }
