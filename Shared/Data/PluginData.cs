@@ -222,8 +222,12 @@ public abstract class PluginData : IEquatable<PluginData>
         else
             msg += "See info.log for details.\n\nWould you like to open the Pulsar log?";
 
+#if AI_WORKFLOW
         MessageBoxButtons buttons = MessageBoxButtons.YesNo;
         DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
+#else
+        DialogResult result = DialogResult.No;
+#endif
 
         if (result == DialogResult.No)
             return;
