@@ -10,10 +10,10 @@ using Pulsar.Shared.Splash;
 namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
-[HarmonyPatch(typeof(GameAppComponent), "TransitionToMainMenu")]
+[HarmonyPatch(typeof(GameApp), "StartPlayerExperienceAsync")]
 internal static class Patch_HideSplash
 {
-    public static void Postfix()
+    public static void Prefix()
     {
         SplashManager.Instance?.Delete();
 

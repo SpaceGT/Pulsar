@@ -17,7 +17,7 @@ namespace Pulsar.Modern.Loader;
 
 internal static class LoaderTools
 {
-    private const string ContinueArg = "-continue";
+    private const string ContinueArg = "-startLast";
     private const string DebugArg = "-debug";
 
     public static void AskToRestart()

@@ -58,7 +58,7 @@ public class Updater(string repoName)
         string change = (newVersion > oldVersion ? "up" : "down") + "graded";
         string prompt =
             $"Space Engineers has been {change}! "
-            + $"({oldVersion.ToString(3)} -> {newVersion.ToString(3)})\n"
+            + $"({oldVersion.ToString(4)} -> {newVersion.ToString(4)})\n"
             + "All plugins must be rebuilt to target the new version.\n\n"
             + "Plugin build errors are NOT a Pulsar issue.\n"
             + "Authors of broken plugins have been notified: be patient.\n\n"
