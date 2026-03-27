@@ -1,8 +1,6 @@
 ﻿using Keen.VRage.UI.Screens;
 using Pulsar.Shared.Config;
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 namespace Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
 
 internal class SourceInfoScreenViewModel : ScreenViewModel
@@ -42,34 +40,24 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
     }
 
     private readonly object sourceViewModel;
-    private readonly object displayList;
-    private readonly List<object> removeList;
+    
+    private readonly SourcesScreenViewModel sourceScreenVm;
 
-    public SourceInfoScreenViewModel(object displayList, List<object> removeList, object sourceVm) 
+    public SourceInfoScreenViewModel(SourcesScreenViewModel vm, object sourceVm) 
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;
 
         sourceViewModel = sourceVm;
-        this.displayList = displayList;
-        this.removeList = removeList;
+        sourceScreenVm = vm;
 
         InitializeInputContext();
     }
 
     public void RemoveSource()
     {
-        if (displayList is ObservableCollection<HubSourceViewModel> hubs)
-            hubs.Remove((HubSourceViewModel)sourceViewModel);
-
-        if (displayList is ObservableCollection<PluginSourceViewModel> plugins)
-            plugins.Remove((PluginSourceViewModel)sourceViewModel);
-
-        if (sourceViewModel is ObservableCollection<ModSourceViewModel> mods)
-            mods.Remove((ModSourceViewModel)sourceViewModel);
-
-        removeList.Add(sourceViewModel);
+        sourceScreenVm.ModifySource(sourceViewModel, false, true);
     }
 
     private string GetHubInfoText(HubSourceViewModel hubVm)

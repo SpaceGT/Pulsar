@@ -12,20 +12,21 @@ internal class ModSourceViewModel : AttachedViewModel
             if (isDummy)
                 return "Dummy Mod";
 
-            return config.Name;
+            return Config.Name;
         }
     }
 
-    public long Id => config.ID;
+    public long Id => Config.ID;
 
-    public bool IsEnabled => config.Enabled;
+    public bool IsEnabled => Config.Enabled;
+
+    public readonly ModConfig Config;
 
     private readonly bool isDummy = false;
-    private readonly ModConfig config;
-
+    
     public ModSourceViewModel(ModConfig config)
     {
-        this.config = config;
+        this.Config = config;
     }
 
     private ModSourceViewModel()

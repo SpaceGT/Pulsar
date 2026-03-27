@@ -1,5 +1,6 @@
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
+using Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
 using System.Collections.Generic;
 
 namespace Pulsar.Modern.Screens.SourcesScreen;
@@ -46,37 +47,50 @@ public partial class SourcesScreen : PluginScreenBase
         }
     }
 
-    private void AddHubButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) { }
+    private void AddHubButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) 
+    {
+        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Hub);
+    }
 
     private void AddLocalHubButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        (DataContext as SourcesScreenViewModel).AddLocalHub();
+    }
 
     private void AddRemotePluginButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Plugin);
+    }
 
     private void AddDevFolderButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        (DataContext as SourcesScreenViewModel).AddDevFolder();
+    }
 
     private void AddLocalPluginButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        (DataContext as SourcesScreenViewModel).AddCompiledPlugin();
+    }
 
     private void AddModSourceButton_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Mod);
+    }
 
     private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) 
     {
@@ -133,21 +147,39 @@ public partial class SourcesScreen : PluginScreenBase
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    { 
+        if (sender is CheckBox checkBox)
+        {
+            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+        }
+    }
 
     private void PluginSourceItemCheckBox_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        if (sender is CheckBox checkBox)
+        {
+            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+        }
+    }
 
     private void ModSourceCheckbox_Click(
         object sender,
         Avalonia.Interactivity.RoutedEventArgs e
     )
-    { }
+    {
+        if (sender is CheckBox checkBox)
+        {
+            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+        }
+    }
 
-    private void ApplyButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) { }
+    private void ApplyButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) 
+    {
+        (DataContext as SourcesScreenViewModel).ApplyChanges();
+    }
 
     private void RefreshButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
