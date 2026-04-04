@@ -132,9 +132,11 @@
 						Foreground="White" 
 						Grid.Row="3"/>
 			<controls:GithubPluginControls Grid.Row="4" 
+										   Name="GithubControls"
 										   Margin="0,16,0,0"
 										   IsVisible="False"/>
 			<controls:LocalPluginFolderControls Grid.Row="4" 
+												Name="LocalFolderControls"
 												Margin="0,16,0,0"
 												IsVisible="False"/>
 			<StackPanel Grid.Row="5">

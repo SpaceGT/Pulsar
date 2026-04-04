@@ -5,6 +5,7 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
 using Pulsar.Shared.Stats.Model;
+using System.IO;
 
 namespace Pulsar.Modern.Screens;
 
@@ -111,6 +112,20 @@ internal class PluginViewModel : AttachedViewModel
 
             return pluginInstance.HasConfigDialog;
         }
+    }
+
+    public string DataFile
+    {
+        get => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile;
+        set => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile = value;
+    }
+
+    public bool DataFileExists => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile is not null && File.Exists((draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile);
+
+    public bool DebugBuild
+    {
+        get => (bool)((draft.GetData(PluginData.Id) as LocalFolderConfig)?.DebugBuild);
+        set => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DebugBuild = value;
     }
 
     public bool IsHidden => PluginData.Hidden;

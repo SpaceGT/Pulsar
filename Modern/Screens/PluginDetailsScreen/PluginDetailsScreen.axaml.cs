@@ -21,6 +21,11 @@ public partial class PluginDetailsScreen : PluginScreenBase
             (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin
                 ? "Mod Details"
                 : "Plugin Details";
+
+        if ((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is GitHubPlugin)
+            GithubControls.IsVisible = true;
+        else if ((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is LocalFolderPlugin)
+            LocalFolderControls.IsVisible = true;
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

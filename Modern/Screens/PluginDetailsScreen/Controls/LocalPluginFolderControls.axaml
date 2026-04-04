@@ -3,27 +3,44 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
-             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.Controls.LocalPluginFolderControls">
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.Controls.LocalPluginFolderControls"
+             xmlns:vm="using:Pulsar.Modern.Screens.PluginDetailsScreen"
+             x:DataType="vm:PluginDetailsScreenViewModel">
     <Grid RowDefinitions="Auto,Auto"
           ColumnDefinitions="Auto,Auto"
           HorizontalAlignment="Center">
+        <ComboBox Grid.Row="0" 
+                  Grid.ColumnSpan="2"
+                  Name="BuildConfigComboBox"
+                  HorizontalAlignment="Stretch"
+                  Height="55"
+                  IsEnabled="false"
+                  SelectionChanged="BuildConfigComboBox_SelectionChanged"/>
 	    <Button Grid.Column="0" 
+                Grid.Row="1"
                 Name="RemoveFileButton"
                 Content="Remove File"
+                Margin="0,16,0,0"
                 Width="264" 
 				Height="55"
-                Classes="Menu"/>
+                Classes="Menu"
+                IsEnabled="{Binding Plugin.DataFile, Converter={x:Static ObjectConverters.IsNotNull}}"
+                Click="RemoveFileButton_Click"/>
         <Button Grid.Column="1" 
+                Grid.Row="1"
                 Name="LoadFileButton"
                 Content="Load File"
-                Margin="26,0,0,0"
+                Margin="26,16,0,0"
                 Width="264" 
 				Height="55"
-                Classes="Menu"/>
-        <ComboBox Grid.Row="1" 
-                  Grid.ColumnSpan="2"
-                  HorizontalAlignment="Stretch"
-                  Margin="0,16,0,0"
-                  Height="55"/>
+                Classes="Menu"
+                Click="LoadFileButton_Click">
+              <Button.IsEnabled>
+                  <MultiBinding Converter="{x:Static BoolConverters.Or}">
+                     <Binding Path="Plugin.DataFile" Converter="{x:Static StringConverters.IsNullOrEmpty}"/>
+                     <Binding Path="!Plugin.DataFileExists"/>
+                  </MultiBinding>
+              </Button.IsEnabled>
+            </Button>
     </Grid>
 </UserControl>
