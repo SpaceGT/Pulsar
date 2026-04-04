@@ -291,10 +291,20 @@ static class Program
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
     {
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([
-            Path.Combine(Environment.CurrentDirectory, "Libraries", "Modern"),
-        ]);
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([Folder.GetGame2()]);
+        // VS 2.1 is the last game version we can use to preview Avalonia Xaml.
+        // In VS 2.2, Keen made modifications to Avalonia, which makes this impossible.
+
+        const string ASSEMBLY_PATH = "Modern/VS2_1Assemblies/";
+
+        string fullPath = Path.Combine(Environment.CurrentDirectory, ASSEMBLY_PATH);
+
+        if (!Directory.Exists(fullPath))
+            throw new DirectoryNotFoundException($"{fullPath} folder does not exist in project!\nThis is required to preview Avalonia Xaml!");
+
+        if (Directory.GetFiles(fullPath).Length == 0)
+            throw new FileNotFoundException($"No files found in {fullPath}, did you copy the VS 2.1 assemblies over?");
+
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([fullPath]);
 
         return AppBuilder.Configure<App>().UsePlatformDetect().WithInterFont().UseReactiveUI();
     }
