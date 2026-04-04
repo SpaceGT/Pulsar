@@ -69,6 +69,10 @@
 												<Setter Property="Foreground"
 														Value="White"/>
 											</Style>
+											<Style Selector="Grid">
+												<Setter Property="Background" 
+														Value="#00000000"/>	
+											</Style>
 											<Style Selector="Grid:selected">
 												<Setter Property="Background" 
 														Value="#8EBCCE"/>	
