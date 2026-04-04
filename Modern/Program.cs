@@ -27,7 +27,7 @@ static class Program
 {
     class ExternalTools : IExternalTools
     {
-        public void OnMainThread(Action action) => throw new NotImplementedException();
+        public void OnMainThread(Action action) => action();
     }
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
