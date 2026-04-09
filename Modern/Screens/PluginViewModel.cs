@@ -1,6 +1,7 @@
 ﻿using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
+using Pulsar.Modern.Screens.PluginDetailsScreen;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
@@ -100,6 +101,13 @@ internal class PluginViewModel : AttachedViewModel
                 devFolder.DeserializeFile(null);
 
             OnPropertyChanged(nameof(DraftEnabled));
+            OnPropertyChanged(nameof(FriendlyName));
+            OnPropertyChanged(nameof(ToolTip));
+            OnPropertyChanged(nameof(Author));
+            OnPropertyChanged(nameof(DetailDescription));
+            OnPropertyChanged(nameof(ShortDescription));
+            OnPropertyChanged(nameof(LocalFolderConfig));
+            OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
         }
     }
 
@@ -114,19 +122,12 @@ internal class PluginViewModel : AttachedViewModel
         }
     }
 
-    public string DataFile
+    public LocalFolderConfig LocalFolderConfig
     {
-        get => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile;
-        set => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile = value;
+        get => ((LocalFolderConfig)draft.GetData(PluginData.Id));
     }
 
-    public bool DataFileExists => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile is not null && File.Exists((draft.GetData(PluginData.Id) as LocalFolderConfig)?.DataFile);
-
-    public bool DebugBuild
-    {
-        get => (bool)((draft.GetData(PluginData.Id) as LocalFolderConfig)?.DebugBuild);
-        set => (draft.GetData(PluginData.Id) as LocalFolderConfig)?.DebugBuild = value;
-    }
+    public bool LoadDataFileButtonEnabled => LocalFolderConfig is not null && (string.IsNullOrEmpty(LocalFolderConfig.DataFile) || !File.Exists(Path.Combine(((LocalFolderPlugin)PluginData).Folder, LocalFolderConfig.DataFile)));
 
     public bool IsHidden => PluginData.Hidden;
     public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
@@ -211,5 +212,34 @@ internal class PluginViewModel : AttachedViewModel
     public long Rank(string query)
     {
         return PluginData.Rank(query);
+    }
+
+    public void ShowLoadDataFileScreen()
+    {
+        ((LocalFolderPlugin)PluginData).LoadNewDataFile(
+            (file) =>
+            {
+                LocalFolderConfig.DataFile = file;
+                OnPropertyChanged(nameof(FriendlyName));
+                OnPropertyChanged(nameof(ToolTip));
+                OnPropertyChanged(nameof(Author));
+                OnPropertyChanged(nameof(DetailDescription));
+                OnPropertyChanged(nameof(ShortDescription));
+                OnPropertyChanged(nameof(LocalFolderConfig));
+                OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
+            });
+    }
+
+    public void RemoveDataFile()
+    {
+        ((LocalFolderPlugin)PluginData).DeserializeFile(null);
+        LocalFolderConfig.DataFile = null;
+        OnPropertyChanged(nameof(FriendlyName));
+        OnPropertyChanged(nameof(ToolTip));
+        OnPropertyChanged(nameof(Author));
+        OnPropertyChanged(nameof(DetailDescription));
+        OnPropertyChanged(nameof(ShortDescription));
+        OnPropertyChanged(nameof(LocalFolderConfig));
+        OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
     }
 }
