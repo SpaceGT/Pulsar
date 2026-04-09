@@ -1,9 +1,10 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using Keen.VRage.Library.Diagnostics;
+﻿using Keen.VRage.Library.Diagnostics;
+using Keen.VRage.Library.Filesystem;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
+using System;
+using System.Diagnostics;
+using System.IO;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -11,23 +12,28 @@ internal class GameLog : IGameLog
 {
     public bool Exists()
     {
-        string file = Log.Default?.FileName;
+        string file = FileSystem.Instance.TempFiles.GetBasePath() + $"/Logs/{Log.Default.FileName}";
         return File.Exists(file) && file.EndsWith(".log");
     }
 
     public bool Open()
     {
         Log.Default.Flush();
-        string file = Log.Default?.FileName;
+        string file = FileSystem.Instance.TempFiles.GetBasePath() + $"/Logs/{Log.Default.FileName}";
 
         if (!File.Exists(file) || !file.EndsWith(".log"))
             return false;
 
-        Process.Start(file);
+        ProcessStartInfo psi = new(file)
+        {
+            UseShellExecute = true
+        };
+        Process.Start(psi);
+            
         return true;
     }
 
-    public void Write(string line) => Log.Default.WriteLine(line);
+    public void Write(string line) => Log.Default.WriteLine($"[Pulsar]: {line}");
 }
 
 internal static class Game
