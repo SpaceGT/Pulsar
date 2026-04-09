@@ -17,7 +17,7 @@
 						   FontWeight="Normal"
 						   Foreground="White"
 						   Text="Add Source"/>
-					<Button Name="CornerCancelButton" Classes="Menu" 
+					<Button Name="CornerCancelButton"  
 							Width="40" 
 							Height="40" 
 							HorizontalAlignment="Right" 
@@ -32,8 +32,8 @@
 				<StackPanel Grid.Row="2" Name="ControlsPanel"/>
 				<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
 				<StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-					<Button Name="CancelButton" Classes="Menu" Width="264" Height="55" Click="CancelButton_Click">Cancel</Button>
-					<Button Name="AddButton" Classes="Menu" Width="264" Height="55" Margin="26,0,0,0" Click="AddButton_Click">Add</Button>
+					<Button Name="CancelButton" Width="264" Height="55" Click="CancelButton_Click">Cancel</Button>
+					<Button Name="AddButton" Width="264" Height="55" Margin="26,0,0,0" Click="AddButton_Click">Add</Button>
 				</StackPanel>
 			</Grid>
 		</Border>

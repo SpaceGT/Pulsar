@@ -18,7 +18,7 @@
 					   FontWeight="Normal"
 					   Foreground="White"
 					   Text="Source Info"/>
-				<Button Name="CornerCancelButton" Classes="Menu" 
+				<Button Name="CornerCancelButton"  
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -45,14 +45,12 @@
 						HorizontalAlignment="Center" 
 						Grid.Row="4">
 				<Button Name="BackButton" 
-						Content="Back" 
-						Classes="Menu" 
+						Content="Back"
 						Width="264" 
 						Height="55" 
 						Click="CancelButton_Click"/>
 				<Button Name="RemoveButton" 
-						Content="Remove" 
-						Classes="Menu" 
+						Content="Remove"
 						Width="264" 
 						Height="55" 
 						Margin="26,0,0,0"  

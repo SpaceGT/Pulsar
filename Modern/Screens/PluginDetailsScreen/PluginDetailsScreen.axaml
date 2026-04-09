@@ -28,7 +28,7 @@
 						FontWeight="Normal"
 						Foreground="White"
 						Text="Plugin Details"/>
-				<Button Name="CancelButton" Classes="Menu" 
+				<Button Name="CancelButton"
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -146,13 +146,11 @@
 						Grid.Row="2">
 				<Button Name="MoreInfoButton" 
 						Content="More Info" 
-						Classes="Menu" 
 						Width="264" 
 						Height="55" 
 						Click="MoreInfoButton_Click"/>
 				<Button Name="SettingsButton" 
 						Content="Settings" 
-						Classes="Menu" 
 						Width="264" 
 						Height="55" 
 						Margin="26,0,0,0" 

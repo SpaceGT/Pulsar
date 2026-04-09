@@ -20,13 +20,13 @@
 				<RowDefinition Height="Auto"/>
 			</Grid.RowDefinitions>
             <Grid Grid.Row="0">
-				<TextBlock Name="TitleText" 
+				<TextBlock Name="TitleText"
                         HorizontalAlignment="Center"
                         FontSize="25"
 						FontWeight="Normal"
 						Foreground="White"
                         Text="Plugin List"/>
-                <Button Name="CancelButton" Classes="Menu" 
+                <Button Name="CancelButton"
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 

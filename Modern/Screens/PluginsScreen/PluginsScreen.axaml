@@ -23,7 +23,7 @@
 						FontWeight="Normal"
 						Foreground="White"
 						Text="Pulsar"/>
-				<Button Name="CornerCancelButton" Classes="Menu" 
+				<Button Name="CornerCancelButton"  
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -139,7 +139,6 @@
 								 Margin="0,16,0,0" 
 								 HorizontalAlignment="Right">
 						<Button Name="PluginSettingsButton" 
-								  Classes="Menu" 
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0" 
@@ -149,7 +148,6 @@
 							<Image Source="{DynamicResource IconsConfiguration_SettingIcon}"/>
 						</Button>
 						<Button Name="PluginDetailsButton" 
-								  Classes="Menu" 
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0" 
@@ -159,7 +157,6 @@
 							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
 						</Button>
 						<Button Name="PluginAddButton" 
-								  Classes="Menu" 
 								  Width="30" 
 								  Height="30" 
 								  ToolTip.Tip="Add plugin" 
@@ -249,8 +246,7 @@
 								 Grid.Column="3" 
 								 Margin="0,12,0,0" 
 								 HorizontalAlignment="Right">
-						<Button Name="ModDetailsButton" 
-								  Classes="Menu" 
+						<Button Name="ModDetailsButton"
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0" 
@@ -259,8 +255,7 @@
 								  Click="ModDetailsButton_Click">
 							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
 						</Button>
-						<Button Name="ModAddButton" 
-								  Classes="Menu" 
+						<Button Name="ModAddButton"
 								  Width="30" 
 								  Height="30" 
 								  ToolTip.Tip="Add mod" 
@@ -270,23 +265,20 @@
 					</StackPanel>
 				</StackPanel>
 				<StackPanel Grid.Column="3" Margin="16,44,0,0" HorizontalAlignment="Left">
-					<Button Name="ProfilesButton" 
-							 Classes="Menu" 
+					<Button Name="ProfilesButton"
 							 Width="256" 
 							 Height="50" 
 							 Click="ProfilesButton_OnClick" 
 							 ToolTip.Tip="Load or edit profiles" 
 							 Content="Profiles" />
-					<Button Name="RefreshButton" 
-							 Classes="Menu" 
+					<Button Name="RefreshButton"
 							 Width="256" 
 							 Height="50" 
 							 Margin="0,16,0,0" 
 							 ToolTip.Tip="Refresh all plugin sources" 
 							 Click="RefreshButton_Click" 
 							 Content="Refresh" />
-					<Button Name="SourcesButton" 
-							 Classes="Menu" 
+					<Button Name="SourcesButton"
 							 Width="256" 
 							 Height="50" 
 							 Margin="0,16,0,0" 
@@ -310,14 +302,12 @@
 					    Grid.Row="4" 
 					    HorizontalAlignment="Center" 
 					    Margin="0,16,0,0">
-				<Button Name="ApplyButton" 
-						Classes="Menu" 
+				<Button Name="ApplyButton"
 						Width="264" 
 						Height="55" 
 						Click="ApplyButton_OnClick" 
 						Content="Apply" />
-				<Button Name="CancelButton" 
-						Classes="Menu" 
+				<Button Name="CancelButton"
 						Width="264" 
 						Height="55" 
 						Margin="26,0,0,0" 

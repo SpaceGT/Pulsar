@@ -18,7 +18,7 @@
 					   FontWeight="Normal"
 					   Foreground="White"
 					   Text="Sources"/>
-				<Button Name="CornerCancelButton" Classes="Menu" 
+				<Button Name="CornerCancelButton"
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -128,8 +128,7 @@
 								 Grid.Column="3" 
 								 Margin="0,16,0,0" 
 								 HorizontalAlignment="Right">
-						<Button Name="AddHubButton" 
-								  Classes="Menu" 
+						<Button Name="AddHubButton"
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0" 
@@ -137,8 +136,7 @@
 								  Click="AddHubButton_Click">
 							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
 						</Button>
-						<Button Name="AddLocalHubButton" 
-								  Classes="Menu" 
+						<Button Name="AddLocalHubButton"
 								  Width="30" 
 								  Height="30" 
 								  ToolTip.Tip="Add Local Hub" 
@@ -252,8 +250,7 @@
 								 Grid.Column="3" 
 								 Margin="0,16,0,0" 
 								 HorizontalAlignment="Right">
-						<Button Name="AddRemotePluginButton" 
-								  Classes="Menu" 
+						<Button Name="AddRemotePluginButton"
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0" 
@@ -261,8 +258,7 @@
 								  Click="AddRemotePluginButton_Click">
 							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
 						</Button>
-						<Button Name="AddDevFolderButton" 
-								  Classes="Menu" 
+						<Button Name="AddDevFolderButton"
 								  Width="30" 
 								  Height="30" 
 								  Margin="0,0,6,0"
@@ -270,8 +266,7 @@
 								  Click="AddDevFolderButton_Click">
 							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
 						</Button>
-						<Button Name="AddLocalPluginButton" 
-								  Classes="Menu" 
+						<Button Name="AddLocalPluginButton"
 								  Width="30" 
 								  Height="30" 
 								  ToolTip.Tip="Add Precompiled Plugin" 
@@ -365,8 +360,7 @@
 								 Grid.Column="3" 
 								 Margin="0,16,0,0" 
 								 HorizontalAlignment="Right">
-						<Button Name="AddModSourceButton" 
-								  Classes="Menu" 
+						<Button Name="AddModSourceButton"
 								  Width="30" 
 								  Height="30" 
 								  ToolTip.Tip="Add Mod"
@@ -389,21 +383,18 @@
 					    Grid.Row="4" 
 					    HorizontalAlignment="Center" 
 					    Margin="0,16,0,0">
-				<Button Name="ApplyButton" 
-						Classes="Menu" 
+				<Button Name="ApplyButton"
 						Width="264" 
 						Height="55" 
 						Click="ApplyButton_Click"
 						Content="Apply" />
-				<Button Name="RefreshButton" 
-						Classes="Menu" 
+				<Button Name="RefreshButton"
 						Width="264" 
 						Height="55" 
 						Margin="26,0,0,0" 
 						Click="RefreshButton_Click"
 						Content="Refresh" />
-				<Button Name="CancelButton" 
-						Classes="Menu" 
+				<Button Name="CancelButton"
 						Width="264" 
 						Height="55" 
 						Margin="26,0,0,0" 

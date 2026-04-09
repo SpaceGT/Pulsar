@@ -18,7 +18,7 @@
 					   FontWeight="Bold"
 					   Foreground="White"
 					   Text="External Sources Warning"/>
-				<Button Name="CornerCancelButton" Classes="Menu" 
+				<Button Name="CornerCancelButton"  
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -53,8 +53,8 @@
 							Text="Don't Show Again"/>
 			</CheckBox>
 			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
-				<Button Name="CancelButton" Classes="Menu" Width="264" Height="55" Margin="0,0,16,0" Click="CancelButton_OnClick">Cancel</Button>
-				<Button Name="AcknowledgeButton" Classes="Menu" Width="264" Height="55" Click="AcknowledgeButton_Click">Acknowledge</Button>
+				<Button Name="CancelButton" Width="264" Height="55" Margin="0,0,16,0" Click="CancelButton_OnClick">Cancel</Button>
+				<Button Name="AcknowledgeButton" Width="264" Height="55" Click="AcknowledgeButton_Click">Acknowledge</Button>
 			</StackPanel>
 		</StackPanel>
     </Border>

@@ -20,7 +20,7 @@
 						FontWeight="Normal"
 						Foreground="White"
 						Text="Profiles"/>
-				<Button Name="CornerCancelButton" Classes="Menu" 
+				<Button Name="CornerCancelButton"  
 						Width="40" 
 						Height="40" 
 						HorizontalAlignment="Right" 
@@ -103,27 +103,23 @@
 					</ScrollViewer>
 				</StackPanel>
 				<StackPanel HorizontalAlignment="Center" Margin="16,16,0,0" Grid.Column="1">
-				<Button Name="NewButton" 
-						Classes="Menu" 
+				<Button Name="NewButton"
 						Width="264" 
 						Height="55" 
 						Click="NewButton_Click">New</Button>
-				<Button Name="LoadButton" 
-						Classes="Menu" 
+				<Button Name="LoadButton"
 						Width="264" 
 						Height="55" 
 						Margin="0,8,0,0" 
 						Click="LoadButton_Click" 
 						IsEnabled="False">Load</Button>
-				<Button Name="RenameButton" 
-						Classes="Menu" 
+				<Button Name="RenameButton"
 						Width="264" 
 						Height="55" 
 						Margin="0,8,0,0" 
 						Click="RenameButton_Click" 
 						IsEnabled="False">Rename</Button>
-				<Button Name="DeleteButton" 
-						Classes="Menu" 
+				<Button Name="DeleteButton"
 						Width="264" 
 						Height="55" 
 						Margin="0,8,0,0" 
