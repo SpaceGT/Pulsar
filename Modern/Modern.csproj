@@ -7,8 +7,10 @@
     <Description>Plugin and Mod loader for Space Engineers 2</Description>
   </PropertyGroup>
   <PropertyGroup>
+	<AssemblyName>Modern</AssemblyName>
     <RootNamespace>Pulsar.Modern</RootNamespace>
     <PackageId>Pulsar</PackageId>
+	<StartProgram>$(Pulsar)\Modern.exe</StartProgram>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
@@ -17,11 +19,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
-  </PropertyGroup>
-  <PropertyGroup>
-    <AssemblyName>Modern</AssemblyName>
-    <StartProgram>$(Pulsar)\Modern.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
