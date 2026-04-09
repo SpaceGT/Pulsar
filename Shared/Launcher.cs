@@ -13,9 +13,9 @@ public class Launcher(string sePath)
 
     public bool CanStart()
     {
-        if (IsGameRunning())
+        if (IsSpaceEngineersRunning())
         {
-            Tools.ShowMessageBox("Error: The game is already running!");
+            Tools.ShowMessageBox("Error: Space Engineers is already running!");
             return false;
         }
 
@@ -31,7 +31,7 @@ public class Launcher(string sePath)
         return true;
     }
 
-    private bool IsGameRunning()
+    private bool IsSpaceEngineersRunning()
     {
         string seName = Path.GetFileNameWithoutExtension(sePath);
         return Process
