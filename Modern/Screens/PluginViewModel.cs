@@ -106,7 +106,8 @@ internal class PluginViewModel : AttachedViewModel
             OnPropertyChanged(nameof(Author));
             OnPropertyChanged(nameof(DetailDescription));
             OnPropertyChanged(nameof(ShortDescription));
-            OnPropertyChanged(nameof(LocalFolderConfig));
+            OnPropertyChanged(nameof(PluginConfig));
+            OnPropertyChanged(nameof(DebugBuild));
             OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
         }
     }
@@ -122,12 +123,22 @@ internal class PluginViewModel : AttachedViewModel
         }
     }
 
-    public LocalFolderConfig LocalFolderConfig
+    public PluginDataConfig PluginConfig
     {
-        get => ((LocalFolderConfig)draft.GetData(PluginData.Id));
+        get => draft.GetData(PluginData.Id);
     }
 
-    public bool LoadDataFileButtonEnabled => LocalFolderConfig is not null && (string.IsNullOrEmpty(LocalFolderConfig.DataFile) || !File.Exists(Path.Combine(((LocalFolderPlugin)PluginData).Folder, LocalFolderConfig.DataFile)));
+    public bool DebugBuild 
+    {
+        get => (PluginConfig as LocalFolderConfig is null) ? false : (PluginConfig as LocalFolderConfig).DebugBuild;
+        set 
+        {
+            if (PluginConfig as LocalFolderConfig is not null)
+                (PluginConfig as LocalFolderConfig).DebugBuild = value;
+        }
+    }
+
+    public bool LoadDataFileButtonEnabled => PluginConfig is not null && (string.IsNullOrEmpty(((LocalFolderConfig)PluginConfig).DataFile) || !File.Exists(Path.Combine(((LocalFolderPlugin)PluginData).Folder, ((LocalFolderConfig)PluginConfig).DataFile)));
 
     public bool IsHidden => PluginData.Hidden;
     public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
@@ -219,13 +230,14 @@ internal class PluginViewModel : AttachedViewModel
         ((LocalFolderPlugin)PluginData).LoadNewDataFile(
             (file) =>
             {
-                LocalFolderConfig.DataFile = file;
+                ((LocalFolderConfig)PluginConfig).DataFile = file;
                 OnPropertyChanged(nameof(FriendlyName));
                 OnPropertyChanged(nameof(ToolTip));
                 OnPropertyChanged(nameof(Author));
                 OnPropertyChanged(nameof(DetailDescription));
                 OnPropertyChanged(nameof(ShortDescription));
-                OnPropertyChanged(nameof(LocalFolderConfig));
+                OnPropertyChanged(nameof(PluginConfig));
+                OnPropertyChanged(nameof(DebugBuild));
                 OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
             });
     }
@@ -233,13 +245,14 @@ internal class PluginViewModel : AttachedViewModel
     public void RemoveDataFile()
     {
         ((LocalFolderPlugin)PluginData).DeserializeFile(null);
-        LocalFolderConfig.DataFile = null;
+        ((LocalFolderConfig)PluginConfig).DataFile = null;
         OnPropertyChanged(nameof(FriendlyName));
         OnPropertyChanged(nameof(ToolTip));
         OnPropertyChanged(nameof(Author));
         OnPropertyChanged(nameof(DetailDescription));
         OnPropertyChanged(nameof(ShortDescription));
-        OnPropertyChanged(nameof(LocalFolderConfig));
+        OnPropertyChanged(nameof(PluginConfig));
+        OnPropertyChanged(nameof(DebugBuild));
         OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
     }
 }

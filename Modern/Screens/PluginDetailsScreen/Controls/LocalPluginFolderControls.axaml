@@ -14,8 +14,8 @@
                   Name="BuildConfigCheckbox"
                   HorizontalAlignment="Center"
                   Content="Debug Build"
-                  IsEnabled="{Binding Plugin.LocalFolderConfig, Converter={x:Static ObjectConverters.IsNotNull}}"
-                  IsChecked="{Binding Plugin.LocalFolderConfig.DebugBuild}"/>
+                  IsEnabled="{Binding Plugin.PluginConfig, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  IsChecked="{Binding Plugin.DebugBuild}"/>
 	    <Button Grid.Column="0" 
                 Grid.Row="1"
                 Name="RemoveFileButton"
