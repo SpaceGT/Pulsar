@@ -10,8 +10,6 @@ internal class Patch_TryCreateSplashScreen
 {
     private static bool Prefix()
     {
-        if (Flags.SplashType == SplashType.Native)
-            return true;
-        return false;
+        return Flags.SplashType == SplashType.Native;
     }
 }

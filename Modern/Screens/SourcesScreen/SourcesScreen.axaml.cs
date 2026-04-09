@@ -49,7 +49,7 @@ public partial class SourcesScreen : PluginScreenBase
 
     private void AddHubButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) 
     {
-        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Hub);
+        ((SourcesScreenViewModel)DataContext).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Hub);
     }
 
     private void AddLocalHubButton_Click(
@@ -57,7 +57,7 @@ public partial class SourcesScreen : PluginScreenBase
         Avalonia.Interactivity.RoutedEventArgs e
     )
     {
-        (DataContext as SourcesScreenViewModel).AddLocalHub();
+        ((SourcesScreenViewModel)DataContext).AddLocalHub();
     }
 
     private void AddRemotePluginButton_Click(
@@ -65,7 +65,7 @@ public partial class SourcesScreen : PluginScreenBase
         Avalonia.Interactivity.RoutedEventArgs e
     )
     {
-        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Plugin);
+        ((SourcesScreenViewModel)DataContext).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Plugin);
     }
 
     private void AddDevFolderButton_Click(
@@ -73,7 +73,7 @@ public partial class SourcesScreen : PluginScreenBase
         Avalonia.Interactivity.RoutedEventArgs e
     )
     {
-        (DataContext as SourcesScreenViewModel).AddDevFolder();
+        ((SourcesScreenViewModel)DataContext).AddDevFolder();
     }
 
     private void AddLocalPluginButton_Click(
@@ -81,7 +81,7 @@ public partial class SourcesScreen : PluginScreenBase
         Avalonia.Interactivity.RoutedEventArgs e
     )
     {
-        (DataContext as SourcesScreenViewModel).AddCompiledPlugin();
+        ((SourcesScreenViewModel)DataContext).AddCompiledPlugin();
     }
 
     private void AddModSourceButton_Click(
@@ -89,22 +89,22 @@ public partial class SourcesScreen : PluginScreenBase
         Avalonia.Interactivity.RoutedEventArgs e
     )
     {
-        (DataContext as SourcesScreenViewModel).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Mod);
+        ((SourcesScreenViewModel)DataContext).OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType.Mod);
     }
 
     private void HubItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) 
     {
         if (selectedHubControl != null)
-            (selectedHubControl.Classes as IPseudoClasses).Remove(":selected");
+            ((IPseudoClasses)selectedHubControl.Classes).Remove(":selected");
 
-        selectedHubControl = sender as Control;
-        (selectedHubControl.Classes as IPseudoClasses).Add(":selected");
+        selectedHubControl = (Control)sender;
+        ((IPseudoClasses)selectedHubControl.Classes).Add(":selected");
 
         ScreenTools.PlayClickSound((Control)sender);
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen((DataContext as SourcesScreenViewModel).HubSources, selectedHubControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).HubSources, selectedHubControl.DataContext);
         }
     }
 
@@ -114,32 +114,32 @@ public partial class SourcesScreen : PluginScreenBase
     )
     {
         if (selectedPluginControl != null)
-            (selectedPluginControl.Classes as IPseudoClasses).Remove(":selected");
+            ((IPseudoClasses)selectedPluginControl.Classes).Remove(":selected");
 
-        selectedPluginControl = sender as Control;
-        (selectedPluginControl.Classes as IPseudoClasses).Add(":selected");
+        selectedPluginControl = (Control)sender;
+        ((IPseudoClasses)selectedPluginControl.Classes).Add(":selected");
 
         ScreenTools.PlayClickSound((Control)sender);
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen((DataContext as SourcesScreenViewModel).PluginSources, selectedPluginControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).PluginSources, selectedPluginControl.DataContext);
         }
     }
 
     private void ModItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e) 
     {
         if (selectedModPluginControl != null)
-            (selectedModPluginControl.Classes as IPseudoClasses).Remove(":selected");
+            ((IPseudoClasses)selectedModPluginControl.Classes).Remove(":selected");
 
-        selectedModPluginControl = sender as Control;
-        (selectedModPluginControl.Classes as IPseudoClasses).Add(":selected");
+        selectedModPluginControl = (Control)sender;
+        ((IPseudoClasses)selectedModPluginControl.Classes).Add(":selected");
 
         ScreenTools.PlayClickSound((Control)sender);
 
         if (e.ClickCount > 1)
         {
-            (DataContext as SourcesScreenViewModel).OpenDetailsScreen((DataContext as SourcesScreenViewModel).ModSources, selectedModPluginControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).ModSources, selectedModPluginControl.DataContext);
         }
     }
 
@@ -150,7 +150,7 @@ public partial class SourcesScreen : PluginScreenBase
     { 
         if (sender is CheckBox checkBox)
         {
-            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 
@@ -161,7 +161,7 @@ public partial class SourcesScreen : PluginScreenBase
     {
         if (sender is CheckBox checkBox)
         {
-            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 
@@ -172,18 +172,18 @@ public partial class SourcesScreen : PluginScreenBase
     {
         if (sender is CheckBox checkBox)
         {
-            (DataContext as SourcesScreenViewModel).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 
     private void ApplyButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) 
     {
-        (DataContext as SourcesScreenViewModel).ApplyChanges();
+        ((SourcesScreenViewModel)DataContext).ApplyChanges();
     }
 
     private void RefreshButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as SourcesScreenViewModel).RefreshSources();
+        ((SourcesScreenViewModel)DataContext).RefreshSources();
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

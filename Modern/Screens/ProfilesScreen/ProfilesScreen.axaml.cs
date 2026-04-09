@@ -31,11 +31,11 @@ public partial class ProfilesScreen : PluginScreenBase
     {
         if (selectedProfileControl is null)
         {
-            (DataContext as ProfilesScreenViewModel).CreateProfile();
+            ((ProfilesScreenViewModel)DataContext).CreateProfile();
         }
         else if (selectedProfileControl.DataContext is ProfileViewModel)
         {
-            (DataContext as ProfilesScreenViewModel).UpdateProfile();
+            ((ProfilesScreenViewModel)DataContext).UpdateProfile();
         }
     }
 
@@ -44,7 +44,7 @@ public partial class ProfilesScreen : PluginScreenBase
         if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
-        (DataContext as ProfilesScreenViewModel).LoadProfile();
+        ((ProfilesScreenViewModel)DataContext).LoadProfile();
     }
 
     private void RenameButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -52,7 +52,7 @@ public partial class ProfilesScreen : PluginScreenBase
         if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
-        (DataContext as ProfilesScreenViewModel).RenameProfile();
+        ((ProfilesScreenViewModel)DataContext).RenameProfile();
     }
 
     private void DeleteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -60,7 +60,7 @@ public partial class ProfilesScreen : PluginScreenBase
         if (selectedProfileControl.DataContext is not ProfileViewModel)
             return;
 
-        (DataContext as ProfilesScreenViewModel).DeleteProfile();
+        ((ProfilesScreenViewModel)DataContext).DeleteProfile();
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -71,15 +71,15 @@ public partial class ProfilesScreen : PluginScreenBase
     private void ProfileItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (selectedProfileControl != null)
-            (selectedProfileControl.Classes as IPseudoClasses).Remove(":selected");
+            ((IPseudoClasses)selectedProfileControl.Classes).Remove(":selected");
 
-        selectedProfileControl = sender as Control;
-        (selectedProfileControl.Classes as IPseudoClasses).Add(":selected");
+        selectedProfileControl = (Control)sender;
+        ((IPseudoClasses)selectedProfileControl.Classes).Add(":selected");
 
         ScreenTools.PlayClickSound((Control)sender);
 
-        (DataContext as ProfilesScreenViewModel).SelectedProfile = (ProfileViewModel)
-            (sender as Control).DataContext;
+        ((ProfilesScreenViewModel)DataContext).SelectedProfile = (ProfileViewModel)
+            ((Control)sender).DataContext;
 
         NewButton.Content = "Update";
         LoadButton.IsEnabled = true;
@@ -90,7 +90,7 @@ public partial class ProfilesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            (DataContext as ProfilesScreenViewModel).LoadProfile();
+            ((ProfilesScreenViewModel)DataContext).LoadProfile();
             Dispose();
         }
     }
@@ -104,7 +104,7 @@ public partial class ProfilesScreen : PluginScreenBase
         }
 
         if (selectedProfileControl != null)
-            (selectedProfileControl.Classes as IPseudoClasses).Remove(":selected");
+            ((IPseudoClasses)selectedProfileControl.Classes).Remove(":selected");
 
         selectedProfileControl = null;
 

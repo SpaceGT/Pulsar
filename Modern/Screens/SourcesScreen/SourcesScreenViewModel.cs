@@ -290,7 +290,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddRemoteHub(HubSourceViewModel source)
     {
-        if (HubSources.Any((x) => x.Config is RemoteHubConfig remoteHub && remoteHub.Repo == (source.Config as RemoteHubConfig).Repo))
+        if (HubSources.Any((x) => x.Config is RemoteHubConfig remoteHub && remoteHub.Repo == ((RemoteHubConfig)source.Config).Repo))
         {
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Source Error");
@@ -309,7 +309,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddRemotePlugin(PluginSourceViewModel source)
     {
-        if (PluginSources.Any((x) => x.Config is RemotePluginConfig remotePlugin && remotePlugin.Repo == (source.Config as RemotePluginConfig).Repo))
+        if (PluginSources.Any((x) => x.Config is RemotePluginConfig remotePlugin && remotePlugin.Repo == ((RemotePluginConfig)source.Config).Repo))
         {
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Source Error");

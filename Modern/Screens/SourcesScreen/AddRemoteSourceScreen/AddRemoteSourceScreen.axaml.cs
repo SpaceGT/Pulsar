@@ -20,7 +20,7 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
         }
         else
         {
-            switch ((DataContext as AddRemoteSourceScreenViewModel).SourceType)
+            switch (((AddRemoteSourceScreenViewModel)DataContext).SourceType)
             {
                 case AddRemoteSourceScreenViewModel.RemoteSourceType.Hub:
                     AddHubControls();
@@ -37,7 +37,7 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
 
     private void AddButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as AddRemoteSourceScreenViewModel).AddSource();
+        ((AddRemoteSourceScreenViewModel)DataContext).AddSource();
         Dispose();
     }
 

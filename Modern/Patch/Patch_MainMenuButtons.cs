@@ -29,7 +29,7 @@ internal class Patch_MainMenuButtons
         );
 
         if (__instance.DataContext is MainMenuScreenViewModel)
-            (__instance._buttonsPanel.Children[^1] as Button).Content =
+            ((Button)__instance._buttonsPanel.Children[^1]).Content =
                 $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
     }
 }

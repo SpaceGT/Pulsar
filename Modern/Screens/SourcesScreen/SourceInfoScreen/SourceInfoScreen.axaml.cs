@@ -21,7 +21,7 @@ public partial class SourceInfoScreen : PluginScreenBase
         var definition = ScreenTools.GetDefaultYesNoDialog();
         definition.Title = ScreenTools.GetKeyFromString("Remove Source?");
         definition.Content = ScreenTools.GetKeyFromString(
-            $"Are you sure you want to remove {(DataContext as SourceInfoScreenViewModel).SourceName} from the list?"
+            $"Are you sure you want to remove {((SourceInfoScreenViewModel)DataContext).SourceName} from the list?"
         );
 
         ScreenTools
@@ -31,7 +31,7 @@ public partial class SourceInfoScreen : PluginScreenBase
                 {
                     ConfirmAction = () =>
                     {
-                        (DataContext as SourceInfoScreenViewModel).RemoveSource();
+                        ((SourceInfoScreenViewModel)DataContext).RemoveSource();
                         Dispose();
                     },
                 }

@@ -17,8 +17,8 @@ public partial class SourceWarningScreen : PluginScreenBase
 
     private void AcknowledgeButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as SourceWarningScreenViewModel).SaveConfig();
+        ((SourceWarningScreenViewModel)DataContext).SaveConfig();
         Dispose();
-        (DataContext as SourceWarningScreenViewModel).OnAcknowledge?.Invoke();
+        ((SourceWarningScreenViewModel)DataContext).OnAcknowledge?.Invoke();
     }
 }

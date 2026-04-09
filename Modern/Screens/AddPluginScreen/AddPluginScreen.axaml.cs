@@ -16,7 +16,7 @@ public partial class AddPluginScreen : PluginScreenBase
 
         if (!Design.IsDesignMode)
         {
-            if ((DataContext as AddPluginScreenViewModel).Mods)
+            if (((AddPluginScreenViewModel)DataContext).Mods)
                 TitleText.Text = "Mod List";
 
             string[] sortMethods = Enum.GetNames<SortingMethod>();
@@ -44,8 +44,8 @@ public partial class AddPluginScreen : PluginScreenBase
             SearchClearButton.IsVisible = false;
 
         SortButton.SelectedIndex = (int)SortingMethod.Search;
-        (DataContext as AddPluginScreenViewModel).Filter = SearchBox.Text;
-        (DataContext as AddPluginScreenViewModel).SortPlugins(SortingMethod.Search);
+        ((AddPluginScreenViewModel)DataContext).Filter = SearchBox.Text;
+        ((AddPluginScreenViewModel)DataContext).SortPlugins(SortingMethod.Search);
     }
 
     private void SearchClearButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -55,7 +55,7 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void SortButton_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        (DataContext as AddPluginScreenViewModel).SortPlugins(
+        ((AddPluginScreenViewModel)DataContext).SortPlugins(
             (SortingMethod)SortButton.SelectedIndex
         );
     }
@@ -67,7 +67,7 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void PluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if ((sender as Border).DataContext is not PluginViewModel pluginVM)
+        if (((Border)sender).DataContext is not PluginViewModel pluginVM)
             return;
 
         ScreenTools.PlayClickSound((Control)sender);

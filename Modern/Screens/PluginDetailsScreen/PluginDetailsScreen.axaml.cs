@@ -18,13 +18,13 @@ public partial class PluginDetailsScreen : PluginScreenBase
         }
 
         TitleText.Text =
-            (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is ModPlugin
+            ((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is ModPlugin
                 ? "Mod Details"
                 : "Plugin Details";
 
-        if ((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is GitHubPlugin)
+        if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is GitHubPlugin)
             GithubControls.IsVisible = true;
-        else if ((DataContext as PluginDetailsScreenViewModel).Plugin.PluginData is LocalFolderPlugin)
+        else if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is LocalFolderPlugin)
             LocalFolderControls.IsVisible = true;
     }
 
@@ -35,21 +35,21 @@ public partial class PluginDetailsScreen : PluginScreenBase
 
     private void MoreInfoButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as PluginDetailsScreenViewModel).Plugin.PluginData.Show();
+        ((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData.Show();
     }
 
     private void SettingsButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as PluginDetailsScreenViewModel).Plugin.TryOpenSettingsScreen();
+        ((PluginDetailsScreenViewModel)DataContext).Plugin.TryOpenSettingsScreen();
     }
 
     private void UpvoteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as PluginDetailsScreenViewModel).Plugin.TryVote(1);
+        ((PluginDetailsScreenViewModel)DataContext).Plugin.TryVote(1);
     }
 
     private void DownvoteButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        (DataContext as PluginDetailsScreenViewModel).Plugin.TryVote(-1);
+        ((PluginDetailsScreenViewModel)DataContext).Plugin.TryVote(-1);
     }
 }
