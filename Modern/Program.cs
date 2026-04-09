@@ -246,13 +246,7 @@ static class Program
 
         LogFile.GameLog = new GameLog();
 
-        // This is to fix errors on game startup.
-        // Game code uses GetEntryAssembly() and APP_CONTEXT_BASE_DIRECTORY AppContext variable,
-        // which would point to the Pulsar folder instead.
-        Assembly.SetEntryAssembly(
-            AssemblyLoadContext.Default.LoadFromAssemblyPath(originalLoaderPath)
-        );
-        AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", game2Dir);
+        Game.SetMainAssembly(originalLoaderPath);
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");

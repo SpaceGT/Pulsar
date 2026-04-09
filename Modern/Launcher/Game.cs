@@ -5,6 +5,8 @@ using Pulsar.Shared;
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Loader;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -41,6 +43,21 @@ internal static class Game
     public static void RegisterPlugin(Type plugin)
     {
         Patch_LoadPlugin.PluginsToLoad.Add(plugin);
+    }
+
+    public static void SetMainAssembly(string assemblyPath)
+    {
+        string asmFolder = Path.GetDirectoryName(assemblyPath);
+
+        // This is to fix errors on game startup.
+        // Game code uses GetEntryAssembly() and APP_CONTEXT_BASE_DIRECTORY AppContext variable,
+        // which would point to the Pulsar folder instead.
+        Assembly.SetEntryAssembly(
+            AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath)
+        );
+        AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", asmFolder);
+
+        Environment.CurrentDirectory = asmFolder;
     }
 
     public static Version GetGameVersion(string game2Dir)
