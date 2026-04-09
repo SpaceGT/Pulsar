@@ -1,21 +1,22 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Runtime.Loader;
-using System.Text;
-using System.Threading;
-using Avalonia;
+﻿using Avalonia;
 using Avalonia.ReactiveUI;
 using HarmonyLib;
+using Keen.VRage.Core;
+using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Compiler;
 using Pulsar.Modern.Launcher;
 using Pulsar.Modern.Loader;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
+using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
 using Application = System.Windows.Forms.Application;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
@@ -27,7 +28,7 @@ static class Program
 {
     class ExternalTools : IExternalTools
     {
-        public void OnMainThread(Action action) => action();
+        public void OnMainThread(Action action) => Singleton<VRageCore>.Instance.UpdateQueue.Enqueue(action);
     }
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
