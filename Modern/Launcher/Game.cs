@@ -1,5 +1,6 @@
-﻿using Keen.VRage.Library.Diagnostics;
-using Keen.VRage.Library.Filesystem;
+﻿using Keen.VRage.Core;
+using Keen.VRage.Library.Diagnostics;
+using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
 using System;
@@ -14,14 +15,14 @@ internal class GameLog : IGameLog
 {
     public bool Exists()
     {
-        string file = FileSystem.Instance.TempFiles.GetBasePath() + $"/Logs/{Log.Default.FileName}";
+        string file = Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
         return File.Exists(file) && file.EndsWith(".log");
     }
 
     public bool Open()
     {
         Log.Default.Flush();
-        string file = FileSystem.Instance.TempFiles.GetBasePath() + $"/Logs/{Log.Default.FileName}";
+        string file = Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
 
         if (!File.Exists(file) || !file.EndsWith(".log"))
             return false;
