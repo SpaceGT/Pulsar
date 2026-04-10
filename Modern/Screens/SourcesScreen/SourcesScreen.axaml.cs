@@ -179,6 +179,7 @@ public partial class SourcesScreen : PluginScreenBase
     private void ApplyButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e) 
     {
         ((SourcesScreenViewModel)DataContext).ApplyChanges();
+        Dispose();
     }
 
     private void RefreshButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
