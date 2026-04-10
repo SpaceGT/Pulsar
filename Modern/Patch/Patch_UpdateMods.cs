@@ -11,7 +11,7 @@ namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
 [HarmonyPatch(typeof(GameApp), "CreateEngine")]
-internal class Patch_CreateEngine
+internal class Patch_UpdateMods
 {
     private static void Postfix()
     {
