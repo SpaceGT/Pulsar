@@ -19,6 +19,9 @@ public partial class GithubPluginControls : UserControl
         if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is not GitHubPlugin)
             return;
 
+        if (((GitHubPlugin)((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData).AlternateVersions is null)
+            return;
+
         foreach (var item in ((GitHubPlugin)((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData).AlternateVersions)
         {
             VersionSelectorBox.Items.Add(item.Name);
