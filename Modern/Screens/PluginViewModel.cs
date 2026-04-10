@@ -90,6 +90,7 @@ internal class PluginViewModel : AttachedViewModel
     public bool CanVote => PluginData.Enabled || PluginStat.Tried;
     public bool ShowStatElements => !PluginData.IsLocal;
 
+    // Setter is used from Avalonia axaml, so those references don't show up.
     public bool DraftEnabled
     {
         get { return draft.Contains(PluginData.Id); }

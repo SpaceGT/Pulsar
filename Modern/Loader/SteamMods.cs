@@ -12,6 +12,7 @@ namespace Pulsar.Modern.Loader;
 
 internal static class SteamMods
 {
+    // This may need to be changed depending on if mod loading changes
     public static void Update(IEnumerable<ulong> ids)
     {
         if (!ids.Any())

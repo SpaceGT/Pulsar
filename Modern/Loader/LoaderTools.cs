@@ -17,6 +17,7 @@ namespace Pulsar.Modern.Loader;
 
 internal static class LoaderTools
 {
+    // This is changed to -startLast from -continue, as SE2 already has a system to load the last world you were in at startup.
     private const string ContinueArg = "-startLast";
     private const string DebugArg = "-debug";
 
