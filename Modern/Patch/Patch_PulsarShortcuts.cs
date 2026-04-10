@@ -19,6 +19,8 @@ namespace Pulsar.Modern.Patch;
 [HarmonyPatch(typeof(GameApp), "StartPlayerExperienceAsync")]
 internal class Patch_PulsarShortcuts
 {
+    public static bool ReloadKeyPressed = false;
+
     private static void Prefix()
     {
         Singleton<VRageCore>.Instance.Engine.Get<InputEngineComponent>().DeviceManager.OnBeforeProcessInput += HandlePulsarInput;
@@ -44,7 +46,10 @@ internal class Patch_PulsarShortcuts
             return;
 
         if (keyboard.GetDigitalState(KeyboardInputs.F5))
+        {
             AskToRestart();
+            ReloadKeyPressed = true;
+        }
 
         if (keyboard.GetDigitalState(KeyboardInputs.OemForwardSlash))
             throw new NotImplementedException();
