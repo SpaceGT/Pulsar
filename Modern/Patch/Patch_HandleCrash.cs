@@ -25,11 +25,11 @@ internal class Patch_HandleCrash
         Log.Default.Flush();
 
         DialogResult result = Pulsar.Shared.Tools.ShowMessageBox("Space Engineers 2 encountered an unhandled error.\n" +
-                                                                "The game will now closed as it can no longer proceed safely.\n" +
+                                                                "The game will now close as it can no longer proceed safely.\n" +
                                                                 "Try running the game without Pulsar to see if this resolves the issue.\n" +
                                                                 "Do NOT report this crash to Keen, as the crash may be cased by plugins or Pulsar.\n" +
                                                                 "Instead, report this crash in Pulsar's Discord server.\n" +
-                                                                "Do you want to the open the Pulsar's and the game's log now?", 
+                                                                "Do you want to the open Pulsar's and the game's log now?", 
                                                                 MessageBoxButtons.YesNo, MessageBoxIcon.Error);
 
         if (result == DialogResult.Yes)
