@@ -16,15 +16,15 @@ namespace Pulsar.Modern.Screens.SourcesScreen;
 
 internal class SourcesScreenViewModel : ScreenViewModel
 {
-    public ObservableCollection<HubSourceViewModel> HubSources { get; private set; } = [];
+    public ObservableCollection<SourceViewModel> HubSources { get; private set; } = [];
     public bool HubSourcesEmpty => HubSources.Count == 0;
-    public ObservableCollection<PluginSourceViewModel> PluginSources { get; private set; } = [];
+    public ObservableCollection<SourceViewModel> PluginSources { get; private set; } = [];
     public bool PluginSourcesEmpty => PluginSources.Count == 0;
-    public ObservableCollection<ModSourceViewModel> ModSources { get; private set; } = [];
+    public ObservableCollection<SourceViewModel> ModSources { get; private set; } = [];
     public bool ModSourcesEmpty => ModSources.Count == 0;
 
     // viewmodel | enabled | shouldRemove
-    private readonly List<Tuple<object, bool, bool>> sourceChanges = [];
+    private readonly List<Tuple<SourceViewModel, bool, bool>> sourceChanges = [];
 
     private SourcesConfig sourcesConfig;
 
@@ -66,9 +66,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
         for (int i = 0; i < sourceChanges.Count; i++)
         {
-            if (sourceChanges[i].Item1 is HubSourceViewModel hub)
+            if (sourceChanges[i].Item1.IsHub)
             {
-                if (hub.Config is RemoteHubConfig remoteHub)
+                if (sourceChanges[i].Item1.Config is RemoteHubConfig remoteHub)
                 {
                     remoteHub.Enabled = sourceChanges[i].Item2;
 
@@ -77,7 +77,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
                     else if (!remoteHubList.Contains(remoteHub))
                         remoteHubList.Add(remoteHub);
                 }
-                else if (hub.Config is LocalHubConfig localHub)
+                else if (sourceChanges[i].Item1.Config is LocalHubConfig localHub)
                 {
                     localHub.Enabled = sourceChanges[i].Item2;
 
@@ -90,9 +90,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
                 continue;
             }
 
-            if (sourceChanges[i].Item1 is PluginSourceViewModel plugin)
+            if (sourceChanges[i].Item1.IsPlugin)
             {
-                if (plugin.Config is RemotePluginConfig remotePlugin)
+                if (sourceChanges[i].Item1.Config is RemotePluginConfig remotePlugin)
                 {
                     remotePlugin.Enabled = sourceChanges[i].Item2;
 
@@ -101,7 +101,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
                     else if (!remotePluginList.Contains(remotePlugin))
                         remotePluginList.Add(remotePlugin);
                 }
-                else if (plugin.Config is LocalPluginConfig localPlugin)
+                else if (sourceChanges[i].Item1.Config is LocalPluginConfig localPlugin)
                 {
                     localPlugin.Enabled = sourceChanges[i].Item2;
 
@@ -114,16 +114,13 @@ internal class SourcesScreenViewModel : ScreenViewModel
                 continue;
             }
 
-            if (sourceChanges[i].Item1 is ModSourceViewModel modVm)
-            {
-                var config = modVm.Config;
-                config.Enabled = sourceChanges[i].Item2;
+            var config = sourceChanges[i].Item1.Config as ModConfig;
+            config.Enabled = sourceChanges[i].Item2;
 
-                if (sourceChanges[i].Item3)
-                    modList.Remove(config);
-                else if (!modList.Contains(config))
-                    modList.Add(config);
-            }
+            if (sourceChanges[i].Item3)
+                modList.Remove(config);
+            else if (!modList.Contains(config))
+                modList.Add(config);
         }
 
         sourcesConfig.RemoteHubSources = [.. remoteHubList];
@@ -147,47 +144,45 @@ internal class SourcesScreenViewModel : ScreenViewModel
         sourceChanges.Clear();
 
         foreach (RemoteHubConfig source in sourcesConfig.RemoteHubSources)
-            HubSources.Add(new HubSourceViewModel(source));
+            HubSources.Add(new(source));
 
         foreach (LocalHubConfig source in sourcesConfig.LocalHubSources)
-            HubSources.Add(new HubSourceViewModel(source));
+            HubSources.Add(new(source));
 
         foreach (RemotePluginConfig source in sourcesConfig.RemotePluginSources)
-            PluginSources.Add(new PluginSourceViewModel(source));
+            PluginSources.Add(new(source));
 
         foreach (LocalPluginConfig source in sourcesConfig.LocalPluginSources)
-            PluginSources.Add(new PluginSourceViewModel(source));
+            PluginSources.Add(new(source));
 
         foreach (ModConfig source in sourcesConfig.ModSources)
-            ModSources.Add(new ModSourceViewModel(source));
+            ModSources.Add(new(source));
     }
 
-    public void ModifySource(object vm, bool enabled, bool remove)
+    public void ModifySource(SourceViewModel vm, bool enabled, bool remove)
     {
         if (remove)
         {
             // Collection.Remove() already checks if the object is in the list
             // so we don't need to check if it is in the list
 
-            if (vm is HubSourceViewModel hubSource)
-                HubSources.Remove(hubSource);
-
-            if (vm is PluginSourceViewModel pluginSource)
-                PluginSources.Remove(pluginSource);
-
-            if (vm is ModSourceViewModel modSource)
-                ModSources.Remove(modSource);
+            if (vm.IsHub)
+                HubSources.Remove(vm);
+            if (vm.IsPlugin)
+                PluginSources.Remove(vm);
+            else
+                ModSources.Remove(vm);
         }
         else
         {
-            if (vm is HubSourceViewModel hubSource && !HubSources.Contains(hubSource))
-                HubSources.Add(hubSource);
+            if (vm.IsHub && !HubSources.Contains(vm))
+                HubSources.Add(vm);
 
-            if (vm is PluginSourceViewModel pluginSource && !PluginSources.Contains(pluginSource))
-                PluginSources.Add(pluginSource);
+            if (vm.IsPlugin && !PluginSources.Contains(vm))
+                PluginSources.Add(vm);
 
-            if (vm is ModSourceViewModel modSource && !ModSources.Contains(modSource))
-                ModSources.Add(modSource);
+            else if (!ModSources.Contains(vm))
+                ModSources.Add(vm);
         }
 
         for (int i = 0; i < sourceChanges.Count; i++)
@@ -202,7 +197,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         sourceChanges.Add(new(vm, enabled, remove));
     }
 
-    public void OpenDetailsScreen(object list, object vm)
+    public void OpenDetailsScreen(SourceViewModel vm)
     {
         ScreenTools
             .GetSharedUIComponent()
@@ -241,7 +236,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
                     Enabled = true,
                 };
 
-                ModifySource(new HubSourceViewModel(hub), true, false);
+                ModifySource(new(hub), true, false);
             }
         );
     }
@@ -269,7 +264,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
                     Folder = folder,
                     Enabled = true,
                 };
-                ModifySource(new PluginSourceViewModel(plugin), true, false);
+                ModifySource(new(plugin), true, false);
             }
         );
     }
@@ -288,7 +283,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         }
     }
 
-    public void AddRemoteHub(HubSourceViewModel source)
+    public void AddRemoteHub(SourceViewModel source)
     {
         if (HubSources.Any((x) => x.Config is RemoteHubConfig remoteHub && remoteHub.Repo == ((RemoteHubConfig)source.Config).Repo))
         {
@@ -307,7 +302,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         }
     }
 
-    public void AddRemotePlugin(PluginSourceViewModel source)
+    public void AddRemotePlugin(SourceViewModel source)
     {
         if (PluginSources.Any((x) => x.Config is RemotePluginConfig remotePlugin && remotePlugin.Repo == ((RemotePluginConfig)source.Config).Repo))
         {
@@ -326,9 +321,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
         }
     }
 
-    public void AddMod(ModSourceViewModel source)
+    public void AddMod(SourceViewModel source)
     {
-        if (ModSources.Any((x) => x.Id == source.Id))
+        if (ModSources.Any((x) => x.WorkshopId == source.WorkshopId))
         {
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Source Error");

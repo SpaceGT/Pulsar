@@ -109,7 +109,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
                     Enabled = true,
                     Trusted = false,
                 };
-                parentVm.AddRemoteHub(new HubSourceViewModel(hubSource));
+                parentVm.AddRemoteHub(new(hubSource));
                 break;
             case RemoteSourceType.Plugin:
                 RemotePluginConfig pluginSource = new()
@@ -122,7 +122,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
                     Enabled = true,
                     Trusted = false,
                 };
-                parentVm.AddRemotePlugin(new PluginSourceViewModel(pluginSource));
+                parentVm.AddRemotePlugin(new(pluginSource));
                 break;
             case RemoteSourceType.Mod:
                 ModConfig source = new()
@@ -131,7 +131,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
                     ID = long.Parse(SteamId),
                     Enabled = true,
                 };
-                parentVm.AddMod(new ModSourceViewModel(source));
+                parentVm.AddMod(new(source));
                 break;
         }
     }

@@ -9,41 +9,23 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
     {
         get
         {
-            if (sourceViewModel is HubSourceViewModel hubVm)
-                return GetHubInfoText(hubVm);
+            if (sourceViewModel.IsHub)
+                return GetHubInfoText(sourceViewModel);
 
-            if (sourceViewModel is PluginSourceViewModel pluginVm)
-                return GetPluginInfoText(pluginVm);
+            if (sourceViewModel.IsPlugin)
+                return GetPluginInfoText(sourceViewModel);
 
-            if (sourceViewModel is ModSourceViewModel modVm)
-                return GetModInfoText(modVm);
-
-            return null;
+            return GetModInfoText(sourceViewModel);
         }
     }
 
-    public string SourceName
-    {
-        get
-        {
-            if (sourceViewModel is HubSourceViewModel hubVm)
-                return hubVm.Name;
+    public string SourceName => sourceViewModel.Name;
 
-            if (sourceViewModel is PluginSourceViewModel pluginVm)
-                return pluginVm.Name;
-
-            if (sourceViewModel is ModSourceViewModel modVm)
-                return modVm.Name;
-
-            return null;
-        }
-    }
-
-    private readonly object sourceViewModel;
+    private readonly SourceViewModel sourceViewModel;
     
     private readonly SourcesScreenViewModel sourceScreenVm;
 
-    public SourceInfoScreenViewModel(SourcesScreenViewModel vm, object sourceVm) 
+    public SourceInfoScreenViewModel(SourcesScreenViewModel vm, SourceViewModel sourceVm) 
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
@@ -60,7 +42,7 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
         sourceScreenVm.ModifySource(sourceViewModel, false, true);
     }
 
-    private string GetHubInfoText(HubSourceViewModel hubVm)
+    private string GetHubInfoText(SourceViewModel hubVm)
     {
         string hubInfoText = string.Empty;
 
@@ -84,7 +66,7 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
         return hubInfoText;
     }
 
-    private string GetPluginInfoText(PluginSourceViewModel pluginVm)
+    private string GetPluginInfoText(SourceViewModel pluginVm)
     {
         string pluginInfoText = string.Empty;
 
@@ -107,12 +89,12 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
         return pluginInfoText;
     }
 
-    private string GetModInfoText(ModSourceViewModel modVm)
+    private string GetModInfoText(SourceViewModel modVm)
     {
         string modInfoText = string.Empty;
 
         modInfoText += $"Name: {modVm.Name}\n";
-        modInfoText += $"Id: {modVm.Id}\n";
+        modInfoText += $"Id: {modVm.WorkshopId}\n";
         modInfoText += $"Enabled: {modVm.IsEnabled}\n";
 
         return modInfoText;

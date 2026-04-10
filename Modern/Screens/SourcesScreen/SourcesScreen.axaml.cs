@@ -18,29 +18,29 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (Design.IsDesignMode)
         {
-            List<HubSourceViewModel> dummyHubs = [];
+            List<SourceViewModel> dummyHubs = [];
 
             for (int i = 0; i < 25; i++)
             {
-                dummyHubs.Add(HubSourceViewModel.GetDummyViewModel());
+                dummyHubs.Add(SourceViewModel.GetDummyHubViewModel());
             }
 
             HubsList.ItemsSource = dummyHubs;
 
-            List<PluginSourceViewModel> dummyPlugins = [];
+            List<SourceViewModel> dummyPlugins = [];
 
             for (int i = 0; i < 25; i++)
             {
-                dummyPlugins.Add(PluginSourceViewModel.GetDummyViewModel());
+                dummyPlugins.Add(SourceViewModel.GetDummyPluginViewModel());
             }
 
             PluginsSourceList.ItemsSource = dummyPlugins;
 
-            List<ModSourceViewModel> dummyMods = [];
+            List<SourceViewModel> dummyMods = [];
 
             for (int i = 0; i < 25; i++)
             {
-                dummyMods.Add(ModSourceViewModel.GetDummyViewModel());
+                dummyMods.Add(SourceViewModel.GetDummyModViewModel());
             }
 
             ModSourceList.ItemsSource = dummyMods;
@@ -104,7 +104,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).HubSources, selectedHubControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen((SourceViewModel)selectedHubControl.DataContext);
         }
     }
 
@@ -123,7 +123,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).PluginSources, selectedPluginControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen((SourceViewModel)selectedPluginControl.DataContext);
         }
     }
 
@@ -139,7 +139,7 @@ public partial class SourcesScreen : PluginScreenBase
 
         if (e.ClickCount > 1)
         {
-            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen(((SourcesScreenViewModel)DataContext).ModSources, selectedModPluginControl.DataContext);
+            ((SourcesScreenViewModel)DataContext).OpenDetailsScreen((SourceViewModel)selectedModPluginControl.DataContext);
         }
     }
 
@@ -150,7 +150,7 @@ public partial class SourcesScreen : PluginScreenBase
     { 
         if (sender is CheckBox checkBox)
         {
-            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource((SourceViewModel)checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 
@@ -161,7 +161,7 @@ public partial class SourcesScreen : PluginScreenBase
     {
         if (sender is CheckBox checkBox)
         {
-            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource((SourceViewModel)checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 
@@ -172,7 +172,7 @@ public partial class SourcesScreen : PluginScreenBase
     {
         if (sender is CheckBox checkBox)
         {
-            ((SourcesScreenViewModel)DataContext).ModifySource(checkBox.DataContext, (bool)checkBox.IsChecked, false);
+            ((SourcesScreenViewModel)DataContext).ModifySource((SourceViewModel)checkBox.DataContext, (bool)checkBox.IsChecked, false);
         }
     }
 

@@ -65,7 +65,7 @@
 										HorizontalAlignment="Stretch"
 										ItemsSource="{Binding HubSources}">
 							<ItemsRepeater.ItemTemplate>
-								<DataTemplate x:DataType="vm:HubSourceViewModel">
+								<DataTemplate x:DataType="vm:SourceViewModel">
 									<Grid Margin="0,2" 
 										  Name="HubItem" 
 										  PointerPressed="HubItem_PointerPressed">
@@ -109,7 +109,7 @@
 													   Classes="PluginText"
 													   Text="{Binding Name}"/>
 										</StackPanel>
-										<TextBlock Text="{Binding LastCheckString}" 
+										<TextBlock Text="{Binding LastCheckedText}" 
 													 Grid.Column="1" 
 													 Margin="0,16,0,8" 
 													 FontWeight="Normal"
@@ -187,7 +187,7 @@
 										HorizontalAlignment="Stretch"
 										ItemsSource="{Binding PluginSources}">
 							<ItemsRepeater.ItemTemplate>
-								<DataTemplate x:DataType="vm:PluginSourceViewModel">
+								<DataTemplate x:DataType="vm:SourceViewModel">
 									<Grid Margin="0,2" 
 										  Name="PluginSourceItem" 
 										  PointerPressed="PluginSourceItem_PointerPressed">
@@ -231,7 +231,7 @@
 													   Classes="PluginText"
 													   Text="{Binding Name}"/>
 										</StackPanel>
-										<TextBlock Text="{Binding LastCheckString}" 
+										<TextBlock Text="{Binding LastCheckedText}" 
 													 Grid.Column="1" 
 													 Margin="0,16,0,8" 
 													 FontWeight="Normal"
@@ -311,7 +311,7 @@
 										HorizontalAlignment="Stretch"
 										ItemsSource="{Binding ModSources}">
 							<ItemsRepeater.ItemTemplate>
-								<DataTemplate x:DataType="vm:ModSourceViewModel">
+								<DataTemplate x:DataType="vm:SourceViewModel">
 									<Grid Margin="0,2" 
 										  Name="ModItem" 
 										  PointerPressed="ModItem_PointerPressed">
