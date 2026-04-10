@@ -26,6 +26,7 @@ internal static class ScreenTools
             ConfirmOption = GetKeyFromString("Yes"),
             DefaultOption = GetKeyFromString("No"),
             CancelOption = GetKeyFromString("Cancel"),
+            Title = GetKeyFromString("Please Confirm")
         };
     }
 
@@ -36,6 +37,7 @@ internal static class ScreenTools
             SelectedOption = TwoOptionsDialogSelectedOption.Confirm,
             ConfirmOption = GetKeyFromString("Yes"),
             CancelOption = GetKeyFromString("No"),
+            Title = GetKeyFromString("Please Confirm")
         };
     }
 
