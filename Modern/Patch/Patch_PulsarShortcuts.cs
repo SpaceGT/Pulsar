@@ -9,9 +9,10 @@ using Keen.VRage.Input.EngineComponents;
 using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens;
+using Pulsar.Modern.Screens.PluginConfigurationScreen;
 using Pulsar.Modern.Screens.PluginsScreen;
 using Pulsar.Shared;
-using System;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Modern.Patch;
 
@@ -51,8 +52,8 @@ internal class Patch_PulsarShortcuts
             ReloadKeyPressed = true;
         }
 
-        if (keyboard.GetDigitalState(KeyboardInputs.OemForwardSlash))
-            throw new NotImplementedException();
+        if (keyboard.GetDigitalState(KeyboardInputs.OemForwardSlash) && pluginsScreen == null)
+            ScreenTools.GetSharedUIComponent().CreateScreen<PluginConfigurationScreen>(new PluginConfigurationScreenViewModel(ConfigManager.Instance.List), true);
 
         if (keyboard.GetDigitalState(KeyboardInputs.L))
             AskToShowLogs();
