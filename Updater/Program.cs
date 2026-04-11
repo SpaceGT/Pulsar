@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
-using System.Windows.Forms;
 
 namespace Pulsar.Updater;
 
@@ -14,8 +13,6 @@ static class Program
 
     static void Main()
     {
-        Application.EnableVisualStyles();
-
         if (Tools.HasCommandArg(DebugArg))
             Debugger.Launch();
 
@@ -39,11 +36,6 @@ static class Program
 
     private static void ShowInfo()
     {
-        string caption = "Pulsar Updater";
-        string message =
-            "This program used by Pulsar when updating and should not be ran directly.\n"
-            + "You are free to delete it - a new copy will be fetched when required.";
-        MessageBox.Show(message, caption, MessageBoxButtons.OK, MessageBoxIcon.Information);
     }
 
     private static void Start(string exe)
