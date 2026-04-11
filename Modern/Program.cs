@@ -1,4 +1,12 @@
-﻿using Avalonia;
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading;
+using Avalonia;
 using Avalonia.ReactiveUI;
 using HarmonyLib;
 using Keen.VRage.Core;
@@ -9,14 +17,6 @@ using Pulsar.Modern.Loader;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using Application = System.Windows.Forms.Application;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
@@ -28,7 +28,8 @@ static class Program
 {
     class ExternalTools : IExternalTools
     {
-        public void OnMainThread(Action action) => Singleton<VRageCore>.Instance.UpdateQueue.Enqueue(action);
+        public void OnMainThread(Action action) =>
+            Singleton<VRageCore>.Instance.UpdateQueue.Enqueue(action);
     }
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
@@ -294,10 +295,14 @@ static class Program
         string fullPath = Path.Combine(Environment.CurrentDirectory, ASSEMBLY_PATH);
 
         if (!Directory.Exists(fullPath))
-            throw new DirectoryNotFoundException($"{fullPath} folder does not exist in project!\nThis is required to preview Avalonia Xaml!");
+            throw new DirectoryNotFoundException(
+                $"{fullPath} folder does not exist in project!\nThis is required to preview Avalonia Xaml!"
+            );
 
         if (Directory.GetFiles(fullPath).Length == 0)
-            throw new FileNotFoundException($"No files found in {fullPath}, did you copy the VS 2.1 assemblies over?");
+            throw new FileNotFoundException(
+                $"No files found in {fullPath}, did you copy the VS 2.1 assemblies over?"
+            );
 
         AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([fullPath]);
 

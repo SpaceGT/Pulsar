@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.IO;
+using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
@@ -6,7 +7,6 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
 using Pulsar.Shared.Stats.Model;
-using System.IO;
 
 namespace Pulsar.Modern.Screens;
 
@@ -129,17 +129,30 @@ internal class PluginViewModel : AttachedViewModel
         get => draft.GetData(PluginData.Id);
     }
 
-    public bool DebugBuild 
+    public bool DebugBuild
     {
-        get => (PluginConfig as LocalFolderConfig is null) ? false : (PluginConfig as LocalFolderConfig).DebugBuild;
-        set 
+        get =>
+            (PluginConfig as LocalFolderConfig is null)
+                ? false
+                : (PluginConfig as LocalFolderConfig).DebugBuild;
+        set
         {
             if (PluginConfig as LocalFolderConfig is not null)
                 (PluginConfig as LocalFolderConfig).DebugBuild = value;
         }
     }
 
-    public bool LoadDataFileButtonEnabled => PluginConfig is not null && (string.IsNullOrEmpty(((LocalFolderConfig)PluginConfig).DataFile) || !File.Exists(Path.Combine(((LocalFolderPlugin)PluginData).Folder, ((LocalFolderConfig)PluginConfig).DataFile)));
+    public bool LoadDataFileButtonEnabled =>
+        PluginConfig is not null
+        && (
+            string.IsNullOrEmpty(((LocalFolderConfig)PluginConfig).DataFile)
+            || !File.Exists(
+                Path.Combine(
+                    ((LocalFolderPlugin)PluginData).Folder,
+                    ((LocalFolderConfig)PluginConfig).DataFile
+                )
+            )
+        );
 
     public bool IsHidden => PluginData.Hidden;
     public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
@@ -240,7 +253,8 @@ internal class PluginViewModel : AttachedViewModel
                 OnPropertyChanged(nameof(PluginConfig));
                 OnPropertyChanged(nameof(DebugBuild));
                 OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
-            });
+            }
+        );
     }
 
     public void RemoveDataFile()

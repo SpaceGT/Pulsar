@@ -9,7 +9,6 @@ public partial class LocalPluginFolderControls : UserControl
         InitializeComponent();
     }
 
-
     private void RemoveFileButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         ((PluginDetailsScreenViewModel)DataContext).Plugin.RemoveDataFile();

@@ -1,7 +1,7 @@
-﻿using Keen.VRage.UI.Screens;
+﻿using System.Linq;
+using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
-using System.Linq;
 
 namespace Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
 
@@ -11,7 +11,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
     {
         Hub,
         Plugin,
-        Mod
+        Mod,
     }
 
     public RemoteSourceType SourceType { get; private set; }
@@ -21,8 +21,8 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
     public string RepoName { get; set; } = string.Empty;
     public string BranchName { get; set; } = "main";
     public string MetadataFile { get; set; } = "PluginHub.xml";
-    public string SteamId 
-    { 
+    public string SteamId
+    {
         get;
         set
         {
@@ -32,7 +32,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
                 field = text;
                 return;
             }
-                
+
             field = string.Concat(text.Where(char.IsNumber));
         }
     } = string.Empty;
@@ -58,7 +58,6 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
 
         if (string.IsNullOrEmpty(clipboard))
             return;
-
 
         string[] parts = null;
         switch (SourceType)

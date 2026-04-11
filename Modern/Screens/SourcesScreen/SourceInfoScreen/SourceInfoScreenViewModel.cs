@@ -1,6 +1,7 @@
-﻿using Keen.VRage.UI.Screens;
+﻿using System;
+using Keen.VRage.UI.Screens;
 using Pulsar.Shared.Config;
-using System;
+
 namespace Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
 
 internal class SourceInfoScreenViewModel : ScreenViewModel
@@ -22,10 +23,10 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
     public string SourceName => sourceViewModel.Name;
 
     private readonly SourceViewModel sourceViewModel;
-    
+
     private readonly SourcesScreenViewModel sourceScreenVm;
 
-    public SourceInfoScreenViewModel(SourcesScreenViewModel vm, SourceViewModel sourceVm) 
+    public SourceInfoScreenViewModel(SourcesScreenViewModel vm, SourceViewModel sourceVm)
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
@@ -59,7 +60,7 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
 
         hubInfoText += $"Hash: {hubVm.Hash ?? "Unknown"}\n";
         hubInfoText += $"Enabled: {hubVm.IsEnabled}\n";
-        
+
         if (hubVm.Config is RemoteHubConfig remoteHub)
             hubInfoText += $"Official: {remoteHub.Trusted}\n";
 

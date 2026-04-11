@@ -24,24 +24,33 @@ internal class Patch_PulsarShortcuts
 
     private static void Prefix()
     {
-        Singleton<VRageCore>.Instance.Engine.Get<InputEngineComponent>().DeviceManager.OnBeforeProcessInput += HandlePulsarInput;
+        Singleton<VRageCore>
+            .Instance.Engine.Get<InputEngineComponent>()
+            .DeviceManager.OnBeforeProcessInput += HandlePulsarInput;
     }
 
     private static void HandlePulsarInput(InputDeviceManager deviceManager)
     {
         IInputDevice keyboard = deviceManager.Keyboard;
-        
+
         if (keyboard == null)
             return;
 
         if (!keyboard.HasChanged)
             return;
 
-        if (!keyboard.GetDigitalState(KeyboardInputs.Alt) || !keyboard.GetDigitalState(KeyboardInputs.Control))
+        if (
+            !keyboard.GetDigitalState(KeyboardInputs.Alt)
+            || !keyboard.GetDigitalState(KeyboardInputs.Control)
+        )
             return;
 
-        ToolbarScreen screen = ScreenTools.GetSharedUIComponent().TryGetActiveScreenOfType<ToolbarScreen>();
-        PluginsScreen pluginsScreen = ScreenTools.GetSharedUIComponent().TryGetActiveScreenOfType<PluginsScreen>();
+        ToolbarScreen screen = ScreenTools
+            .GetSharedUIComponent()
+            .TryGetActiveScreenOfType<ToolbarScreen>();
+        PluginsScreen pluginsScreen = ScreenTools
+            .GetSharedUIComponent()
+            .TryGetActiveScreenOfType<PluginsScreen>();
 
         if (!(screen?.IsVisible ?? false) && !(pluginsScreen?.IsVisible ?? false))
             return;
@@ -53,7 +62,12 @@ internal class Patch_PulsarShortcuts
         }
 
         if (keyboard.GetDigitalState(KeyboardInputs.OemForwardSlash) && pluginsScreen == null)
-            ScreenTools.GetSharedUIComponent().CreateScreen<PluginConfigurationScreen>(new PluginConfigurationScreenViewModel(ConfigManager.Instance.List), true);
+            ScreenTools
+                .GetSharedUIComponent()
+                .CreateScreen<PluginConfigurationScreen>(
+                    new PluginConfigurationScreenViewModel(ConfigManager.Instance.List),
+                    true
+                );
 
         if (keyboard.GetDigitalState(KeyboardInputs.L))
             AskToShowLogs();
@@ -62,9 +76,7 @@ internal class Patch_PulsarShortcuts
     private static void AskToRestart()
     {
         var definition = ScreenTools.GetDefaultYesNoDialog();
-        definition.Content = ScreenTools.GetKeyFromString(
-            "Restart Space Engineers?"
-        );
+        definition.Content = ScreenTools.GetKeyFromString("Restart Space Engineers?");
 
         ScreenTools
             .GetSharedUIComponent()
@@ -82,9 +94,7 @@ internal class Patch_PulsarShortcuts
     private static void AskToShowLogs()
     {
         var definition = ScreenTools.GetDefaultYesNoDialog();
-        definition.Content = ScreenTools.GetKeyFromString(
-            "Show Space Engineers and Pulsar logs?"
-        );
+        definition.Content = ScreenTools.GetKeyFromString("Show Space Engineers and Pulsar logs?");
 
         ScreenTools
             .GetSharedUIComponent()

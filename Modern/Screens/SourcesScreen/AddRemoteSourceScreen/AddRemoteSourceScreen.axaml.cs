@@ -59,7 +59,11 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
         AddInputField("GitHub User", nameof(AddRemoteSourceScreenViewModel.GithubUser));
         AddInputField("Repo Name", nameof(AddRemoteSourceScreenViewModel.RepoName));
         AddInputField("Branch Name", nameof(AddRemoteSourceScreenViewModel.BranchName), "main");
-        AddInputField("Metadata File", nameof(AddRemoteSourceScreenViewModel.MetadataFile), "PluginHub.xml");
+        AddInputField(
+            "Metadata File",
+            nameof(AddRemoteSourceScreenViewModel.MetadataFile),
+            "PluginHub.xml"
+        );
     }
 
     private void AddModControls()
@@ -68,7 +72,7 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
         AddInputField("Steam ID", nameof(AddRemoteSourceScreenViewModel.SteamId));
     }
 
-    private void AddInputField(string name, string propertyName, string defaultText="")
+    private void AddInputField(string name, string propertyName, string defaultText = "")
     {
         TextBlock inputName = new()
         {
@@ -88,9 +92,8 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
             Text = defaultText,
             HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Stretch,
             Margin = new Thickness(0, 8, 0, 0),
-            MinHeight = 55.5
+            MinHeight = 55.5,
         };
-
 
         if (propertyName is not null && propertyName != string.Empty)
             inputBox[!TextBox.TextProperty] = new Binding(propertyName);

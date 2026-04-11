@@ -1,9 +1,9 @@
-﻿using Keen.VRage.UI.Screens;
+﻿using System;
+using System.Collections.Generic;
+using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Shared;
 using Pulsar.Shared.Data;
-using System;
-using System.Collections.Generic;
 
 namespace Pulsar.Modern.Screens.PluginConfigurationScreen;
 
@@ -25,13 +25,17 @@ internal class PluginConfigurationScreenViewModel : ScreenViewModel
         {
             if (plugin is not ModPlugin modPlugin)
             {
-                if (!PluginLoader.Instance.TryGetPluginInstance(plugin.Id, out PluginInstance instance))
+                if (
+                    !PluginLoader.Instance.TryGetPluginInstance(
+                        plugin.Id,
+                        out PluginInstance instance
+                    )
+                )
                     continue;
 
                 if (instance.HasConfigDialog)
                     Plugins.Add(new PluginViewModel(plugin, null));
             }
-                
         }
 
         Plugins.Sort(ComparePluginsByName);

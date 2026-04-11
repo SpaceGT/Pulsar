@@ -1,13 +1,13 @@
-﻿using Keen.VRage.Core;
-using Keen.VRage.Library.Diagnostics;
-using Keen.VRage.Library.Utils;
-using Pulsar.Modern.Patch;
-using Pulsar.Shared;
-using System;
+﻿using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Runtime.Loader;
+using Keen.VRage.Core;
+using Keen.VRage.Library.Diagnostics;
+using Keen.VRage.Library.Utils;
+using Pulsar.Modern.Patch;
+using Pulsar.Shared;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -15,24 +15,23 @@ internal class GameLog : IGameLog
 {
     public bool Exists()
     {
-        string file = Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
+        string file =
+            Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
         return File.Exists(file) && file.EndsWith(".log");
     }
 
     public bool Open()
     {
         Log.Default.Flush();
-        string file = Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
+        string file =
+            Singleton<VRageCore>.Instance.AppDataPath + $"/Temp/Logs/{Log.Default.FileName}";
 
         if (!File.Exists(file) || !file.EndsWith(".log"))
             return false;
 
-        ProcessStartInfo psi = new(file)
-        {
-            UseShellExecute = true
-        };
+        ProcessStartInfo psi = new(file) { UseShellExecute = true };
         Process.Start(psi);
-            
+
         return true;
     }
 
@@ -53,9 +52,7 @@ internal static class Game
         // This is to fix errors on game startup.
         // Game code uses GetEntryAssembly() and APP_CONTEXT_BASE_DIRECTORY AppContext variable,
         // which would point to the Pulsar folder instead.
-        Assembly.SetEntryAssembly(
-            AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath)
-        );
+        Assembly.SetEntryAssembly(AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath));
         AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", asmFolder);
 
         Environment.CurrentDirectory = asmFolder;

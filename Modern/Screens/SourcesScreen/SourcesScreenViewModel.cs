@@ -1,16 +1,16 @@
-﻿using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
-using Keen.VRage.UI.Screens;
-using Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
-using Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
-using Pulsar.Shared;
-using Pulsar.Shared.Config;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
+using Keen.VRage.UI.Screens;
+using Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
+using Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
+using Pulsar.Shared;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Modern.Screens.SourcesScreen;
 
@@ -34,9 +34,12 @@ internal class SourcesScreenViewModel : ScreenViewModel
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;
 
-        HubSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(HubSourcesEmpty));
-        PluginSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(PluginSourcesEmpty));
-        ModSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) => OnPropertyChanged(nameof(ModSourcesEmpty));
+        HubSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) =>
+            OnPropertyChanged(nameof(HubSourcesEmpty));
+        PluginSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) =>
+            OnPropertyChanged(nameof(PluginSourcesEmpty));
+        ModSources.CollectionChanged += (object sender, NotifyCollectionChangedEventArgs e) =>
+            OnPropertyChanged(nameof(ModSourcesEmpty));
 
         sourcesConfig = config;
 
@@ -180,7 +183,6 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
             if (vm.IsPlugin && !PluginSources.Contains(vm))
                 PluginSources.Add(vm);
-
             else if (!ModSources.Contains(vm))
                 ModSources.Add(vm);
         }
@@ -201,12 +203,22 @@ internal class SourcesScreenViewModel : ScreenViewModel
     {
         ScreenTools
             .GetSharedUIComponent()
-            .CreateScreen<SourceInfoScreen.SourceInfoScreen>(new SourceInfoScreenViewModel(this, vm), true);
+            .CreateScreen<SourceInfoScreen.SourceInfoScreen>(
+                new SourceInfoScreenViewModel(this, vm),
+                true
+            );
     }
 
-    public void OpenAddRemoteSourceScreen(AddRemoteSourceScreenViewModel.RemoteSourceType sourceType)
+    public void OpenAddRemoteSourceScreen(
+        AddRemoteSourceScreenViewModel.RemoteSourceType sourceType
+    )
     {
-        ScreenTools.GetSharedUIComponent().CreateScreen<AddRemoteSourceScreen.AddRemoteSourceScreen>(new AddRemoteSourceScreenViewModel(this, sourceType), true);
+        ScreenTools
+            .GetSharedUIComponent()
+            .CreateScreen<AddRemoteSourceScreen.AddRemoteSourceScreen>(
+                new AddRemoteSourceScreenViewModel(this, sourceType),
+                true
+            );
     }
 
     public void AddLocalHub()
@@ -214,7 +226,8 @@ internal class SourcesScreenViewModel : ScreenViewModel
         Tools.OpenFolderDialog(
             (folder) =>
             {
-                bool exists = HubSources.Any(p => p.Config is LocalHubConfig localHub
+                bool exists = HubSources.Any(p =>
+                    p.Config is LocalHubConfig localHub
                     && string.Equals(localHub.Folder, folder, StringComparison.OrdinalIgnoreCase)
                 );
                 if (exists)
@@ -225,7 +238,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
                         $"That local hub already exists!"
                     );
 
-                    ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
+                    ScreenTools
+                        .GetSharedUIComponent()
+                        .ShowDialog(new OneOptionDialogViewModel(definition));
                     return;
                 }
 
@@ -254,7 +269,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
                         $"That development folder already exists!"
                     );
 
-                    ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
+                    ScreenTools
+                        .GetSharedUIComponent()
+                        .ShowDialog(new OneOptionDialogViewModel(definition));
                     return;
                 }
 
@@ -285,7 +302,13 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddRemoteHub(SourceViewModel source)
     {
-        if (HubSources.Any((x) => x.Config is RemoteHubConfig remoteHub && remoteHub.Repo == ((RemoteHubConfig)source.Config).Repo))
+        if (
+            HubSources.Any(
+                (x) =>
+                    x.Config is RemoteHubConfig remoteHub
+                    && remoteHub.Repo == ((RemoteHubConfig)source.Config).Repo
+            )
+        )
         {
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Source Error");
@@ -304,7 +327,13 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddRemotePlugin(SourceViewModel source)
     {
-        if (PluginSources.Any((x) => x.Config is RemotePluginConfig remotePlugin && remotePlugin.Repo == ((RemotePluginConfig)source.Config).Repo))
+        if (
+            PluginSources.Any(
+                (x) =>
+                    x.Config is RemotePluginConfig remotePlugin
+                    && remotePlugin.Repo == ((RemotePluginConfig)source.Config).Repo
+            )
+        )
         {
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Source Error");

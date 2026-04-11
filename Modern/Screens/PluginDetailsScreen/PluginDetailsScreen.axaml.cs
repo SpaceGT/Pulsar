@@ -1,8 +1,8 @@
+using System.Linq;
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Extensions;
 using Pulsar.Shared.Data;
-using System.Linq;
 
 namespace Pulsar.Modern.Screens.PluginDetailsScreen;
 
@@ -23,7 +23,12 @@ public partial class PluginDetailsScreen : PluginScreenBase
                 ? "Mod Details"
                 : "Plugin Details";
 
-        if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is GitHubPlugin gitHubPlugin && gitHubPlugin.AlternateVersions is not null && gitHubPlugin.AlternateVersions.Length > 0)
+        if (
+            ((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData
+                is GitHubPlugin gitHubPlugin
+            && gitHubPlugin.AlternateVersions is not null
+            && gitHubPlugin.AlternateVersions.Length > 0
+        )
             GithubControls.IsVisible = true;
         else if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is LocalFolderPlugin)
             LocalFolderControls.IsVisible = true;
