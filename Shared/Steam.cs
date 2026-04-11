@@ -84,20 +84,7 @@ public static class Steam
 
     public static string GetSteamPath()
     {
-        using var baseKey = RegistryKey.OpenBaseKey(
-            RegistryHive.CurrentUser,
-            RegistryView.Registry64
-        );
-
-        using var key = baseKey.OpenSubKey(registryKey);
-        if (key is null)
-            return null;
-
-        var path = key.GetValue(registryName) as string;
-        if (string.IsNullOrWhiteSpace(path))
-            return null;
-
-        return path;
+        return null;
     }
 
     private static void ShowWarning()
