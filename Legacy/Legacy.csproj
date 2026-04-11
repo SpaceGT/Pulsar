@@ -5,6 +5,7 @@
     <Copyright>© 2025 SpaceGT</Copyright>
     <AssemblyTitle>Pulsar</AssemblyTitle>
     <Description>Plugin and Mod loader for Space Engineers 1</Description>
+    <TargetFramework>net10.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>Pulsar.Legacy</RootNamespace>
@@ -13,8 +14,6 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net10.0-windows</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -25,7 +24,6 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
     <AssemblyName>Interim</AssemblyName>
-    <StartProgram>$(Pulsar)\Interim.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
@@ -62,12 +60,6 @@
     <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetFrameworkIdentifier)&quot;" />
-  </Target>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Bin64)&quot;" />
-  </Target>
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -30,21 +29,6 @@ public class Loader
         profiles = manager.Profiles;
 
         splash = SplashManager.Instance;
-
-        if (Tools.IsKeyPressed(Keys.Escape))
-        {
-            DialogResult result = Tools.ShowMessageBox(
-                "Escape pressed. Start the game with all plugins disabled?",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            if (result == DialogResult.Yes)
-            {
-                LogFile.Warn("Safe mode active. No plugins will be loaded!");
-                ConfigManager.Instance.SafeMode = true;
-            }
-        }
 
         GitHub.Init();
         LogEnabledPlugins();

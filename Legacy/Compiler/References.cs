@@ -8,7 +8,6 @@ internal static class References
     private static readonly string[] baseEnvironment =
     [
         "System.Xaml",
-        "System.Windows.Forms",
 #if NETFRAMEWORK
         "System.Windows.Forms.DataVisualization",
 #endif

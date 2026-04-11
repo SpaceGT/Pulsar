@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
@@ -105,7 +104,6 @@ public class PluginLoader : IHandleInputPlugin
 
         if (Flags.CheckAllPlugins)
         {
-            MessageBox.Show("All plugins compiled, log file will now open");
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }
@@ -198,7 +196,8 @@ public class PluginLoader : IHandleInputPlugin
     private static void ShowGame()
     {
         SplashManager.Instance?.Delete();
-        Patch.Patch_ShowAndFocus.Enabled = true;
+        // NOTE: Refers to disabled WinForms patch
+        // Patch.Patch_ShowAndFocus.Enabled = true;
         MyVRage.Platform.Windows.Window.ShowAndFocus();
     }
 }

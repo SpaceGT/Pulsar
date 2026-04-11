@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -34,23 +33,7 @@ public class Updater(string repoName)
         )
         {
             LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
-
-            DialogResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
-            if (result == DialogResult.Yes)
-                Update();
-            else if (result == DialogResult.Cancel)
-                Environment.Exit(0);
         }
-    }
-
-    private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
-    {
-        string prompt =
-            $"An update is available for {PulsarName}:\n"
-            + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
-            + "Would you like to update now?";
-
-        return Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNoCancel);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -70,45 +53,16 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        DialogResult result = Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNo);
-
-        if (result == DialogResult.No)
-            Environment.Exit(0);
-
         GitHubPlugin.ClearGitHubCache();
     }
 
     public void ShowBitrotPrompt()
     {
-        MessageBoxButtons buttons;
-        string message = "You have a broken Pulsar insallation!\n";
-
-        if (Flags.UpdateType == UpdateType.None)
-        {
-            message += "Please rebuild or manually redownload.";
-            buttons = MessageBoxButtons.OK;
-        }
-        else
-        {
-            message += "Attempt to download the latest version?";
-            buttons = MessageBoxButtons.YesNo;
-        }
-
-        DialogResult result = Tools.ShowMessageBox(message, buttons);
-
-        if (result == DialogResult.Yes)
-            Update();
-
         Environment.Exit(1);
     }
 
     private static void ShowUpdateError()
     {
-        string prompt =
-            $"An error occurred while updating {PulsarName}!\n"
-            + "Please check the log for more information!";
-
-        Tools.ShowMessageBox(prompt, MessageBoxButtons.OK);
     }
 
     private void Update()

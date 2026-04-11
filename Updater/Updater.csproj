@@ -11,7 +11,6 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net48</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>enable</Nullable>
     <LangVersion>latest</LangVersion>
     <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
@@ -45,9 +44,6 @@
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
     <StartProgram>$(Pulsar)\Updater.exe</StartProgram>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
-  </Target>
   <ItemGroup>
     <Reference Include="System.IO.Compression" />
   </ItemGroup>

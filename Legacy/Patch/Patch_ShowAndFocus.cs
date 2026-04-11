@@ -1,4 +1,5 @@
-﻿using HarmonyLib;
+﻿#if DISABLED
+using HarmonyLib;
 
 namespace Pulsar.Legacy.Patch;
 
@@ -10,3 +11,4 @@ public static class Patch_ShowAndFocus
 
     public static bool Prefix() => Enabled;
 }
+#endif
