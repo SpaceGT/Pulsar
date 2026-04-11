@@ -41,6 +41,8 @@ static class Program
         string runtimeDir = RuntimeEnvironment.GetRuntimeDirectory();
 
         AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir]);
+        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(baseDir);
+        SetupSteamNativeResolver(baseDir);
 
         PulsarMain(args);
     }
@@ -242,6 +244,23 @@ static class Program
         string bin64Dir = ConfigManager.Instance.GameDir;
         AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([bin64Dir]);
     }
+
+#if NETCOREAPP
+    private static void SetupSteamNativeResolver(string baseDir)
+    {
+        Assembly steamworksAssembly = Assembly.Load("Steamworks.NET");
+        NativeLibrary.SetDllImportResolver(steamworksAssembly, (name, assembly, searchPath) =>
+        {
+            if (name == "steam_api64")
+            {
+                string path = Path.Combine(baseDir, "libsteam_api.so");
+                if (NativeLibrary.TryLoad(path, out IntPtr handle))
+                    return handle;
+            }
+            return IntPtr.Zero;
+        });
+    }
+#endif
 
     private static ResolveEventHandler AssemblyResolver(string[] probeDirs)
     {

@@ -25,8 +25,7 @@ internal class Folder
         "Sandbox.Game.dll",
     ];
 
-    public static string GetBin64() =>
-        FromOverride() ?? FromSteamArgs() ?? FromSteamFiles() ?? FromRegistry();
+    public static string GetBin64() => "/home/viktor/.steam/steam/steamapps/common/SpaceEngineers/Bin64";
 
     private static bool IsBin64(string path)
     {
@@ -54,24 +53,7 @@ internal class Folder
 
     private static string FromRegistry()
     {
-        using var baseKey = RegistryKey.OpenBaseKey(
-            RegistryHive.LocalMachine,
-            RegistryView.Registry64
-        );
-
-        using var key = baseKey.OpenSubKey(string.Format(registryKey, Steam.AppIdSe1));
-        if (key is null)
-            return null;
-
-        var installLocation = key.GetValue(registryName) as string;
-        if (string.IsNullOrWhiteSpace(installLocation))
-            return null;
-
-        string path = Path.Combine(installLocation, "Bin64");
-        if (!IsBin64(path))
-            return null;
-
-        return path;
+        return null;
     }
 
     private static string FromOverride()

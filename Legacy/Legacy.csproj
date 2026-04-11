@@ -6,6 +6,7 @@
     <AssemblyTitle>Pulsar</AssemblyTitle>
     <Description>Plugin and Mod loader for Space Engineers 1</Description>
     <TargetFramework>net10.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
   </PropertyGroup>
   <PropertyGroup>
     <RootNamespace>Pulsar.Legacy</RootNamespace>
@@ -13,16 +14,10 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>WinExe</OutputType>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
-    <AssemblyName>Legacy</AssemblyName>
-    <StartProgram>$(Pulsar)\Legacy.exe</StartProgram>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
+  <PropertyGroup>
     <AssemblyName>Interim</AssemblyName>
   </PropertyGroup>
   <PropertyGroup>
@@ -56,10 +51,6 @@
     <!-- Required by SpaceEngineers internally; Deserialization is patched to use safer methods. -->
     <EnableUnsafeBinaryFormatterSerialization>true</EnableUnsafeBinaryFormatterSerialization>
   </PropertyGroup>
-  <PropertyGroup>
-    <StartAction>Program</StartAction>
-    <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
-  </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
@@ -79,5 +70,9 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\SteamLibs\Steamworks.NET.dll" CopyToOutputDirectory="PreserveNewest" Link="Steamworks.NET.dll" />
+    <Content Include="..\SteamLibs\libsteam_api.so" CopyToOutputDirectory="PreserveNewest" Link="libsteam_api.so" />
   </ItemGroup>
 </Project>

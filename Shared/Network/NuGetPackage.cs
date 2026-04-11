@@ -96,7 +96,7 @@ public class NuGetPackage
         folder = null;
         file = null;
 
-        int index = fullPath.IndexOf(lastFolderName);
+        int index = fullPath.LastIndexOf(lastFolderName);
         if (index < 0 || fullPath.Length <= index + lastFolderName.Length + 2)
             return false;
 

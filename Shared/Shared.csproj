@@ -3,7 +3,7 @@
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
     <Copyright>© 2025 SpaceGT</Copyright>
-    <TargetFramework>net10.0</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Pulsar.Shared</AssemblyName>
