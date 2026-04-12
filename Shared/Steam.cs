@@ -33,11 +33,8 @@ public static class Steam
     {
         Environment.SetEnvironmentVariable("SteamAppId", AppId.ToString());
 
-        if (SteamAPI.IsSteamRunning())
-        {
-            SteamAPI.Init();
-            return;
-        }
+        SteamAPI.Init();
+        return;
 
         string path = GetSteamPath();
 
