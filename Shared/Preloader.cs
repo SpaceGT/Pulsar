@@ -211,6 +211,7 @@ public class Preloader
             var message = $"Preloader plugin {name} had an exception:\n" + tie.InnerException;
             LogFile.Error(message);
             Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Environment.Exit(1);
             return false;
         }
 
