@@ -220,6 +220,10 @@ public abstract class PluginData : IEquatable<PluginData>
                 + "Would you like to open the Space Engineers and Pulsar logs?";
         else
             msg += "See info.log for details.\n\nWould you like to open the Pulsar log?";
+        
+        LogFile.Error(msg);
+        Console.WriteLine(msg);
+        Environment.Exit(1);
 
         MessageBoxButtons buttons = MessageBoxButtons.YesNo;
         DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
