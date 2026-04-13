@@ -162,7 +162,7 @@ static class Program
         if (se2Version != oldSe2Version)
         {
             if (oldSe2Version is not null)
-                Updater.GameUpdatePrompt(oldSe2Version, se2Version);
+                Updater.GameUpdatePrompt(oldSe2Version, se2Version, 4);
 
             coreConfig.GameVersion = se2Version;
             coreConfig.Save();

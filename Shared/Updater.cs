@@ -53,12 +53,12 @@ public class Updater(string repoName)
         return Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNoCancel);
     }
 
-    public static void GameUpdatePrompt(Version oldVersion, Version newVersion)
+    public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
     {
         string change = (newVersion > oldVersion ? "up" : "down") + "graded";
         string prompt =
             $"Space Engineers has been {change}! "
-            + $"({oldVersion.ToString(4)} -> {newVersion.ToString(4)})\n"
+            + $"({oldVersion.ToString(fieldCount)} -> {newVersion.ToString(fieldCount)})\n"
             + "All plugins must be rebuilt to target the new version.\n\n"
             + "Plugin build errors are NOT a Pulsar issue.\n"
             + "Authors of broken plugins have been notified: be patient.\n\n"
