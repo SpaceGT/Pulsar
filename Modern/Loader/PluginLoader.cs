@@ -40,11 +40,7 @@ internal class PluginLoader : IPlugin, IDisposable
         }
         else
         {
-            LogFile.WriteLine($"Initializing plugins");
-            SplashManager.Instance?.SetText($"Initializing plugins");
             InstantiatePlugins(host);
-            LogFile.WriteLine($"Initialized {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initialized {plugins.Count} plugins");
         }
 
         init = true;
@@ -108,8 +104,13 @@ internal class PluginLoader : IPlugin, IDisposable
             if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
                 plugins.Add(instance);
 
+        LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+
+        int totalPlugins = plugins.Count;
+
         for (int i = plugins.Count - 1; i >= 0; i--)
         {
+            SplashManager.Instance?.SetText($"Loading {i + 1} of {totalPlugins} plugins");
             PluginInstance p = plugins[i];
             if (!p.Instantiate(host))
                 plugins.RemoveAtFast(i);
@@ -123,6 +124,9 @@ internal class PluginLoader : IPlugin, IDisposable
                     .Append(p.Author ?? "(null)")
                     .AppendLine();
         }
+
+        LogFile.WriteLine($"Initialized {plugins.Count} of {totalPlugins} plugins");
+        SplashManager.Instance?.SetText($"Launching Space Engineers 2...");
 
         if (Flags.CheckAllPlugins)
         {
