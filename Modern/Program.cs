@@ -304,7 +304,7 @@ static class Program
         // VS 2.1 is the last game version we can use to preview Avalonia Xaml.
         // In VS 2.2, Keen made modifications to Avalonia, which makes this impossible.
 
-        const string ASSEMBLY_PATH = "Modern/VS2_1Assemblies/";
+        const string ASSEMBLY_PATH = "VS2_1Assemblies/";
 
         string fullPath = Path.Combine(Environment.CurrentDirectory, ASSEMBLY_PATH);
 
