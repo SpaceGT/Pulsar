@@ -180,10 +180,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
         {
             if (vm.IsHub && !HubSources.Contains(vm))
                 HubSources.Add(vm);
-
             if (vm.IsPlugin && !PluginSources.Contains(vm))
                 PluginSources.Add(vm);
-            else if (!ModSources.Contains(vm))
+            else if (vm.WorkshopId != 0 && !ModSources.Contains(vm))
                 ModSources.Add(vm);
         }
 
