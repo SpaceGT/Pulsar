@@ -69,15 +69,6 @@ internal static class LoaderTools
     private static void Unload()
     {
         LogFile.Dispose();
-        Singleton<VRageCore>.Instance.Exit();
-
-        // Disable DiagnosticReporter so it does not throw an exception to report.
-        // An exception being thrown would prevent the game from restarting.
-        AccessTools
-            .Field(typeof(DiagnosticReporter), "<Active>k__BackingField")
-            .SetValue(Singleton<DiagnosticReporter>.Instance, false);
-
-        Singleton<VRageCore>.Instance.Dispose();
     }
 
     public static void Restart(bool autoRejoin = false, bool? debugger = null)

@@ -1,11 +1,11 @@
-﻿using System.Diagnostics;
-using HarmonyLib;
-using Keen.Game2;
+﻿using HarmonyLib;
+using Keen.VRage.Core;
+using System.Diagnostics;
 
 namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
-[HarmonyPatch(typeof(GameAppComponent), "ExitGame")]
+[HarmonyPatch(typeof(VRageCore), "Exit")]
 internal class Patch_ExitGame
 {
     private static bool Prefix()
