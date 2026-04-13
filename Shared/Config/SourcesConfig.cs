@@ -107,7 +107,7 @@ public class SourcesConfig
         }
     }
 
-    public static SourcesConfig Load(string mainDirectory)
+    public static SourcesConfig Load(string mainDirectory, RemoteHubConfig[] defaultHubs)
     {
         SourcesConfig config;
         string path = Path.Combine(mainDirectory, "Sources", fileName);
@@ -130,19 +130,7 @@ public class SourcesConfig
         config = new SourcesConfig
         {
             filePath = path,
-            RemoteHubSources =
-            [
-                new RemoteHubConfig()
-                {
-                    Name = "PluginHub",
-                    Repo = "StarCpt/PluginHub",
-                    Branch = "main",
-                    Enabled = true,
-                    Hash = null,
-                    LastCheck = null,
-                    Trusted = true,
-                },
-            ],
+            RemoteHubSources = defaultHubs
         };
 
         return config;

@@ -141,7 +141,21 @@ static class Program
         if (se2Version is null) // Prevent NRE from Keen updates
             updater.ShowBitrotPrompt();
 
-        ConfigManager.Init(game2Dir, modDir, se2Version);
+        RemoteHubConfig[] defaultHubs =
+        [
+            new RemoteHubConfig()
+            {
+                Name = "PluginHub",
+                Repo = "StarCpt/PluginHub-SE2",
+                Branch = "main",
+                Enabled = true,
+                Hash = null,
+                LastCheck = null,
+                Trusted = true,
+            }
+        ];
+
+        ConfigManager.Init(game2Dir, modDir, se2Version, defaultHubs);
 
         CoreConfig coreConfig = ConfigManager.Instance.Core;
         Version oldSe2Version = coreConfig.GameVersion;
