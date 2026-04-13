@@ -84,6 +84,7 @@
       HintPath="$(Game2)\VRage.Platform.Windows.dll"
       Private="False"
     />
+	<Reference Include="VRage.Render" HintPath="$(Game2)\VRage.Render.dll" Private="False" />
     <Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
     <Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
     <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />

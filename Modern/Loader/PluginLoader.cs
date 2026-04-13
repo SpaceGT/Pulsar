@@ -6,6 +6,7 @@ using System.Text;
 using System.Windows.Forms;
 using HarmonyLib;
 using Keen.Game2.Game.Plugins;
+using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -26,6 +27,8 @@ internal class PluginLoader : IPlugin, IDisposable
     {
         Instance = this;
         AppDomain.CurrentDomain.FirstChanceException += OnException;
+
+        LogFile.GameLog.Write("NOTE: Running with Pulsar plugin loader.");
 
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
