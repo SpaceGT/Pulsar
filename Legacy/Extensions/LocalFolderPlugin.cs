@@ -50,7 +50,10 @@ internal static class LocalFolderPluginExtensions
         screen.PositionToRight(btnRemove, btnLoadFile);
         btnLoadFile.Enabled =
             draftConfig is not null
-            && (string.IsNullOrEmpty(draftConfig.DataFile) || !File.Exists(Path.Combine(localFolderPlugin.Folder, draftConfig.DataFile)));
+            && (
+                string.IsNullOrEmpty(draftConfig.DataFile)
+                || !File.Exists(Path.Combine(localFolderPlugin.Folder, draftConfig.DataFile))
+            );
         screen.Controls.Add(btnLoadFile);
 
         MyGuiControlCombobox releaseDropdown = new();
