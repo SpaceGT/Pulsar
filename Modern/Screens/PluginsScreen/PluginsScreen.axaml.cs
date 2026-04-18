@@ -27,6 +27,7 @@ public partial class PluginsScreen : PluginScreenBase
         if (!Design.IsDesignMode)
         {
             SourcesButton.IsVisible = Flags.CustomSources;
+            RefreshButton.IsVisible = !Flags.CustomSources;
         }
         else
         {
