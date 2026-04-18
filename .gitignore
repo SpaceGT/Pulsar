@@ -361,7 +361,4 @@ MigrationBackup/
 # JetBrains Rider project files
 .idea/
 
-# Local folder containing assemblies from SE2 VS 2.1 for Avalonia Xaml preview
-/VS2_1Assemblies
-
 .editorconfig
