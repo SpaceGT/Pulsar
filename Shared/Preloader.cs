@@ -64,6 +64,10 @@ public class Preloader
             foreach (MethodInfo patchMethod in patchMethods)
                 ApplyPatch(patchMethod, ref asmDef);
 
+            // Mono.Cecil does not support writing mixed mode assemblies (used by SE2)
+            // Forcing ILOnly is safe because R2R preserves the original IL as a fallback.
+            asmDef.MainModule.Attributes |= ModuleAttributes.ILOnly;
+
             // CLR does not respect pure in-memory references when resolving
             string newDll = Path.Combine(cacheDir, dll);
             asmDef.Write(newDll);
