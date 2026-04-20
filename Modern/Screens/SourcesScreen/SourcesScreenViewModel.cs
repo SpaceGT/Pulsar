@@ -27,8 +27,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
     private readonly List<Tuple<SourceViewModel, bool, bool>> sourceChanges = [];
 
     private SourcesConfig sourcesConfig;
+    private readonly Action onScreenClose;
 
-    public SourcesScreenViewModel(SourcesConfig config)
+    public SourcesScreenViewModel(SourcesConfig config, Action onScreenClose)
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
@@ -43,11 +44,19 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
         sourcesConfig = config;
 
+        this.onScreenClose = onScreenClose;
+
         RefreshSourcesLists();
 
         InitializeInputContext();
     }
 
+    public override void OnDispose()
+    {
+        base.OnDispose();
+        onScreenClose?.Invoke();
+    }
+    
     public void RefreshSources()
     {
         // FIXME: Syncronise working copy and with real sources before refreshing

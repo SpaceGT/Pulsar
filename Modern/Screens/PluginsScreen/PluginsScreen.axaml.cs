@@ -262,7 +262,11 @@ public partial class PluginsScreen : PluginScreenBase
                                 .GetSharedUIComponent()
                                 .CreateScreen<SourcesScreen.SourcesScreen>(
                                     new SourcesScreenViewModel(
-                                        ((PluginsScreenViewModel)DataContext).Sources
+                                        ((PluginsScreenViewModel)DataContext).Sources,
+                                        delegate
+                                        {
+                                            ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+                                        }
                                     ),
                                     true
                                 );
@@ -274,7 +278,12 @@ public partial class PluginsScreen : PluginScreenBase
             ScreenTools
                 .GetSharedUIComponent()
                 .CreateScreen<SourcesScreen.SourcesScreen>(
-                    new SourcesScreenViewModel(((PluginsScreenViewModel)DataContext).Sources),
+                    new SourcesScreenViewModel(
+                        ((PluginsScreenViewModel)DataContext).Sources,
+                        delegate
+                        {
+                            ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+                        }),
                     true
                 );
     }
