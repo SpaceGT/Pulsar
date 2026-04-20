@@ -107,8 +107,6 @@ internal class ProfilesScreenViewModel : ScreenViewModel
 
     public void RenameProfile()
     {
-        string name = string.Empty;
-
         ScreenTools
             .GetSharedUIComponent()
             .ShowDialog(
