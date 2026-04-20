@@ -96,6 +96,8 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void PluginAddButton_Click(object sender, RoutedEventArgs e)
     {
+        ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+
         var viewModel = new AddPluginScreenViewModel(
             [.. ((PluginsScreenViewModel)DataContext).Plugins],
             false,
@@ -120,6 +122,8 @@ public partial class PluginsScreen : PluginScreenBase
 
     private void ModAddButton_Click(object sender, RoutedEventArgs e)
     {
+        ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+
         var viewModel = new AddPluginScreenViewModel(
             [.. ((PluginsScreenViewModel)DataContext).ModPlugins],
             true,
