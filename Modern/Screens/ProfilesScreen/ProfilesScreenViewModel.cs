@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
 using Keen.Game2.Client.UI.Library.Dialogs.TextInputDialog;
 using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
@@ -99,9 +100,9 @@ internal class ProfilesScreenViewModel : ScreenViewModel
         profilesConfig.Remove(SelectedProfile.Profile.Key);
         profilesConfig.Add(newProfile);
 
-        SelectedProfile = null;
-
         RefreshProfileList();
+
+        SelectedProfile = Profiles.First(x => x.Name == newProfile.Name);
     }
 
     public void RenameProfile()
@@ -123,9 +124,9 @@ internal class ProfilesScreenViewModel : ScreenViewModel
 
                         profilesConfig.Rename(SelectedProfile.Profile.Key, text);
 
-                        SelectedProfile = null;
-
                         RefreshProfileList();
+
+                        SelectedProfile = Profiles.First(x => x.Name == text);
                     },
                 }
             );

@@ -45,6 +45,7 @@ public partial class ProfilesScreen : PluginScreenBase
             return;
 
         ((ProfilesScreenViewModel)DataContext).LoadProfile();
+        Dispose();
     }
 
     private void RenameButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
@@ -61,6 +62,18 @@ public partial class ProfilesScreen : PluginScreenBase
             return;
 
         ((ProfilesScreenViewModel)DataContext).DeleteProfile();
+
+        itemSelected = false;
+
+        if (selectedProfileControl != null)
+            ((IPseudoClasses)selectedProfileControl.Classes).Remove(":selected");
+
+        selectedProfileControl = null;
+
+        NewButton.Content = "New";
+        LoadButton.IsEnabled = false;
+        RenameButton.IsEnabled = false;
+        DeleteButton.IsEnabled = false;
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
