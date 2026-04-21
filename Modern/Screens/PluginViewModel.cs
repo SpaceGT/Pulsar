@@ -143,13 +143,13 @@ internal class PluginViewModel : AttachedViewModel
     }
 
     public bool LoadDataFileButtonEnabled =>
-        PluginConfig is not null
+        PluginConfig is LocalFolderConfig folderConfig
         && (
-            string.IsNullOrEmpty(((LocalFolderConfig)PluginConfig).DataFile)
+            string.IsNullOrEmpty(folderConfig.DataFile)
             || !File.Exists(
                 Path.Combine(
                     ((LocalFolderPlugin)PluginData).Folder,
-                    ((LocalFolderConfig)PluginConfig).DataFile
+                    folderConfig.DataFile
                 )
             )
         );
