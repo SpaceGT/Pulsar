@@ -8,21 +8,13 @@ namespace Pulsar.Shared.Stats;
 public static class StatsClient
 {
     // API address
-    private static string baseUri = "https://pluginstats.ferenczi.eu";
-
-    public static void OverrideBaseUrl(string uri)
-    {
-        if (string.IsNullOrEmpty(uri))
-            return;
-
-        baseUri = uri;
-    }
+    public static string BaseUrl { get; set; }
 
     // API endpoints
-    private static string ConsentUri => $"{baseUri}/Consent";
-    private static string StatsUri => $"{baseUri}/Stats";
-    private static string TrackUri => $"{baseUri}/Track";
-    private static string VoteUri => $"{baseUri}/Vote";
+    private static string ConsentUri => $"{BaseUrl}/Consent";
+    private static string StatsUri => $"{BaseUrl}/Stats";
+    private static string TrackUri => $"{BaseUrl}/Track";
+    private static string VoteUri => $"{BaseUrl}/Vote";
 
     // Hashed Steam ID of the player
     private static string PlayerHash =>
