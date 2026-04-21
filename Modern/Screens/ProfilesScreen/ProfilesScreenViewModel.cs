@@ -162,6 +162,7 @@ internal class ProfilesScreenViewModel : ScreenViewModel
         definition.Content = ScreenTools.GetKeyFromString(
             $"A profile called {name} already exists!\n" + "Please enter a different name."
         );
+        definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
 
         ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
     }
