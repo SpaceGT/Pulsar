@@ -29,7 +29,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
     private SourcesConfig sourcesConfig;
     private readonly Action onScreenClose;
 
-    public SourcesScreenViewModel(SourcesConfig config, Action onScreenClose)
+    public SourcesScreenViewModel(SourcesConfig config, Action onScreenClose = null)
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;

@@ -32,7 +32,7 @@ public partial class AddPluginScreen : PluginScreenBase
                 dummyPlugins.Add(PluginViewModel.GetDummyPlugin());
             }
 
-            DataContext = new AddPluginScreenViewModel(dummyPlugins, false, null);
+            DataContext = new AddPluginScreenViewModel(dummyPlugins, false);
         }
     }
 

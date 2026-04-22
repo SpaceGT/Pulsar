@@ -45,6 +45,25 @@ public partial class PluginsScreen : PluginScreenBase
         }
     }
 
+    private void RefreshPluginLists()
+    {
+        ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+
+        if (selectedPluginControl != null)
+            ((IPseudoClasses)selectedPluginControl.Classes).Remove(":selected");
+
+        if (selectedModPluginControl != null)
+            ((IPseudoClasses)selectedModPluginControl.Classes).Remove(":selected");
+
+        selectedPluginControl = null;
+        selectedModPluginControl = null;
+    }
+    
+    private void UpdateConsentCheckbox()
+    {
+        ConsentBox.IsChecked = ((PluginsScreenViewModel)DataContext).ConsentGiven;
+    }
+    
     private void CancelButton_OnClick(object sender, RoutedEventArgs e)
     {
         Dispose();
@@ -101,16 +120,8 @@ public partial class PluginsScreen : PluginScreenBase
             false,
             delegate()
             {
-                ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
-
-                if (selectedPluginControl != null)
-                    ((IPseudoClasses)selectedPluginControl.Classes).Remove(":selected");
-
-                if (selectedModPluginControl != null)
-                    ((IPseudoClasses)selectedModPluginControl.Classes).Remove(":selected");
-
-                selectedPluginControl = null;
-                selectedModPluginControl = null;
+                RefreshPluginLists();
+                UpdateConsentCheckbox();
             }
         );
         ScreenTools
@@ -125,16 +136,8 @@ public partial class PluginsScreen : PluginScreenBase
             true,
             delegate()
             {
-                ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
-
-                if (selectedPluginControl != null)
-                    ((IPseudoClasses)selectedPluginControl.Classes).Remove(":selected");
-
-                if (selectedModPluginControl != null)
-                    ((IPseudoClasses)selectedModPluginControl.Classes).Remove(":selected");
-
-                selectedPluginControl = null;
-                selectedModPluginControl = null;
+                RefreshPluginLists();
+                UpdateConsentCheckbox();
             }
         );
         ScreenTools
@@ -180,7 +183,8 @@ public partial class PluginsScreen : PluginScreenBase
                 .GetSharedUIComponent()
                 .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
                     new PluginDetailsScreenViewModel(
-                        ((PluginsScreenViewModel)DataContext).SelectedPlugin
+                        ((PluginsScreenViewModel)DataContext).SelectedPlugin,
+                        UpdateConsentCheckbox
                     ),
                     true
                 );
@@ -209,7 +213,8 @@ public partial class PluginsScreen : PluginScreenBase
                 .GetSharedUIComponent()
                 .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
                     new PluginDetailsScreenViewModel(
-                        ((PluginsScreenViewModel)DataContext).SelectedModPlugin
+                        ((PluginsScreenViewModel)DataContext).SelectedModPlugin,
+                        UpdateConsentCheckbox
                     ),
                     true
                 );
@@ -226,7 +231,8 @@ public partial class PluginsScreen : PluginScreenBase
             .GetSharedUIComponent()
             .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
                 new PluginDetailsScreenViewModel(
-                    ((PluginsScreenViewModel)DataContext).SelectedPlugin
+                    ((PluginsScreenViewModel)DataContext).SelectedPlugin,
+                    UpdateConsentCheckbox
                 ),
                 true
             );
@@ -238,7 +244,8 @@ public partial class PluginsScreen : PluginScreenBase
             .GetSharedUIComponent()
             .CreateScreen<PluginDetailsScreen.PluginDetailsScreen>(
                 new PluginDetailsScreenViewModel(
-                    ((PluginsScreenViewModel)DataContext).SelectedModPlugin
+                    ((PluginsScreenViewModel)DataContext).SelectedModPlugin,
+                    UpdateConsentCheckbox
                 ),
                 true
             );
