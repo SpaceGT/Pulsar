@@ -1,0 +1,175 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreen"
+             xmlns:vm="using:Pulsar.Modern.Screens.AddPluginScreen"
+             xmlns:vm2="using:Pulsar.Modern.Screens"
+             x:DataType="vm:AddPluginScreenViewModel">
+    <Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="1152" 
+			Height="972">
+        <Grid Margin="30">
+            <Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+				<TextBlock Name="TitleText"
+                        HorizontalAlignment="Center"
+                        FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+                        Text="Plugin List"/>
+                <Button Name="CancelButton"
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_Click">
+				    <Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+            </Grid>
+            <Separator Grid.Row="1" 
+                       Background="rgb(77,99,96)" 
+                       Margin="0,16,0,0"/>
+            <Grid Grid.Row="2" Margin="0,16,0,0">
+                <Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<TextBox Name="SearchBox" 
+                            Grid.Column="0" 
+                            HorizontalAlignment="Stretch" 
+                            Margin="0,0,16,0" 
+                            Watermark="Search" 
+                            TextChanged="SearchBox_TextChanged"
+                            Width="900">
+                    <TextBox.InnerRightContent>
+						<Button Name="SearchClearButton" 
+                                MaxHeight="15" 
+                                MaxWidth="15" 
+                                IsVisible="False" 
+                                Click="SearchClearButton_Click">
+                            <Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+                        </Button>
+                    </TextBox.InnerRightContent>
+                </TextBox>
+                <ComboBox Name="SortButton" 
+                          Grid.Column="1" 
+                          HorizontalAlignment="Stretch" 
+                          Height="55" 
+                          SelectionChanged="SortButton_SelectionChanged" 
+                          PlaceholderText="Sort by"/>
+            </Grid>
+            <ScrollViewer Margin="0,16,0,16" 
+                          Height="765" 
+                          Background="rgba(41,54,62,96)" 
+                          Grid.Row="3">
+				<ItemsRepeater Name="PluginList" 
+                                HorizontalAlignment="Stretch" 
+                                ItemsSource="{Binding Plugins}"
+                                Margin="0,0,0,16">
+                    <ItemsRepeater.Layout>
+                        <UniformGridLayout />
+                    </ItemsRepeater.Layout>
+                    <ItemsRepeater.ItemTemplate>
+					    <DataTemplate x:DataType="vm2:PluginViewModel">
+                            <Border BorderThickness="1" 
+                                    Name="PluginItem" 
+                                    Margin="20,20,0,0" 
+                                    Width="505" 
+                                    Height="241" 
+                                    Background="rgba(60,76,82,56)"
+                                    PointerPressed="PluginItem_PointerPressed">
+                                <Border.Styles>
+								    <Style Selector="Border:pointerover">
+	                                    <Setter Property="BorderBrush" 
+                                                Value="White"/>	
+                                    </Style>
+                                </Border.Styles>
+							    <Grid Margin="20">
+							        <Grid.RowDefinitions>
+				                        <RowDefinition Height="*"/>
+				                        <RowDefinition Height="Auto"/>
+			                        </Grid.RowDefinitions>
+                                    <Grid Grid.Row="0">
+                                        <StackPanel>
+									        <TextBlock Text="{Binding FriendlyName}" 
+							                        FontSize="23"
+							                        FontWeight="Normal"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Left"
+                                                    MaxWidth="420"/>
+                                            <TextBlock Text="{Binding Author}" 
+                                                       Margin="0,4,0,0" FontSize="19" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Left"/>
+                                            <TextBlock Text="{Binding ShortDescription}" 
+                                                       Margin="0,4,0,0"
+                                                       TextWrapping="Wrap" 
+                                                       MaxHeight="90" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"
+                                                       HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                        <CheckBox Name="PluginEnabledCheckbox" 
+                                                  Grid.Column="1" 
+                                                  VerticalAlignment="Top" 
+                                                  HorizontalAlignment="Right" 
+                                                  IsChecked="{Binding DraftEnabled}"/>
+                                    </Grid>
+                                    <Grid Grid.Row="1">
+                                        <StackPanel VerticalAlignment="Bottom">
+                                            <TextBlock Name="UsersText" 
+                                                       IsVisible="{Binding ShowStatElements}" 
+                                                       Text="{Binding Players, StringFormat='\{0\} users'}"
+                                                       FontWeight="Normal"
+                                                       Foreground="White"/>
+                                            <TextBlock Text="{Binding SourceString}" 
+                                                       FontWeight="Normal"
+                                                       Foreground="White"/>
+                                        </StackPanel>
+                                        <StackPanel IsVisible="{Binding ShowStatElements}" 
+                                                    Orientation="Horizontal" 
+                                                    VerticalAlignment="Bottom" 
+                                                    HorizontalAlignment="Right">
+										    <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" 
+                                                   MaxHeight="32"/>
+                                            <TextBlock Name="UpvotesText" 
+                                                       Text="{Binding Upvotes}" 
+                                                       VerticalAlignment="Center" 
+									                   HorizontalAlignment="Center" 
+									                   FontWeight="Normal" 
+									                   Foreground="White"
+									                   Margin="5,0,5,0" 
+									                   MinWidth="20"/>
+                                            <Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" 
+                                                   MaxHeight="32"/>
+                                            <TextBlock Name="DownvotesText" 
+                                                       Text="{Binding Downvotes}" 
+                                                       VerticalAlignment="Center" 
+									                   HorizontalAlignment="Center" 
+									                   FontWeight="Normal" 
+									                   Foreground="White"
+									                   Margin="5,0,5,0" 
+									                   MinWidth="20"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsRepeater.ItemTemplate>
+                </ItemsRepeater>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</UserControl>

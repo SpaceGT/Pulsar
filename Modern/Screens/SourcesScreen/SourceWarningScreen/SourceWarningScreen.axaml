@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen.SourceWarningScreen"
+			 xmlns:config="using:Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen"
+			 x:DataType="config:SourceWarningScreenViewModel">
+    <Border Background="rgba(37,47,53,1)"
+			BorderBrush="rgba(66,77,99,1)"
+			BorderThickness="1.5" 
+			Width="720" 
+			Height="400">
+        <StackPanel Margin="30">
+			<Grid>
+				<TextBlock HorizontalAlignment="Center"
+					   FontSize="35"
+					   FontWeight="Bold"
+					   Foreground="White"
+					   Text="External Sources Warning"/>
+				<Button Name="CornerCancelButton"  
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_OnClick">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+            <Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<TextBlock HorizontalAlignment="Center"
+					   FontSize="20"
+					   FontWeight="Bold"
+					   Foreground="White"
+					   TextAlignment="Center"
+					   Margin="0,16,0,0">
+				<Run Text="You may modify the sources used when searching for plugins."/>
+				<LineBreak/>
+				<Run Text="Please note plugins can execute arbitrary code."/>
+				<LineBreak/>
+				<Run Text="(Adding unknown sources is a SECURITY RISK!)"/>
+				<LineBreak/>
+				<LineBreak/>
+				<Run Text="Please make sure you trust the source before proceeding."/>
+				<LineBreak/>
+				<Run Text="Do you want to continue?"/>
+			</TextBlock>
+			<CheckBox Name="DontShowAgainCheckBox" Margin="0,16,0,0" HorizontalAlignment="Center" IsChecked="{Binding HideWarning}">
+				<TextBlock FontWeight="Normal"
+							Foreground="White"
+							Text="Don't Show Again"/>
+			</CheckBox>
+			<StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+				<Button Name="CancelButton" Width="264" Height="55" Margin="0,0,16,0" Click="CancelButton_OnClick">Cancel</Button>
+				<Button Name="AcknowledgeButton" Width="264" Height="55" Click="AcknowledgeButton_Click">Acknowledge</Button>
+			</StackPanel>
+		</StackPanel>
+    </Border>
+</UserControl>

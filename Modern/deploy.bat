@@ -12,6 +12,7 @@ REM Extract locations from parameters
 for %%F in ("%~1") do set "SOURCE=%%~dpF"
 for %%F in ("%~1") do set "LAUNCHER=%%~nxF"
 for %%F in ("%~1") do set "NAME=%%~nF"
+
 set PULSAR=%~2
 set LICENSE=%~3
 
@@ -32,14 +33,14 @@ REM Copy launcher into Pulsar directory
 echo Copying "%LAUNCHER%"
 
 for /l %%i in (1, 1, 10) do (
-    copy /y /b "%SOURCE%\%LAUNCHER%" "%PULSAR%\" >NUL 2>&1
+    copy /y /b "%SOURCE%\%NAME%.exe" "%PULSAR%\" >NUL 2>&1
 
     if !ERRORLEVEL! NEQ 0 (
         REM "timeout" requires input redirection which is not supported,
         REM so we use ping as a way to delay the script between retries.
         ping -n 2 127.0.0.1 >NUL 2>&1
     ) else (
-        copy /y /b "%SOURCE%\%NAME%.exe" "%PULSAR%\" >NUL 2>&1
+        copy /y /b "%SOURCE%\%NAME%.dll" "%PULSAR%\" >NUL 2>&1
         copy /y /b "%SOURCE%\%NAME%.runtimeconfig.json" "%PULSAR%\" >NUL 2>&1
         copy /y /b "%SOURCE%\%NAME%.deps.json" "%PULSAR%\" >NUL 2>&1
         goto BREAK_LOOP
@@ -60,7 +61,7 @@ copy /y /b "%LICENSE%" "%PULSAR%\" >NUL 2>&1
 REM Get the library directory
 set SHARED_DIR=%PULSAR%\Libraries
 if not exist "%SHARED_DIR%" (
-    echo Creating "Pulsar\Libraries"
+    echo Creating "Pulsar\Libraries\"
     mkdir "%SHARED_DIR%" >NUL 2>&1
 )
 set LIBRARY_DIR=%SHARED_DIR%\%NAME%
@@ -90,11 +91,17 @@ copy /y /b "%SOURCE%\Mono.Cecil.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "Newtonsoft.Json.dll"
 copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
+echo Copying "Gameloop.Vdf.dll"
+copy /y /b "%SOURCE%\Gameloop.Vdf.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
 echo Copying "NLog.dll"
 copy /y /b "%SOURCE%\NLog.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "protobuf-net.dll"
 copy /y /b "%SOURCE%\protobuf-net.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
+echo Copying "FuzzySharp.dll"
+copy /y /b "%SOURCE%\FuzzySharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "NuGet.*.dll"
 copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
@@ -114,8 +121,9 @@ copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%COMPILER_DIR%\" >NUL 2
 
 echo Copying "System.*.dll"
 copy /y /b "%SOURCE%\System.Collections.Immutable.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.Memory.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.Runtime.CompilerServices.Unsafe.dll" "%COMPILER_DIR%\" >NUL 2>&1
 copy /y /b "%SOURCE%\System.Reflection.Metadata.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.ServiceModel.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.ServiceModel.Primitives.dll" "%COMPILER_DIR%\" >NUL 2>&1
+copy /y /b "%SOURCE%\System.Numerics.Vectors.dll" "%COMPILER_DIR%\" >NUL 2>&1
 
 exit /b 0

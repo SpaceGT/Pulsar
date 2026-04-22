@@ -14,6 +14,11 @@ internal static class Publicizer
 
         PublicizeAssembly(assembly);
 
+        // SE2 uses mixed mode assemblies, so we need to add ModuleAttributes.ILOnly
+        // to the module attributes so it can write the file. We don't care about the
+        // non .NET parts of the assemblies for publicizing, so this is fine
+        assembly.MainModule.Attributes |= ModuleAttributes.ILOnly;
+
         var stream = new MemoryStream();
         assembly.Write(stream);
         stream.Position = 0;

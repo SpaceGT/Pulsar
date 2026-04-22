@@ -11,7 +11,8 @@ namespace Pulsar.Shared;
 
 public static class Steam
 {
-    public const uint AppId = 244850u;
+    public const uint AppIdSe1 = 244850u;
+    public const uint AppIdSe2 = 1133870u;
     private const int SteamTimeout = 30; // seconds
     private const string registryKey = @"SOFTWARE\Valve\Steam";
     private const string registryName = "SteamPath";
@@ -28,7 +29,7 @@ public static class Steam
 
     public static ulong GetSteamId() => SteamUser.GetSteamID().m_SteamID;
 
-    public static void Init()
+    public static void Init(uint AppId)
     {
         Environment.SetEnvironmentVariable("SteamAppId", AppId.ToString());
 

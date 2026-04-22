@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.Controls.LocalPluginFolderControls"
+             xmlns:vm="using:Pulsar.Modern.Screens.PluginDetailsScreen"
+             x:DataType="vm:PluginDetailsScreenViewModel">
+    <Grid RowDefinitions="Auto,Auto"
+          ColumnDefinitions="Auto,Auto"
+          HorizontalAlignment="Center">
+        <CheckBox Grid.Row="0" 
+                  Grid.ColumnSpan="2"
+                  Name="BuildConfigCheckbox"
+                  HorizontalAlignment="Center"
+                  Content="Debug Build"
+                  IsEnabled="{Binding Plugin.PluginConfig, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  IsChecked="{Binding Plugin.DebugBuild}"/>
+	    <Button Grid.Column="0" 
+                Grid.Row="1"
+                Name="RemoveFileButton"
+                Content="Remove File"
+                Margin="0,16,0,0"
+                Width="264" 
+				Height="55"
+                Click="RemoveFileButton_Click">
+                    <Button.IsEnabled>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="!Plugin.LoadDataFileButtonEnabled"/>
+                    <Binding Path="Plugin.DraftEnabled"/>
+                </MultiBinding>
+            </Button.IsEnabled>
+        </Button>
+        <Button Grid.Column="1" 
+                Grid.Row="1"
+                Name="LoadFileButton"
+                Content="Load File"
+                Margin="26,16,0,0"
+                Width="264" 
+				Height="55"
+                IsEnabled="{Binding Plugin.LoadDataFileButtonEnabled}"
+                Click="LoadFileButton_Click">
+        </Button>
+    </Grid>
+</UserControl>

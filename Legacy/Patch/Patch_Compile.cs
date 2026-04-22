@@ -50,10 +50,10 @@ public static class Patch_Compile
 
     private static string CleanFilePath(string path)
     {
-        if (path is null || !path.Contains($"{Steam.AppId}"))
+        if (path is null || !path.Contains($"{Steam.AppIdSe1}"))
             return path;
 
-        path = path.Substring(path.IndexOf($"{Steam.AppId}"));
+        path = path.Substring(path.IndexOf($"{Steam.AppIdSe1}"));
         path = Path.Combine([.. path.Split('\\').Skip(5)]);
 
         return path;

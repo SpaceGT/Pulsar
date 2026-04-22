@@ -1,0 +1,167 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:controls="using:Pulsar.Modern.Screens.PluginDetailsScreen.Controls"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.PluginDetailsScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.PluginDetailsScreen"
+             x:DataType="vm:PluginDetailsScreenViewModel">
+    <Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="720" 
+			Height="864">
+        <Grid Margin="30">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="*"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+				<TextBlock Name="TitleText" 
+						HorizontalAlignment="Center"
+						FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+						Text="Plugin Details"/>
+				<Button Name="CancelButton"
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_Click">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+            <Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<Grid Grid.Row="2" Margin="0,16,0,0" >
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="*"/>
+				</Grid.RowDefinitions>
+				<StackPanel VerticalAlignment="Top" 
+							HorizontalAlignment="Left"
+							Grid.Row="0">
+					<TextBlock Text="{Binding Plugin.FriendlyName}"
+								FontSize="23"
+								FontWeight="Normal"
+								Foreground="White"/>
+                    <TextBlock Text="{Binding Plugin.Author}" 
+							   FontSize="19"
+							   FontWeight="Normal"
+							   Foreground="White"/>
+                </StackPanel>
+                <CheckBox Name="PluginEnabledCheckbox" 
+						  VerticalAlignment="Top" 
+						  HorizontalAlignment="Right" 
+						  IsChecked="{Binding Plugin.DraftEnabled}"
+						  Grid.Row="0"/>
+				<TextBlock Name="UsersText" 
+						   VerticalAlignment="Bottom" 
+						   Text="{Binding Plugin.Players, StringFormat='\{0\} users'}"
+						   IsVisible="{Binding Plugin.ShowStatElements}"
+						   Grid.Row="1"
+						   FontWeight="Normal"
+						   Foreground="White"/>
+				<StackPanel IsVisible="{Binding Plugin.ShowStatElements}" 
+							VerticalAlignment="Bottom" 
+							HorizontalAlignment="Right" 
+							Grid.Row="1">
+					<StackPanel Orientation="Horizontal">
+						<Button Name="UpvoteButton" 
+								  IsEnabled="{Binding Plugin.CanVote}" 
+								  MaxHeight="45" 
+								  MaxWidth="60" 
+								  MinHeight="45" 
+								  MinWidth="60" 
+								  Click="UpvoteButton_Click">
+							<Button.Content>
+								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_UpvoteIcon}" 
+										MaxHeight="32"/>
+							</Button.Content>
+						</Button>
+						<TextBlock Name="UpvotesText" 
+									 Text="{Binding Plugin.Upvotes}" 
+									 VerticalAlignment="Center" 
+									 HorizontalAlignment="Center" 
+									 FontWeight="Normal"
+									 Foreground="White"
+									 Margin="5,0,10,0" 
+									 MinWidth="20"/>
+						<Button Name="DownvoteButton" 
+								  IsEnabled="{Binding Plugin.CanVote}" 
+								  MaxHeight="45" 
+								  MaxWidth="60" 
+								  MinHeight="45" 
+								  MinWidth="60" 
+								  Click="DownvoteButton_Click">
+							<Button.Content>
+								<Image Source="{DynamicResource BlueprintAvaloniaConfiguration_DownvoteIcon}" 
+										MaxHeight="32"/>
+							</Button.Content>
+						</Button>
+						<TextBlock Name="DownvotesText" 
+									 Text="{Binding Plugin.Downvotes}" 
+									 VerticalAlignment="Center" 
+									 HorizontalAlignment="Center" 
+									 FontWeight="Normal" 
+									 Foreground="White"
+									 Margin="5,0,5,0" 
+									 MinWidth="20"/>
+					</StackPanel>
+					<TextBlock Name="VoteStatusText" 
+								Text="{Binding Plugin.VoteStatusString}" 
+								FontSize="14" 
+								HorizontalAlignment="Left"
+								FontWeight="Normal" 
+								Foreground="White"/>
+				</StackPanel>
+            </Grid>
+			<SelectableTextBlock Name="PluginDescription" 
+						Margin="0,16,0,0" 
+						Background="rgba(41,54,62,56)" 
+						Text="{Binding Plugin.DetailDescription}" 
+						TextWrapping="Wrap" 
+						FontSize="18" 
+						Foreground="White" 
+						Grid.Row="3"/>
+			<controls:GithubPluginControls Grid.Row="4" 
+										   Name="GithubControls"
+										   Margin="0,16,0,0"
+										   IsVisible="False"/>
+			<controls:LocalPluginFolderControls Grid.Row="4" 
+												Name="LocalFolderControls"
+												Margin="0,16,0,0"
+												IsVisible="False"/>
+			<StackPanel Grid.Row="5">
+				<StackPanel Orientation="Horizontal" 
+						Margin="0,16,0,0" 
+						HorizontalAlignment="Center" 
+						Grid.Row="2">
+				<Button Name="MoreInfoButton" 
+						Content="More Info" 
+						Width="264" 
+						Height="55" 
+						Click="MoreInfoButton_Click"/>
+				<Button Name="SettingsButton" 
+						Content="Settings" 
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0" 
+						IsEnabled="{Binding Plugin.HasSettingsMenu}" 
+						Click="SettingsButton_Click"/>
+				</StackPanel>
+				<TextBlock Name="SourceLabel" 
+						   Text="{Binding Plugin.SourceString}" 
+						   Margin="0,16,0,0" 
+						   FontWeight="Normal"/>
+			</StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

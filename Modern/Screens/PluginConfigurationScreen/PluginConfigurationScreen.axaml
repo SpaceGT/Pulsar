@@ -1,0 +1,98 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.PluginConfigurationScreen.PluginConfigurationScreen"
+             xmlns:vm="using:Pulsar.Modern.Screens"
+             xmlns:vm2="using:Pulsar.Modern.Screens.PluginConfigurationScreen"
+             x:DataType="vm2:PluginConfigurationScreenViewModel">
+    <Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="850" 
+			Height="700">
+        <StackPanel Margin="30">
+			<Grid Grid.Row="0">
+				<TextBlock Name="TitleText" 
+						HorizontalAlignment="Center"
+						FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+						Text="Configure a plugin"/>
+				<Button Name="CornerCancelButton"  
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CornerCancelButton_Click">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+            <Grid>
+			    <ScrollViewer Margin="0,16,0,16" 
+                              Height="535" 
+                              Background="rgba(41,54,62,96)" 
+                              Grid.Row="3">
+				    <ItemsRepeater Name="PluginList" 
+                                    HorizontalAlignment="Stretch" 
+                                    ItemsSource="{Binding Plugins}"
+                                    Margin="0,0,0,16">
+                        <ItemsRepeater.Layout>
+                            <UniformGridLayout />
+                        </ItemsRepeater.Layout>
+                        <ItemsRepeater.ItemTemplate>
+					        <DataTemplate x:DataType="vm:PluginViewModel">
+                                <Border BorderThickness="1" 
+                                        Name="PluginItem" 
+                                        Margin="20,20,0,0" 
+                                        Width="365" 
+                                        Height="65" 
+                                        Background="rgba(60,76,82,56)"
+                                        PointerPressed="PluginItem_PointerPressed">
+                                    <Border.Styles>
+								        <Style Selector="Border:pointerover">
+	                                        <Setter Property="BorderBrush" 
+                                                    Value="White"/>	
+                                        </Style>
+                                    </Border.Styles>
+							        <Grid Margin="10">
+							            <StackPanel>
+									        <TextBlock Text="{Binding FriendlyName}" 
+							                        FontSize="16"
+							                        FontWeight="Normal"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Left"
+                                                    MaxWidth="250"/>
+                                            <TextBlock Text="{Binding Author}" 
+                                                        Margin="0,4,0,0"
+                                                        FontWeight="Normal"
+                                                        Foreground="White"
+                                                        HorizontalAlignment="Left"/>
+                                        </StackPanel>
+                                        <TextBlock Text="{Binding SourceString}" 
+                                                        FontWeight="Normal"
+                                                        Foreground="White"
+                                                        HorizontalAlignment="Right"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsRepeater.ItemTemplate>
+                    </ItemsRepeater>
+                </ScrollViewer>
+                <TextBlock Text="No plugins available to configure" 
+					   FontWeight="Normal"
+					   Foreground="White"
+					   HorizontalAlignment="Center"
+					   VerticalAlignment="Center"
+					   TextAlignment="Center"
+                       FontSize="30"
+					   IsVisible="{Binding NoPlugins}"/>
+            </Grid>
+			<Separator Background="rgb(77,99,96)" Margin="0,8,0,0"/>
+		</StackPanel>
+    </Border>
+</UserControl>

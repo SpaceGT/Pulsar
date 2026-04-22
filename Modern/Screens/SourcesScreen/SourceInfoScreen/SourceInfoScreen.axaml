@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="using:Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen.SourceInfoScreen"
+			 x:DataType="local:SourceInfoScreenViewModel">
+    <Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="1076" 
+			Height="540">
+        <Grid RowDefinitions="Auto,Auto,*,Auto,Auto" Margin="30">
+			<Grid Grid.Row="0">
+				<TextBlock HorizontalAlignment="Center"
+					   FontSize="25"
+					   FontWeight="Normal"
+					   Foreground="White"
+					   Text="Source Info"/>
+				<Button Name="CornerCancelButton"  
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_Click">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<SelectableTextBlock Name="SourceInfoText" 
+						Margin="0,16,0,0" 
+						Background="rgba(41,54,62,56)" 
+						Text="{Binding SourceInfoText}" 
+						TextWrapping="Wrap" 
+						FontSize="20" 
+						Foreground="White" 
+						LineSpacing="10"
+						Grid.Row="2"/>
+			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<StackPanel Orientation="Horizontal" 
+						Margin="0,16,0,0" 
+						HorizontalAlignment="Center" 
+						Grid.Row="4">
+				<Button Name="BackButton" 
+						Content="Back"
+						Width="264" 
+						Height="55" 
+						Click="CancelButton_Click"/>
+				<Button Name="RemoveButton" 
+						Content="Remove"
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0"  
+						Click="RemoveButton_Click"/>
+			</StackPanel>
+		</Grid>
+    </Border>
+</UserControl>

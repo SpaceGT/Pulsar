@@ -35,14 +35,19 @@ public class ConfigManager
         };
     }
 
-    public static void Init(string gameDir, string modDir, Version gameVersion)
+    public static void Init(
+        string gameDir,
+        string modDir,
+        Version gameVersion,
+        RemoteHubConfig[] defaultHubs
+    )
     {
         ConfigManager i = Instance;
         i.GameDir = gameDir;
         i.ModDir = modDir;
         i.GameVersion = gameVersion;
         i.Profiles = ProfilesConfig.Load(i.PulsarDir);
-        i.Sources = SourcesConfig.Load(i.PulsarDir);
+        i.Sources = SourcesConfig.Load(i.PulsarDir, defaultHubs);
         i.List = new PluginList(i.PulsarDir, i.Sources, i.Profiles);
     }
 

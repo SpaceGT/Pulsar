@@ -23,7 +23,7 @@ public class Loader
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
 
-    public Loader(string[] forceEnable = null)
+    public Loader(string statsServer, string[] forceEnable = null)
     {
         ConfigManager manager = ConfigManager.Instance;
         config = manager.Core;
@@ -49,7 +49,7 @@ public class Loader
         GitHub.Init();
         LogEnabledPlugins();
 
-        StatsClient.OverrideBaseUrl(config.StatsServerBaseUrl);
+        StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;
         ConfigManager.Instance.UpdatePlayerStats();
 
         // Check harmony version

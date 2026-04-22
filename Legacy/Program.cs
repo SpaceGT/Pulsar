@@ -31,6 +31,7 @@ static class Program
 
     private const string PulsarRepo = "SpaceGT/Pulsar";
     private const string OldLauncher = "SpaceEngineers.exe";
+    private const string StatsServer = "https://pluginstats.ferenczi.eu";
 
     static void Main(string[] args)
     {
@@ -134,21 +135,35 @@ static class Program
         string modDir = Path.Combine(
             bin64Dir,
             @"..\..\..\workshop\content",
-            Steam.AppId.ToString()
+            Steam.AppIdSe1.ToString()
         );
 
         Version seVersion = Game.GetGameVersion(bin64Dir);
         if (seVersion is null) // Prevent NRE from Keen updates
             updater.ShowBitrotPrompt();
 
-        ConfigManager.Init(bin64Dir, modDir, seVersion);
+        RemoteHubConfig[] defaultHubs =
+        [
+            new RemoteHubConfig()
+            {
+                Name = "PluginHub",
+                Repo = "StarCpt/PluginHub",
+                Branch = "main",
+                Enabled = true,
+                Hash = null,
+                LastCheck = null,
+                Trusted = true,
+            },
+        ];
+
+        ConfigManager.Init(bin64Dir, modDir, seVersion, defaultHubs);
 
         CoreConfig coreConfig = ConfigManager.Instance.Core;
         Version oldSeVersion = coreConfig.GameVersion;
         if (seVersion != oldSeVersion)
         {
             if (oldSeVersion is not null)
-                Updater.GameUpdatePrompt(oldSeVersion, seVersion);
+                Updater.GameUpdatePrompt(oldSeVersion, seVersion, 3);
 
             coreConfig.GameVersion = seVersion;
             coreConfig.Save();
@@ -175,7 +190,7 @@ static class Program
         SplashManager.Instance?.SetText("Starting Steam...");
         string bin64Dir = ConfigManager.Instance.GameDir;
         AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(bin64Dir);
-        Steam.Init();
+        Steam.Init(Steam.AppIdSe1);
     }
 
     private static void SetupPlugins(string baseDir)
@@ -196,7 +211,7 @@ static class Program
                 compiler.Init();
 
             Tools.Init(new ExternalTools(), compiler);
-            SharedLoader.Instance = new SharedLoader(GetCorePlugins());
+            SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }
 
         Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));

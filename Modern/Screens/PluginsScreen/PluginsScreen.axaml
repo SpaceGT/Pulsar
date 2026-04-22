@@ -1,0 +1,319 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.PluginsScreen.PluginsScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.PluginsScreen"
+			 xmlns:vm2="using:Pulsar.Modern.Screens"
+			 x:DataType="vm:PluginsScreenViewModel">
+	<!-- Change width to 1450 when enabling mods list -->
+	<Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" 
+			Width="1025" 
+			Height="975">
+		<Grid 
+			RowDefinitions="Auto,Auto,Auto,Auto,Auto"
+			Margin="30">
+			<Grid Grid.Row="0">
+				<TextBlock Name="TitleText" 
+						HorizontalAlignment="Center"
+						FontSize="25"
+						FontWeight="Normal"
+						Foreground="White"
+						Text="Pulsar"/>
+				<Button Name="CornerCancelButton"  
+						Width="40" 
+						Height="40" 
+						HorizontalAlignment="Right" 
+						HorizontalContentAlignment="Center" 
+						VerticalContentAlignment="Center"
+						FontSize="40"
+						Click="CancelButton_OnClick">
+					<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+				</Button>
+			</Grid>
+			<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<Grid Grid.Row="2" ColumnDefinitions="Auto,Auto,Auto" Margin="0,16,0,0">
+				<StackPanel Grid.Column="0" HorizontalAlignment="Stretch">
+					<TextBlock Grid.Row="0"
+							   HorizontalAlignment="Center"
+							   FontSize="23"
+							   FontWeight="Normal"
+							   Foreground="White" 
+							   Text="Plugins"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="430"/>
+							<ColumnDefinition Width="100"/>
+							<ColumnDefinition Width="80"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+										 Margin="8,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Name"/>
+						<TextBlock Grid.Column="1" 
+										 Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Status"/>
+						<TextBlock Grid.Column="2" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Version"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" 
+										 FontWeight="Normal"
+										 Foreground="White" 
+										 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="630">
+						<ItemsRepeater Name="PluginsList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding EnabledPlugins}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm2:PluginViewModel">
+									<Grid Margin="0,2" 
+										  ToolTip.Tip="{Binding ToolTip}"
+										  Name="PluginItem" 
+										  PointerPressed="PluginItem_PointerPressed">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="430"/>
+											<ColumnDefinition Width="100"/>
+											<ColumnDefinition Width="80"/>
+											<ColumnDefinition Width="Auto"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.PluginText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid">
+												<Setter Property="Background" 
+														Value="#00000000"/>	
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.PluginText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="PluginText">
+											<Run Text="{Binding FriendlyName}"/>
+											<LineBreak/>
+											<Run Text="{Binding Author}"/>
+										</TextBlock>
+										<TextBlock Text="{Binding StatusString}" 
+													 Grid.Column="1" 
+													 Margin="0,8,0,8" 
+													 FontWeight="Normal"
+													 Classes="PluginText"/>
+										<TextBlock Text="{Binding VersionString}" 
+													 Grid.Column="2" 
+													 Margin="0,8,0,8" 
+													 FontWeight="Normal"
+													 Classes="PluginText"/>
+										<CheckBox IsChecked="{Binding DraftEnabled}" 
+													Grid.Column="3" 
+													Margin="16,8,0,8"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,16,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="PluginSettingsButton" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Open plugin settings, in-game hotkey: Ctrl+Alt+/"
+								  Click="PluginSettingsButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_SettingIcon}"/>
+						</Button>
+						<Button Name="PluginDetailsButton" 
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Show details"
+								  Click="PluginDetailsButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="PluginAddButton" 
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add plugin" 
+								  Click="PluginAddButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+				<!-- Remove IsVisible="False" to enable mod list. -->
+				<StackPanel Grid.Column="1" 
+							HorizontalAlignment="Left" 
+							Margin="16,0,0,0"
+							IsVisible="False">
+					<TextBlock Grid.Row="0"
+						   HorizontalAlignment="Center"
+						   FontSize="23"
+						   FontWeight="Normal"
+						   Foreground="White" Text="Mods"/>
+					<Grid Height="30" Background="rgba(60,76,82,56)" Margin="0,16,0,0">
+						<Grid.ColumnDefinitions>
+							<ColumnDefinition Width="335"/>
+							<ColumnDefinition Width="78"/>
+						</Grid.ColumnDefinitions>
+						<TextBlock Grid.Column="0" 
+									 Margin="8,8,0,0" 
+									 FontWeight="Normal"
+									 Foreground="White" 
+									 Text="Name"/>
+						<TextBlock Grid.Column="3" Margin="0,8,0,0" FontWeight="Normal"
+									 Foreground="White" 
+									 Text="Enabled"/>
+					</Grid>
+					<ScrollViewer Background="rgba(41,54,62,96)"
+								  Height="630">
+						<ItemsRepeater Name="ModsList"
+										HorizontalAlignment="Stretch"
+										ItemsSource="{Binding EnabledModPlugins}">
+							<ItemsRepeater.ItemTemplate>
+								<DataTemplate x:DataType="vm2:PluginViewModel">
+									<Grid Margin="0,2" 
+										  Name="ModPluginItem"
+										  PointerPressed="ModPluginItem_PointerPressed"
+										  ToolTip.Tip="{Binding ToolTip}">
+										<Grid.ColumnDefinitions>
+											<ColumnDefinition Width="335"/>
+											<ColumnDefinition Width="78"/>
+										</Grid.ColumnDefinitions>
+										<Grid.Styles>
+											<Style Selector="TextBlock.PluginText">
+												<Setter Property="Foreground"
+														Value="White"/>
+											</Style>
+											<Style Selector="Grid">
+												<Setter Property="Background" 
+														Value="#00000000"/>	
+											</Style>
+											<Style Selector="Grid:selected">
+												<Setter Property="Background" 
+														Value="#8EBCCE"/>	
+												<Style Selector="^ TextBlock.PluginText">
+													<Setter Property="Foreground"
+															Value="Black"/>
+												</Style>
+											</Style>
+											<Style Selector="Grid:pointerover">
+												<Setter Property="Background" 
+														Value="#3C4C52"/>	
+											</Style>
+										</Grid.Styles>
+										<TextBlock Grid.Column="0" 
+													Margin="8,8,0,8"
+													FontWeight="Normal"
+													Classes="PluginText" >
+											<Run Text="{Binding FriendlyName}"/>
+											<LineBreak/>
+											<Run Text="{Binding Author}"/>
+										</TextBlock>
+										<CheckBox IsChecked="{Binding DraftEnabled}" 
+													Grid.Column="3" 
+													Margin="16,8,0,8"/>
+									</Grid>
+								</DataTemplate>
+							</ItemsRepeater.ItemTemplate>
+						</ItemsRepeater>
+					</ScrollViewer>
+					<StackPanel Orientation="Horizontal" 
+								 Grid.Column="3" 
+								 Margin="0,12,0,0" 
+								 HorizontalAlignment="Right">
+						<Button Name="ModDetailsButton"
+								  Width="30" 
+								  Height="30" 
+								  Margin="0,0,6,0" 
+								  IsEnabled="False" 
+								  ToolTip.Tip="Show details"
+								  Click="ModDetailsButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_UploadIcon}"/>
+						</Button>
+						<Button Name="ModAddButton"
+								  Width="30" 
+								  Height="30" 
+								  ToolTip.Tip="Add mod" 
+								  Click="ModAddButton_Click">
+							<Image Source="{DynamicResource IconsConfiguration_PlusIcon}"/>
+						</Button>
+					</StackPanel>
+				</StackPanel>
+				<StackPanel Grid.Column="3" Margin="16,44,0,0" HorizontalAlignment="Left">
+					<Button Name="ProfilesButton"
+							 Width="256" 
+							 Height="50" 
+							 Click="ProfilesButton_OnClick" 
+							 ToolTip.Tip="Load or edit profiles" 
+							 Content="Profiles" />
+					<Button Name="RefreshButton"
+							 Width="256" 
+							 Height="50" 
+							 Margin="0,16,0,0" 
+							 ToolTip.Tip="Refresh all plugin sources" 
+							 Click="RefreshButton_Click" 
+							 Content="Refresh" />
+					<Button Name="SourcesButton"
+							 Width="256" 
+							 Height="50" 
+							 Margin="0,16,0,0" 
+							 ToolTip.Tip="Add or remove plugin source" 
+							 IsVisible="False" 
+							 Content="Sources"
+							 Click="SourcesButton_Click"/>
+					<CheckBox Margin="0,16,0,0" 
+							  ToolTip.Tip="Consent to use your data for usage tracking" 
+							  Name="ConsentBox" 
+							  Click="ConsentBox_Click" 
+							  IsChecked="{Binding ConsentGiven}">
+						<TextBlock FontWeight="Normal"
+								   Foreground="White"
+								   Text="Track Usage"/>
+					</CheckBox>
+				</StackPanel>
+			</Grid>
+			<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+			<StackPanel Orientation="Horizontal" 
+					    Grid.Row="4" 
+					    HorizontalAlignment="Center" 
+					    Margin="0,16,0,0">
+				<Button Name="ApplyButton"
+						Width="264" 
+						Height="55" 
+						Click="ApplyButton_OnClick" 
+						Content="Apply" />
+				<Button Name="CancelButton"
+						Width="264" 
+						Height="55" 
+						Margin="26,0,0,0" 
+						Click="CancelButton_OnClick" 
+						Content="Cancel" />
+			</StackPanel>
+		</Grid>
+	</Border>
+</UserControl>

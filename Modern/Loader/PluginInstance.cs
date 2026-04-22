@@ -1,0 +1,222 @@
+﻿using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
+using HarmonyLib;
+using Keen.Game2.Game.Plugins;
+using NLog;
+using Pulsar.Shared;
+using Pulsar.Shared.Data;
+using Tools = Pulsar.Shared.Tools;
+
+namespace Pulsar.Modern.Loader;
+
+internal class PluginInstance
+{
+    private readonly Type mainType;
+    private readonly PluginData data;
+    private readonly Assembly mainAssembly;
+    private MethodInfo openConfigDialog;
+    private IPlugin plugin;
+
+    public string Id => data.Id;
+    public string FriendlyName => data.FriendlyName;
+    public string Author => data.Author;
+    public bool HasConfigDialog => openConfigDialog is not null;
+
+    private PluginInstance(PluginData data, Assembly mainAssembly, Type mainType)
+    {
+        this.data = data;
+        this.mainAssembly = mainAssembly;
+        this.mainType = mainType;
+    }
+
+    /// <summary>
+    /// To be called when a <see langword="MemberAccessException"/> is thrown. Returns true if the exception was thrown from this plugin.
+    /// </summary>
+    public bool ContainsExceptionSite(MemberAccessException exception)
+    {
+        // Note: this wont find exceptions thrown within transpiled methods or some kinds of patches
+        Assembly a = exception.TargetSite?.DeclaringType?.Assembly;
+        if (a is not null && a == mainAssembly)
+        {
+            data.InvalidateCache();
+            ThrowError($"ERROR: Plugin {data} threw an exception: {exception}");
+            return true;
+        }
+        return false;
+    }
+
+    public bool Instantiate(PluginHost host)
+    {
+        DependencyInject();
+
+        try
+        {
+            plugin = (IPlugin)Activator.CreateInstance(mainType, host);
+            LoadAssets();
+        }
+        catch (MissingMethodException)
+        {
+            plugin = (IPlugin)Activator.CreateInstance(mainType);
+            LoadAssets();
+        }
+        catch (Exception e)
+        {
+            ThrowError($"Failed to instantiate {data} because of an error: {e}");
+            return false;
+        }
+
+        return true;
+    }
+
+    private void DependencyInject()
+    {
+        // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
+
+        try
+        {
+            FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
+            pluginFunc?.SetValue(null, new Func<string, string, string>(data.GetConfigPath));
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find GetConfigPath in {data} due to an error: {e}");
+        }
+
+        try
+        {
+            FieldInfo nativeFunc = AccessTools.DeclaredField(mainType, "IsNative");
+            nativeFunc?.SetValue(null, Tools.IsNative());
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find IsNative in {data} due to an error: {e}");
+        }
+
+        try
+        {
+            FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "PulsarLog");
+            pluginFunc?.SetValue(null, new Action<string, LogLevel>(LogFile.WriteLine));
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find PulsarLog in {data} due to an error: {e}");
+        }
+
+        try
+        {
+            openConfigDialog = AccessTools.DeclaredMethod(mainType, "OpenConfigDialog");
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find OpenConfigDialog() in {data} due to an error: {e}");
+        }
+    }
+
+    private void LoadAssets()
+    {
+        string assetFolder = data.GetAssetPath();
+        if (string.IsNullOrEmpty(assetFolder) || !Directory.Exists(assetFolder))
+            return;
+
+        LogFile.WriteLine($"Loading assets for {data}");
+        MethodInfo loadAssets = AccessTools.DeclaredMethod(
+            mainType,
+            "LoadAssets",
+            [typeof(string)]
+        );
+        loadAssets?.Invoke(plugin, [assetFolder]);
+    }
+
+    public void OpenConfig()
+    {
+        if (plugin is null || openConfigDialog is null)
+            return;
+
+        try
+        {
+            openConfigDialog.Invoke(plugin, []);
+        }
+        catch (Exception e)
+        {
+            ThrowError($"Failed to open plugin config for {data} because of an error: {e}");
+        }
+    }
+
+    public void Dispose()
+    {
+        if (plugin is null)
+            return;
+
+        if (plugin as IDisposable is null)
+            return;
+
+        try
+        {
+            (plugin as IDisposable).Dispose();
+            plugin = null;
+        }
+        catch (Exception e)
+        {
+            data.Status = PluginStatus.Error;
+            LogFile.Error($"Failed to dispose {data} because of an error: {e}");
+        }
+    }
+
+    private void ThrowError(string error)
+    {
+        LogFile.Error(error);
+        data.Error();
+        Dispose();
+    }
+
+    public static bool TryGet(PluginData data, Assembly assembly, out PluginInstance instance)
+    {
+        instance = null;
+
+        try
+        {
+            Type pluginType = assembly
+                .GetTypes()
+                .FirstOrDefault(t => typeof(IPlugin).IsAssignableFrom(t));
+
+            if (pluginType is null)
+            {
+                LogFile.Error($"Failed to load {data} because it does not contain an IPlugin");
+                data.Error();
+                return false;
+            }
+
+            instance = new PluginInstance(data, assembly, pluginType);
+            return true;
+        }
+        catch (Exception e)
+        {
+            StringBuilder sb = new();
+            sb.Append("Failed to load ")
+                .Append(data)
+                .Append(" because of an exception: ")
+                .Append(e)
+                .AppendLine();
+            if (
+                e is ReflectionTypeLoadException typeLoadEx
+                && typeLoadEx.LoaderExceptions is not null
+            )
+            {
+                sb.Append("Exception details: ").AppendLine();
+                foreach (Exception loaderException in typeLoadEx.LoaderExceptions)
+                    sb.Append(loaderException).AppendLine();
+            }
+            LogFile.Error(sb.ToString());
+            data.Error();
+            return false;
+        }
+    }
+
+    public override string ToString()
+    {
+        return data.ToString();
+    }
+}

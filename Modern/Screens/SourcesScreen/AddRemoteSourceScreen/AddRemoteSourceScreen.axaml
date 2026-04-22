@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen.AddRemoteSourceScreen"
+			 xmlns:vm="using:Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen"
+			 x:DataType="vm:AddRemoteSourceScreenViewModel">
+	<Grid Width="649" RowDefinitions="Auto" VerticalAlignment="Center">
+		<Border Background="rgba(37,47,53,96)"
+			BorderBrush="rgba(66,77,99,96)"
+			BorderThickness="1.5" >
+			<Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="30">
+				<Grid Grid.Row="0">
+					<TextBlock HorizontalAlignment="Center"
+						   FontSize="30"
+						   FontWeight="Normal"
+						   Foreground="White"
+						   Text="Add Source"/>
+					<Button Name="CornerCancelButton"  
+							Width="40" 
+							Height="40" 
+							HorizontalAlignment="Right" 
+							HorizontalContentAlignment="Center" 
+							VerticalContentAlignment="Center"
+							FontSize="40"
+							Click="CancelButton_Click">
+						<Image Source="{DynamicResource IconsConfiguration_CrossIcon}"/>
+					</Button>
+				</Grid>
+				<Separator Grid.Row="1" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+				<StackPanel Grid.Row="2" Name="ControlsPanel"/>
+				<Separator Grid.Row="3" Background="rgb(77,99,96)" Margin="0,16,0,0"/>
+				<StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0">
+					<Button Name="CancelButton" Width="264" Height="55" Click="CancelButton_Click">Cancel</Button>
+					<Button Name="AddButton" Width="264" Height="55" Margin="26,0,0,0" Click="AddButton_Click">Add</Button>
+				</StackPanel>
+			</Grid>
+		</Border>
+	</Grid>
+</UserControl>

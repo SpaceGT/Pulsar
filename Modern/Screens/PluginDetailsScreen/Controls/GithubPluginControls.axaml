@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Pulsar.Modern.Screens.PluginDetailsScreen.Controls.GithubPluginControls"
+             xmlns:vm="using:Pulsar.Modern.Screens.PluginDetailsScreen"
+             x:DataType="vm:PluginDetailsScreenViewModel">
+    <StackPanel HorizontalAlignment="Center">
+		<TextBlock Text="Installed Version"
+                   FontSize="19"
+				   FontWeight="Normal"
+				   Foreground="White"
+                   HorizontalAlignment="Center"/>
+        <ComboBox Name="VersionSelectorBox" 
+                  HorizontalAlignment="Stretch"
+                  Height="60" 
+                  Width="400"
+                  IsEnabled="{Binding Plugin.PluginConfig, Converter={x:Static ObjectConverters.IsNotNull}}"
+                  PlaceholderText="Default"
+                  SelectionChanged="VersionSelectorBox_SelectionChanged"/>
+    </StackPanel>
+</UserControl>
