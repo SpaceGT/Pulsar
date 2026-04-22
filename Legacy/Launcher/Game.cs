@@ -43,14 +43,21 @@ internal class GameLog : IGameLog
 
 internal static class Game
 {
-    public static void RegisterPlugin(IPlugin plugin)
+    public static void RegisterPlugin(IHandleInputPlugin plugin)
     {
         FieldInfo m_pluginsField = typeof(MyPlugins).GetField(
             "m_plugins",
             BindingFlags.Static | BindingFlags.NonPublic
         );
-        List<IPlugin> m_plugins = (List<IPlugin>)m_pluginsField.GetValue(null);
+        var m_plugins = (List<IPlugin>)m_pluginsField.GetValue(null);
         m_plugins.Add(plugin);
+        
+        FieldInfo m_handleInputPluginsField = typeof(MyPlugins).GetField(
+            "m_handleInputPlugins",
+            BindingFlags.Static | BindingFlags.NonPublic
+        );
+        var m_handleInputPlugins = (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
+        m_handleInputPlugins.Add(plugin);
     }
 
     public static void SetMainAssembly(string assemblyPath)
