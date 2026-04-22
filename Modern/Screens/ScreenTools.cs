@@ -1,4 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Avalonia.Controls;
 using Keen.Game2;
 using Keen.Game2.Client.UI.Library;
 using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
@@ -8,6 +11,7 @@ using Keen.VRage.Core;
 using Keen.VRage.Library.Localization;
 using Keen.VRage.Library.Utils;
 using Keen.VRage.UI.AvaloniaInterface.Effects;
+using Keen.VRage.UI.Screens;
 
 namespace Pulsar.Modern.Screens;
 
@@ -49,6 +53,17 @@ internal static class ScreenTools
     public static SharedUIComponent GetSharedUIComponent()
     {
         return Singleton<VRageCore>.Instance.Engine.Get<GameAppComponent>().GetSharedUI();
+    }
+
+    // Non-asserting equivalent of SharedUIComponent.TryGetActiveScreenOfType<T>().
+    // The game's API logs an Assert.False stack trace when no screen of type T is
+    // active, which is the common case when this is polled from input handlers.
+    public static T FindActiveScreenOfType<T>()
+        where T : ScreenView
+    {
+        var sharedUiComponent = GetSharedUIComponent();
+        var hasAnySuchScreen = sharedUiComponent._activeScreenHandles.Select((Func<ScreenHandle, ScreenView>) (x => x.ScreenView)).OfType<T>().Any();
+        return hasAnySuchScreen ? sharedUiComponent.TryGetActiveScreenOfType<T>() : null;
     }
 
     public static void PlayClickSound(Control sender)

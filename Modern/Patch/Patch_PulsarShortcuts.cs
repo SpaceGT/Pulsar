@@ -45,12 +45,8 @@ internal class Patch_PulsarShortcuts
         )
             return;
 
-        ToolbarScreen screen = ScreenTools
-            .GetSharedUIComponent()
-            .TryGetActiveScreenOfType<ToolbarScreen>();
-        PluginsScreen pluginsScreen = ScreenTools
-            .GetSharedUIComponent()
-            .TryGetActiveScreenOfType<PluginsScreen>();
+        ToolbarScreen screen = ScreenTools.FindActiveScreenOfType<ToolbarScreen>();
+        PluginsScreen pluginsScreen = ScreenTools.FindActiveScreenOfType<PluginsScreen>();
 
         if (!(screen?.IsVisible ?? false) && !(pluginsScreen?.IsVisible ?? false))
             return;
