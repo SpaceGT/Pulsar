@@ -25,7 +25,11 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Rating,
     }
 
-    public AddPluginScreenViewModel(List<PluginViewModel> plugins, bool mods, Action onScreenClose = null)
+    public AddPluginScreenViewModel(
+        List<PluginViewModel> plugins,
+        bool mods,
+        Action onScreenClose = null
+    )
     {
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;

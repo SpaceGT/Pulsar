@@ -11,7 +11,7 @@ internal class PluginDetailsScreenViewModel : ScreenViewModel
     public PluginDetailsScreenViewModel(PluginViewModel plugin, Action onScreenClose = null)
     {
         this.onScreenClose = onScreenClose;
-        
+
         KeepsOtherScreensVisible = false;
         AllowsInputBelowUI = false;
         AllowsInputFromLowerScreens = false;

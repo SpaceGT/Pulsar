@@ -153,7 +153,7 @@ static class Program
                 Hash = null,
                 LastCheck = null,
                 Trusted = true,
-            }
+            },
         ];
 
         ConfigManager.Init(bin64Dir, modDir, seVersion, defaultHubs);

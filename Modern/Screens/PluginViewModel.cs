@@ -147,10 +147,7 @@ internal class PluginViewModel : AttachedViewModel
         && (
             string.IsNullOrEmpty(folderConfig.DataFile)
             || !File.Exists(
-                Path.Combine(
-                    ((LocalFolderPlugin)PluginData).Folder,
-                    folderConfig.DataFile
-                )
+                Path.Combine(((LocalFolderPlugin)PluginData).Folder, folderConfig.DataFile)
             )
         );
 

@@ -14,7 +14,6 @@ namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
 [HarmonyPatch(typeof(GameApp), "StartPlayerExperienceAsync")]
-
 // This is the eariest point where we can safely interact with the game's subsystems.
 internal static class Patch_AfterEngineInit
 {
@@ -28,9 +27,13 @@ internal static class Patch_AfterEngineInit
                 new KeyGesture(Key.F12, KeyModifiers.Shift)
             );
 
-            Singleton<VRageCore>.Instance.Engine.Get<DebugMenuEngineComponent>()._debugMenu.IsEnabled = true;
-            Singleton<VRageCore>.Instance.Engine.Get<RenderEngineComponent>().RenderContracts.GetRenderSystem().AreDebugCommandsEnabled = true;
+            Singleton<VRageCore>
+                .Instance.Engine.Get<DebugMenuEngineComponent>()
+                ._debugMenu.IsEnabled = true;
+            Singleton<VRageCore>
+                .Instance.Engine.Get<RenderEngineComponent>()
+                .RenderContracts.GetRenderSystem()
+                .AreDebugCommandsEnabled = true;
         }
-            
     }
 }

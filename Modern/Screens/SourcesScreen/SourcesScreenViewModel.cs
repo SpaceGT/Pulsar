@@ -56,7 +56,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         base.OnDispose();
         onScreenClose?.Invoke();
     }
-    
+
     public void RefreshSources()
     {
         // FIXME: Syncronise working copy and with real sources before refreshing

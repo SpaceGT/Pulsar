@@ -127,11 +127,7 @@ public class SourcesConfig
             }
         }
 
-        config = new SourcesConfig
-        {
-            filePath = path,
-            RemoteHubSources = defaultHubs
-        };
+        config = new SourcesConfig { filePath = path, RemoteHubSources = defaultHubs };
 
         return config;
     }

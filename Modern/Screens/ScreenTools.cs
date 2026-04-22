@@ -62,7 +62,10 @@ internal static class ScreenTools
         where T : ScreenView
     {
         var sharedUiComponent = GetSharedUIComponent();
-        var hasAnySuchScreen = sharedUiComponent._activeScreenHandles.Select((Func<ScreenHandle, ScreenView>) (x => x.ScreenView)).OfType<T>().Any();
+        var hasAnySuchScreen = sharedUiComponent
+            ._activeScreenHandles.Select((Func<ScreenHandle, ScreenView>)(x => x.ScreenView))
+            .OfType<T>()
+            .Any();
         return hasAnySuchScreen ? sharedUiComponent.TryGetActiveScreenOfType<T>() : null;
     }
 

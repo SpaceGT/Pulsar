@@ -35,7 +35,12 @@ public class ConfigManager
         };
     }
 
-    public static void Init(string gameDir, string modDir, Version gameVersion, RemoteHubConfig[] defaultHubs)
+    public static void Init(
+        string gameDir,
+        string modDir,
+        Version gameVersion,
+        RemoteHubConfig[] defaultHubs
+    )
     {
         ConfigManager i = Instance;
         i.GameDir = gameDir;

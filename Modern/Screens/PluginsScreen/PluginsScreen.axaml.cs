@@ -58,12 +58,12 @@ public partial class PluginsScreen : PluginScreenBase
         selectedPluginControl = null;
         selectedModPluginControl = null;
     }
-    
+
     private void UpdateConsentCheckbox()
     {
         ConsentBox.IsChecked = ((PluginsScreenViewModel)DataContext).ConsentGiven;
     }
-    
+
     private void CancelButton_OnClick(object sender, RoutedEventArgs e)
     {
         Dispose();
@@ -268,7 +268,9 @@ public partial class PluginsScreen : PluginScreenBase
                                         ((PluginsScreenViewModel)DataContext).Sources,
                                         delegate
                                         {
-                                            ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
+                                            (
+                                                (PluginsScreenViewModel)DataContext
+                                            ).RefreshPluginLists();
                                         }
                                     ),
                                     true
@@ -286,7 +288,8 @@ public partial class PluginsScreen : PluginScreenBase
                         delegate
                         {
                             ((PluginsScreenViewModel)DataContext).RefreshPluginLists();
-                        }),
+                        }
+                    ),
                     true
                 );
     }

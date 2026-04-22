@@ -1,6 +1,6 @@
-﻿using HarmonyLib;
+﻿using System.Diagnostics;
+using HarmonyLib;
 using Keen.VRage.Core;
-using System.Diagnostics;
 
 namespace Pulsar.Modern.Patch;
 
