@@ -25,7 +25,16 @@ internal class Folder
         "Sandbox.Game.dll",
     ];
 
-    public static string GetBin64() => "/home/viktor/.steam/steam/steamapps/common/SpaceEngineers/Bin64";
+    public static string GetBin64()
+    {
+        string root = Environment.GetEnvironmentVariable("SPACE_ENGINEERS_ROOT");
+        if (string.IsNullOrEmpty(root))
+        {
+            string home = Environment.GetEnvironmentVariable("HOME");
+            root = Path.Combine(home, ".steam", "steam", "steamapps", "common", "SpaceEngineers");
+        }
+        return Path.Combine(root, "Bin64");
+    }
 
     private static bool IsBin64(string path)
     {
