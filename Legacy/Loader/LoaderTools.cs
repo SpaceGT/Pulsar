@@ -152,7 +152,7 @@ public static class LoaderTools
         if (debugger)
             args.Add(DebugArg);
 
-        throw new NotImplementedException();
+        Process.GetCurrentProcess().Kill();
     }
 
     /// <summary>
