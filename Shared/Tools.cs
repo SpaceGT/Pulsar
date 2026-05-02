@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -9,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
+using Pulsar.Shared.Splash;
 
 namespace Pulsar.Shared;
 
@@ -146,8 +148,115 @@ public static class Tools
         MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1
     )
     {
-        Console.WriteLine("Showing message box: " + msg);
-        return DialogResult.No;
+        // Always log to console/log so the message is captured even if SDL fails.
+        Console.WriteLine("Message box: " + msg);
+
+        uint flags = icon switch
+        {
+            MessageBoxIcon.Error => Sdl3.SDL_MESSAGEBOX_ERROR,
+            MessageBoxIcon.Warning => Sdl3.SDL_MESSAGEBOX_WARNING,
+            _ => Sdl3.SDL_MESSAGEBOX_INFORMATION,
+        };
+
+        try
+        {
+            if (buttons == MessageBoxButtons.YesNo)
+                return ShowYesNo(msg, flags);
+
+            Sdl3.SDL_ShowSimpleMessageBox(flags, Sdl3.Utf8("Pulsar"), Sdl3.Utf8(msg), IntPtr.Zero);
+            return DialogResult.Yes;
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Failed to show message box via SDL3: " + e);
+            return DialogResult.No;
+        }
+    }
+
+    private static DialogResult ShowYesNo(string msg, uint flags)
+    {
+        byte[] yesText = Sdl3.Utf8("Yes");
+        byte[] noText = Sdl3.Utf8("No");
+        byte[] title = Sdl3.Utf8("Pulsar");
+        byte[] message = Sdl3.Utf8(msg);
+
+        GCHandle yesHandle = GCHandle.Alloc(yesText, GCHandleType.Pinned);
+        GCHandle noHandle = GCHandle.Alloc(noText, GCHandleType.Pinned);
+        GCHandle titleHandle = GCHandle.Alloc(title, GCHandleType.Pinned);
+        GCHandle messageHandle = GCHandle.Alloc(message, GCHandleType.Pinned);
+
+        // Order matters for left-to-right display: "No" first means it appears
+        // on the left. SDL renders buttons in array order, but flips on some
+        // platforms. The Return/Escape default flags ensure correct keyboard
+        // mapping regardless of visual order.
+        Sdl3.SDL_MessageBoxButtonData[] btns =
+        [
+            new() {
+                flags = Sdl3.SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT,
+                buttonID = (int)DialogResult.No,
+                text = noHandle.AddrOfPinnedObject(),
+            },
+            new() {
+                flags = Sdl3.SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT,
+                buttonID = (int)DialogResult.Yes,
+                text = yesHandle.AddrOfPinnedObject(),
+            },
+        ];
+
+        GCHandle btnsHandle = GCHandle.Alloc(btns, GCHandleType.Pinned);
+        try
+        {
+            Sdl3.SDL_MessageBoxData data = new()
+            {
+                flags = flags,
+                window = IntPtr.Zero,
+                title = titleHandle.AddrOfPinnedObject(),
+                message = messageHandle.AddrOfPinnedObject(),
+                numbuttons = btns.Length,
+                buttons = btnsHandle.AddrOfPinnedObject(),
+                colorScheme = IntPtr.Zero,
+            };
+
+            if (!Sdl3.SDL_ShowMessageBox(ref data, out int chosen))
+            {
+                LogFile.Error("SDL_ShowMessageBox failed");
+                return DialogResult.No;
+            }
+
+            return (DialogResult)chosen;
+        }
+        finally
+        {
+            btnsHandle.Free();
+            messageHandle.Free();
+            titleHandle.Free();
+            noHandle.Free();
+            yesHandle.Free();
+        }
+    }
+
+    // Opens a file, folder, or URL in the user's default desktop handler via
+    // xdg-open. This is the Linux equivalent of Windows' explorer.exe shell-out.
+    public static void OpenInDesktop(string pathOrUrl)
+    {
+        if (string.IsNullOrEmpty(pathOrUrl))
+            return;
+
+        try
+        {
+            ProcessStartInfo psi = new("xdg-open", pathOrUrl)
+            {
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true,
+            };
+            Process.Start(psi);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Failed to open '{pathOrUrl}' via xdg-open: " + e);
+        }
     }
 
     public static IEnumerable<string> GetFiles(
@@ -200,9 +309,6 @@ public static class Tools
 
     public static bool IsNative() =>
         Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
-
-    [DllImport("user32.dll")]
-    private static extern short GetAsyncKeyState(int vKey);
 }
 
 public enum MessageBoxDefaultButton

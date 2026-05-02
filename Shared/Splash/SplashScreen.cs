@@ -112,7 +112,7 @@ internal sealed class SplashScreen
 
             window = Sdl3.SDL_CreateWindow(
                 Sdl3.Utf8("Pulsar"), WindowWidth, WindowHeight,
-                Sdl3.SDL_WINDOW_BORDERLESS | Sdl3.SDL_WINDOW_HIDDEN | Sdl3.SDL_WINDOW_ALWAYS_ON_TOP);
+                Sdl3.SDL_WINDOW_BORDERLESS | Sdl3.SDL_WINDOW_HIDDEN);
             if (window == IntPtr.Zero) return;
 
             Sdl3.SDL_SetWindowPosition(window, Sdl3.SDL_WINDOWPOS_CENTERED, Sdl3.SDL_WINDOWPOS_CENTERED);

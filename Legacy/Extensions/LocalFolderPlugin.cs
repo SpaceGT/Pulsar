@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using Pulsar.Legacy.Screens;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Sandbox.Graphics.GUI;
@@ -75,6 +75,6 @@ internal static class LocalFolderPluginExtensions
     {
         string folder = Path.GetFullPath(localFolderPlugin.Folder);
         if (Directory.Exists(folder))
-            Process.Start("explorer.exe", $"\"{folder}\"");
+            Tools.OpenInDesktop(folder);
     }
 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -606,7 +605,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
         {
             string localPluginDir = Path.Combine(ConfigManager.Instance.PulsarDir, "Local");
             Directory.CreateDirectory(localPluginDir);
-            Process.Start("explorer.exe", $"\"{localPluginDir}\"");
+            Tools.OpenInDesktop(localPluginDir);
             MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
         }
         catch (Exception e)

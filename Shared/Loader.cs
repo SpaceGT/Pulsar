@@ -30,6 +30,14 @@ public class Loader
 
         splash = SplashManager.Instance;
 
+        // Linux replacement for the Windows-only "hold Escape during launch"
+        // safe-mode trigger: set PULSAR_SAFE_MODE=1 in Steam launch options.
+        if (Environment.GetEnvironmentVariable("PULSAR_SAFE_MODE") == "1")
+        {
+            LogFile.Warn("PULSAR_SAFE_MODE=1 set. No plugins will be loaded!");
+            ConfigManager.Instance.SafeMode = true;
+        }
+
         GitHub.Init();
         LogEnabledPlugins();
 

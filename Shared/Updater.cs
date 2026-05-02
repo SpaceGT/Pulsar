@@ -33,7 +33,19 @@ public class Updater(string repoName)
         )
         {
             LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
+
+            ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
         }
+    }
+
+    private static void ShowUpdatePrompt(Version localVer, Version remoteVer)
+    {
+        string prompt =
+            $"An update is available for {PulsarName}:\n"
+            + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
+            + "Please update Pulsar via Flatpak or re-download the Native build.";
+
+        Tools.ShowMessageBox(prompt);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
