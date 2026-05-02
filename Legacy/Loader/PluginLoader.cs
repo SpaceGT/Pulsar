@@ -195,7 +195,9 @@ public class PluginLoader : IHandleInputPlugin
 
     private static void ShowGame()
     {
-        SplashManager.Instance?.Delete();
+        // The Pulsar splash is closed before Game.StartSpaceEngineers in
+        // Program.cs (so SDL is fully torn down before SE comes up), so by
+        // the time we get here SplashManager.Instance is already null.
         // NOTE: Refers to disabled WinForms patch
         // Patch.Patch_ShowAndFocus.Enabled = true;
         MyVRage.Platform.Windows.Window.ShowAndFocus();

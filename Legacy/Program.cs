@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading;
 using HarmonyLib;
 using Pulsar.Legacy.Compiler;
 using Pulsar.Legacy.Launcher;
@@ -304,31 +303,14 @@ static class Program
 #endif
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
-        if (Tools.IsNative())
-            ProgressPollFactory().Start();
+
+        // Close the Pulsar splash and fully tear down SDL before SE starts.
+        // SplashManager.Delete() blocks until the render thread joins and
+        // SDL_Quit has run, so by the time StartSpaceEngineers is called the
+        // SDL/X11 connection is fully released and the se-linux-compat plugin
+        // can call SDL_Init again cleanly.
+        SplashManager.Instance?.Delete();
 
         Game.StartSpaceEngineers(args);
-    }
-
-    private static Thread ProgressPollFactory()
-    {
-        static void ProgressPoll()
-        {
-            float progress = 0;
-            SplashManager splash = SplashManager.Instance;
-
-            while (SplashManager.Instance is not null && progress < 1)
-            {
-                // FIXME: Does not work well with preloaded assemblies
-                progress = Game.GetLoadProgress();
-
-                if (float.IsNaN(splash.BarValue) || splash.BarValue < progress)
-                    splash?.SetBarValue(progress);
-
-                Thread.Sleep(250); // ms
-            }
-        }
-
-        return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
 }
