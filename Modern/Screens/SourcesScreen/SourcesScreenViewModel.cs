@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
@@ -300,7 +299,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         {
             string localPluginDir = Path.Combine(ConfigManager.Instance.PulsarDir, "Local");
             Directory.CreateDirectory(localPluginDir);
-            Process.Start("explorer.exe", $"\"{localPluginDir}\"");
+            Tools.OpenInDesktop(localPluginDir);
         }
         catch (Exception e)
         {

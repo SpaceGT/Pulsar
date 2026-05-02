@@ -22,6 +22,35 @@ internal static class Sdl3
 
     public const int SDL_WINDOWPOS_CENTERED = unchecked((int)0x2FFF0000);
 
+    // SDL_MessageBoxFlags
+    public const uint SDL_MESSAGEBOX_ERROR = 0x00000010u;
+    public const uint SDL_MESSAGEBOX_WARNING = 0x00000020u;
+    public const uint SDL_MESSAGEBOX_INFORMATION = 0x00000040u;
+
+    // SDL_MessageBoxButtonFlags
+    public const uint SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT = 0x00000001u;
+    public const uint SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT = 0x00000002u;
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SDL_MessageBoxButtonData
+    {
+        public uint flags;
+        public int buttonID;
+        public IntPtr text; // UTF-8, null-terminated
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SDL_MessageBoxData
+    {
+        public uint flags;
+        public IntPtr window;
+        public IntPtr title;   // UTF-8, null-terminated
+        public IntPtr message; // UTF-8, null-terminated
+        public int numbuttons;
+        public IntPtr buttons; // SDL_MessageBoxButtonData[]
+        public IntPtr colorScheme; // null = system default
+    }
+
     [StructLayout(LayoutKind.Sequential)]
     public struct SDL_FRect
     {
@@ -131,6 +160,20 @@ internal static class Sdl3
 
     [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr SDL_LoadBMP(byte[] file);
+
+    [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool SDL_ShowSimpleMessageBox(
+        uint flags, byte[] title, byte[] message, IntPtr window);
+
+    [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool SDL_ShowMessageBox(
+        ref SDL_MessageBoxData messageboxdata, out int buttonid);
+
+    [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool SDL_OpenURL(byte[] url);
 
     // SDL3_ttf 3.x. All calls are wrapped in try/catch at the call site so a
     // missing libSDL3_ttf.so falls back gracefully to SDL_RenderDebugText.

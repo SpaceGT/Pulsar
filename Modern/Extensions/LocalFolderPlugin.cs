@@ -1,5 +1,5 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using System.IO;
+using Pulsar.Shared;
 using Pulsar.Shared.Data;
 
 namespace Pulsar.Modern.Extensions;
@@ -10,6 +10,6 @@ internal static class LocalFolderPluginExtensions
     {
         string folder = Path.GetFullPath(localFolderPlugin.Folder);
         if (Directory.Exists(folder))
-            Process.Start("explorer.exe", $"\"{folder}\"");
+            Tools.OpenInDesktop(folder);
     }
 }
