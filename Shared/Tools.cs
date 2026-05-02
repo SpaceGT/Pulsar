@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
 
@@ -105,22 +106,37 @@ public static class Tools
         Action<string> onOk
     )
     {
-        External.OnMainThread(() => onOk(""));
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                string path = await LinuxFileDialog.OpenFileAsync(title, directory, filter);
+                if (!string.IsNullOrEmpty(path))
+                    External.OnMainThread(() => onOk(path));
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening file dialog: " + e);
+            }
+        });
     }
 
     public static void OpenFolderDialog(Action<string> onOk)
     {
-        Thread t = new(new ThreadStart(() => OpenFolderDialogThread(onOk)));
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
-    }
-
-    private static void OpenFolderDialogThread(Action<string> onOk)
-    {
-        // Prompt the user to select a folder.
-        // Net Core - FolderBrowserDialog supports the modern Vista-style dialog.
-        // Net Framework - We must hack OpenFileDialog to set some internal flags.
-        External.OnMainThread(() => onOk(""));
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+                string path = await LinuxFileDialog.SelectFolderAsync("Select a folder", home);
+                if (!string.IsNullOrEmpty(path))
+                    External.OnMainThread(() => onOk(path));
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening folder dialog: " + e);
+            }
+        });
     }
 
     public static DialogResult ShowMessageBox(
