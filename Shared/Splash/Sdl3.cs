@@ -7,9 +7,12 @@ namespace Pulsar.Shared.Splash;
 // Minimal P/Invoke surface for the SDL3 functions used by the splash screen.
 // Resolves to libSDL3.so via the system loader (ldconfig). The splash assets
 // are embedded as BMP and loaded via SDL_LoadBMP, so SDL3_image is not needed.
+// SDL3_ttf is used for proper text rendering when present; the splash falls
+// back to SDL_RenderDebugText if libSDL3_ttf.so cannot be loaded.
 internal static class Sdl3
 {
     private const string SDL = "SDL3";
+    private const string SDL_TTF = "SDL3_ttf";
 
     public const uint SDL_INIT_VIDEO = 0x00000020u;
 
@@ -26,6 +29,15 @@ internal static class Sdl3
         public float y;
         public float w;
         public float h;
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct SDL_Color
+    {
+        public byte r;
+        public byte g;
+        public byte b;
+        public byte a;
     }
 
     // SDL_Event is a union padded to a fixed 128-byte size in SDL3.
@@ -119,6 +131,25 @@ internal static class Sdl3
 
     [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
     public static extern IntPtr SDL_LoadBMP(byte[] file);
+
+    // SDL3_ttf 3.x. All calls are wrapped in try/catch at the call site so a
+    // missing libSDL3_ttf.so falls back gracefully to SDL_RenderDebugText.
+    [DllImport(SDL_TTF, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool TTF_Init();
+
+    [DllImport(SDL_TTF, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void TTF_Quit();
+
+    [DllImport(SDL_TTF, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr TTF_OpenFont(byte[] file, float ptsize);
+
+    [DllImport(SDL_TTF, CallingConvention = CallingConvention.Cdecl)]
+    public static extern void TTF_CloseFont(IntPtr font);
+
+    [DllImport(SDL_TTF, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr TTF_RenderText_Blended(
+        IntPtr font, byte[] text, UIntPtr length, SDL_Color fg);
 
     public static byte[] Utf8(string s)
     {

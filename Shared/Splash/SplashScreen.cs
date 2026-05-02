@@ -30,6 +30,13 @@ internal sealed class SplashScreen
     private const float TextScale = 2f;
     private const float DebugFontPx = 8f;
 
+    // TTF point size used when SDL3_ttf is available.
+    private const float FontPtSize = 14f;
+
+    // The font file shipped as an embedded resource alongside the splash
+    // assets. Extracted to a temp file at startup and opened via TTF_OpenFont.
+    private const string FontResourceName = "NotoSans-Regular.ttf";
+
     private readonly object stateLock = new();
     private string title = "Pulsar";
     private string text = "";
@@ -88,7 +95,13 @@ internal sealed class SplashScreen
         float throbberW = 0, throbberH = 0;
         string logoPath = null;
         string throbberPath = null;
+        string fontPath = null;
         bool sdlInited = false;
+        bool ttfInited = false;
+        IntPtr font = IntPtr.Zero;
+        IntPtr cachedTextTex = IntPtr.Zero;
+        string cachedText = null;
+        float cachedTextW = 0, cachedTextH = 0;
         string lastTitle = null;
 
         try
@@ -123,6 +136,11 @@ internal sealed class SplashScreen
 
             (logoTex, logoW, logoH) = LoadTexture(renderer, logoPath);
             (throbberTex, throbberW, throbberH) = LoadTexture(renderer, throbberPath);
+
+            // Optional: load SDL3_ttf and the embedded Noto Sans font. If
+            // anything fails the splash falls back to SDL_RenderDebugText.
+            fontPath = ExtractEmbedded(FontResourceName);
+            (ttfInited, font) = TryLoadFont(fontPath);
         }
         catch
         {
@@ -136,7 +154,8 @@ internal sealed class SplashScreen
 
         if (renderer == IntPtr.Zero)
         {
-            Cleanup(window, renderer, logoTex, throbberTex, logoPath, throbberPath, sdlInited);
+            Cleanup(window, renderer, logoTex, throbberTex, cachedTextTex, font,
+                logoPath, throbberPath, fontPath, sdlInited, ttfInited);
             return;
         }
 
@@ -159,7 +178,8 @@ internal sealed class SplashScreen
 
                 while (Sdl3.SDL_PollEvent(out _)) { }
 
-                Render(renderer, logoTex, logoW, logoH, throbberTex, throbberW, throbberH);
+                Render(renderer, logoTex, logoW, logoH, throbberTex, throbberW, throbberH,
+                    font, ref cachedTextTex, ref cachedText, ref cachedTextW, ref cachedTextH);
 
                 Thread.Sleep(33); // ~30 FPS
             }
@@ -170,13 +190,17 @@ internal sealed class SplashScreen
         }
         finally
         {
-            Cleanup(window, renderer, logoTex, throbberTex, logoPath, throbberPath, sdlInited);
+            Cleanup(window, renderer, logoTex, throbberTex, cachedTextTex, font,
+                logoPath, throbberPath, fontPath, sdlInited, ttfInited);
         }
     }
 
     private void Render(IntPtr renderer,
                         IntPtr logoTex, float logoW, float logoH,
-                        IntPtr throbberTex, float throbberW, float throbberH)
+                        IntPtr throbberTex, float throbberW, float throbberH,
+                        IntPtr font,
+                        ref IntPtr cachedTextTex, ref string cachedText,
+                        ref float cachedTextW, ref float cachedTextH)
     {
         string textCopy;
         float bar;
@@ -208,18 +232,50 @@ internal sealed class SplashScreen
         // Progress text: middle row, full width.
         if (!string.IsNullOrEmpty(textCopy))
         {
-            float textPx = DebugFontPx * TextScale;
-            float textW = textCopy.Length * textPx;
             float textRowY = Padding + ImagesHeight;
 
-            // Coordinates are pre-scale because we set a uniform render scale.
-            float xScaled = (WindowWidth - textW) * 0.5f / TextScale;
-            float yScaled = (textRowY + (TextRowHeight - textPx) * 0.5f) / TextScale;
+            if (font != IntPtr.Zero)
+            {
+                // Re-render to texture only when the text actually changes.
+                if (cachedText != textCopy)
+                {
+                    if (cachedTextTex != IntPtr.Zero)
+                    {
+                        Sdl3.SDL_DestroyTexture(cachedTextTex);
+                        cachedTextTex = IntPtr.Zero;
+                    }
+                    cachedText = textCopy;
+                    (cachedTextTex, cachedTextW, cachedTextH) =
+                        RenderTextTexture(renderer, font, textCopy);
+                }
 
-            Sdl3.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            Sdl3.SDL_SetRenderScale(renderer, TextScale, TextScale);
-            Sdl3.SDL_RenderDebugText(renderer, xScaled, yScaled, Sdl3.Utf8(textCopy));
-            Sdl3.SDL_SetRenderScale(renderer, 1f, 1f);
+                if (cachedTextTex != IntPtr.Zero)
+                {
+                    Sdl3.SDL_FRect dst = new()
+                    {
+                        x = (WindowWidth - cachedTextW) * 0.5f,
+                        y = textRowY + (TextRowHeight - cachedTextH) * 0.5f,
+                        w = cachedTextW,
+                        h = cachedTextH,
+                    };
+                    Sdl3.SDL_RenderTexture(renderer, cachedTextTex, IntPtr.Zero, ref dst);
+                }
+            }
+            else
+            {
+                // SDL3_ttf unavailable — fall back to the built-in 8x8 bitmap font.
+                float textPx = DebugFontPx * TextScale;
+                float textW = textCopy.Length * textPx;
+
+                // Coordinates are pre-scale because we set a uniform render scale.
+                float xScaled = (WindowWidth - textW) * 0.5f / TextScale;
+                float yScaled = (textRowY + (TextRowHeight - textPx) * 0.5f) / TextScale;
+
+                Sdl3.SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+                Sdl3.SDL_SetRenderScale(renderer, TextScale, TextScale);
+                Sdl3.SDL_RenderDebugText(renderer, xScaled, yScaled, Sdl3.Utf8(textCopy));
+                Sdl3.SDL_SetRenderScale(renderer, 1f, 1f);
+            }
         }
 
         // Progress bar: bottom row, full width. Background DimGray, fill white
@@ -260,6 +316,63 @@ internal sealed class SplashScreen
             h = h
         };
         Sdl3.SDL_RenderTexture(renderer, tex, IntPtr.Zero, ref dst);
+    }
+
+    // Inits SDL3_ttf and opens the embedded font extracted to fontPath.
+    // Returns (ttfInited, font). On any failure (libSDL3_ttf.so missing,
+    // TTF_Init failure, font extraction failed, TTF_OpenFont failure) returns
+    // (false, IntPtr.Zero) and the splash uses SDL_RenderDebugText instead.
+    private static (bool ttfInited, IntPtr font) TryLoadFont(string fontPath)
+    {
+        if (fontPath == null) return (false, IntPtr.Zero);
+        bool inited = false;
+        try
+        {
+            if (!Sdl3.TTF_Init())
+                return (false, IntPtr.Zero);
+            inited = true;
+
+            IntPtr font = Sdl3.TTF_OpenFont(Sdl3.Utf8(fontPath), FontPtSize);
+            if (font != IntPtr.Zero)
+                return (true, font);
+
+            // TTF inited but font failed to open; tear down so cleanup doesn't
+            // double-quit.
+            Sdl3.TTF_Quit();
+            return (false, IntPtr.Zero);
+        }
+        catch
+        {
+            if (inited)
+            {
+                try { Sdl3.TTF_Quit(); } catch { }
+            }
+            return (false, IntPtr.Zero);
+        }
+    }
+
+    private static (IntPtr tex, float w, float h) RenderTextTexture(
+        IntPtr renderer, IntPtr font, string text)
+    {
+        try
+        {
+            byte[] bytes = Sdl3.Utf8(text);
+            // bytes is null-terminated; pass the byte length excluding the
+            // terminator.
+            UIntPtr length = (UIntPtr)(bytes.Length - 1);
+            Sdl3.SDL_Color white = new() { r = 255, g = 255, b = 255, a = 255 };
+            IntPtr surf = Sdl3.TTF_RenderText_Blended(font, bytes, length, white);
+            if (surf == IntPtr.Zero) return (IntPtr.Zero, 0, 0);
+            IntPtr tex = Sdl3.SDL_CreateTextureFromSurface(renderer, surf);
+            Sdl3.SDL_DestroySurface(surf);
+            if (tex == IntPtr.Zero) return (IntPtr.Zero, 0, 0);
+            Sdl3.SDL_GetTextureSize(tex, out float w, out float h);
+            return (tex, w, h);
+        }
+        catch
+        {
+            return (IntPtr.Zero, 0, 0);
+        }
     }
 
     private static (IntPtr tex, float w, float h) LoadTexture(IntPtr renderer, string path)
@@ -309,11 +422,13 @@ internal sealed class SplashScreen
 
     private static void Cleanup(IntPtr window, IntPtr renderer,
                                 IntPtr logoTex, IntPtr throbberTex,
-                                string logoPath, string throbberPath,
-                                bool sdlInited)
+                                IntPtr cachedTextTex, IntPtr font,
+                                string logoPath, string throbberPath, string fontPath,
+                                bool sdlInited, bool ttfInited)
     {
         try
         {
+            if (cachedTextTex != IntPtr.Zero) Sdl3.SDL_DestroyTexture(cachedTextTex);
             if (logoTex != IntPtr.Zero) Sdl3.SDL_DestroyTexture(logoTex);
             if (throbberTex != IntPtr.Zero) Sdl3.SDL_DestroyTexture(throbberTex);
             if (renderer != IntPtr.Zero) Sdl3.SDL_DestroyRenderer(renderer);
@@ -324,8 +439,21 @@ internal sealed class SplashScreen
         {
         }
 
+        if (ttfInited)
+        {
+            try
+            {
+                if (font != IntPtr.Zero) Sdl3.TTF_CloseFont(font);
+                Sdl3.TTF_Quit();
+            }
+            catch
+            {
+            }
+        }
+
         TryDelete(logoPath);
         TryDelete(throbberPath);
+        TryDelete(fontPath);
     }
 
     private static void TryDelete(string path)
