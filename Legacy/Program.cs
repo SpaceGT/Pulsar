@@ -42,6 +42,7 @@ static class Program
         AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([libraryDir, runtimeDir]);
         AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(baseDir);
         SetupSteamNativeResolver(baseDir);
+        SetupSdlNativeResolver(baseDir);
 
         PulsarMain(args);
     }
@@ -255,6 +256,59 @@ static class Program
                 if (NativeLibrary.TryLoad(path, out IntPtr handle))
                     return handle;
             }
+            return IntPtr.Zero;
+        });
+    }
+
+    // Maps the splash's [DllImport("SDL3")] / [DllImport("SDL3_ttf")] to the
+    // versioned sonames most Linux distros ship (libSDL3.so.0 /
+    // libSDL3_ttf.so.0) and probes Pulsar's bundled Libraries dir plus the
+    // common Steam runtime locations. Without this, .NET only tries
+    // libSDL3_ttf.so (no version suffix), which most distros don't install.
+    private static void SetupSdlNativeResolver(string baseDir)
+    {
+        Assembly sharedAssembly = typeof(Pulsar.Shared.Splash.SplashManager).Assembly;
+        string home = Environment.GetEnvironmentVariable("HOME") ?? "";
+        string[] extraSearchDirs =
+        [
+            Path.Combine(baseDir, "..", "Libraries"), // Pulsar/Libraries (sibling of Bin)
+            Path.Combine(baseDir, "Libraries"),       // fallback
+            Path.Combine(home, ".steam", "debian-installation", "ubuntu12_64"),
+            Path.Combine(home, ".steam", "debian-installation", "steamrt64"),
+            Path.Combine(home, ".steam", "steam", "ubuntu12_64"),
+            Path.Combine(home, ".steam", "steam", "steamrt64"),
+            Path.Combine(home, ".local", "share", "Steam", "ubuntu12_64"),
+        ];
+
+        NativeLibrary.SetDllImportResolver(sharedAssembly, (name, assembly, searchPath) =>
+        {
+            string[] candidates;
+            switch (name)
+            {
+                case "SDL3":
+                    candidates = ["libSDL3.so", "libSDL3.so.0"];
+                    break;
+                case "SDL3_ttf":
+                    candidates = ["libSDL3_ttf.so", "libSDL3_ttf.so.0"];
+                    break;
+                default:
+                    return IntPtr.Zero;
+            }
+
+            // First try the default loader path (LD_LIBRARY_PATH + ldconfig).
+            foreach (string c in candidates)
+                if (NativeLibrary.TryLoad(c, assembly, searchPath, out IntPtr handle))
+                    return handle;
+
+            // Then try absolute paths in known fallback locations.
+            foreach (string dir in extraSearchDirs)
+                foreach (string c in candidates)
+                {
+                    string full = Path.Combine(dir, c);
+                    if (NativeLibrary.TryLoad(full, out IntPtr handle))
+                        return handle;
+                }
+
             return IntPtr.Zero;
         });
     }
