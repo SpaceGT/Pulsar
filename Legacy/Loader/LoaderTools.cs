@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using HarmonyLib;
 using Pulsar.Shared;
@@ -135,12 +136,23 @@ public static class LoaderTools
     public static void Restart(bool autoRejoin = false, bool? debugger = null)
     {
         Shared.Launcher.Mutex.Close();
-        Start(autoRejoin, debugger ?? Debugger.IsAttached);
+        ExecSelf(autoRejoin, debugger ?? Debugger.IsAttached);
+        // execv only returns on failure; if we get here, fall back to killing the process
         Process.GetCurrentProcess().Kill();
     }
 
-    private static void Start(bool autoRejoin, bool debugger)
+    /// <summary>
+    /// Replaces the current process image with a fresh invocation of the same executable
+    /// using the Linux execv(2) syscall. On success this call does not return.
+    /// </summary>
+    private static void ExecSelf(bool autoRejoin, bool debugger)
     {
+        string executable =
+            Environment.ProcessPath
+            ?? throw new InvalidOperationException(
+                "Cannot determine current executable path for restart"
+            );
+
         // First "argument" is the invoked executable
         List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
 
@@ -152,8 +164,23 @@ public static class LoaderTools
         if (debugger)
             args.Add(DebugArg);
 
-        Process.GetCurrentProcess().Kill();
+        // execv expects argv[0] to be the program name (conventionally the executable path)
+        // and the array to be terminated with a null pointer.
+        string[] argv = new string[args.Count + 2];
+        argv[0] = executable;
+        for (int i = 0; i < args.Count; i++)
+            argv[i + 1] = args[i];
+        argv[args.Count + 1] = null;
+
+        execv(executable, argv);
+
+        // Only reached on failure
+        int errno = Marshal.GetLastWin32Error();
+        LogFile.WriteLine($"execv failed for {executable} (errno={errno})");
     }
+
+    [DllImport("libc", SetLastError = true)]
+    private static extern int execv(string path, string[] argv);
 
     /// <summary>
     /// This method attempts to disable JIT compiling for the assembly.
