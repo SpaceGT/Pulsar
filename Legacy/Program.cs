@@ -221,6 +221,14 @@ static class Program
             preloader.PreHooks();
             preloader.Patch(bin64Dir, preloadDir);
             SetupGameResolver();
+
+            // Fully tear down Pulsar's SDL splash before any plugin PostHook
+            // runs. LinuxCompat.dll's PostHook calls SDL_Init, which would
+            // conflict with our still-active window/renderer/X11 connection.
+            // Delete() blocks until the splash thread joins and SDL_Quit has
+            // completed.
+            SplashManager.Instance?.Delete();
+
             preloader.PostHooks();
         }
         else
