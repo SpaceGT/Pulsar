@@ -242,7 +242,7 @@ static class Program
 #else
         string bin64Dir = ConfigManager.Instance.GameDir;
         bool isGameFramework = Tools.GetFiles(bin64Dir, ["*.config"], []).Any();
-        return isGameFramework ? ["se-dotnet-compat", "LinuxCompat.dll"] : [];
+        return isGameFramework ? ["se-dotnet-compat", "se-linux-compat"] : [];
 #endif
     }
 
