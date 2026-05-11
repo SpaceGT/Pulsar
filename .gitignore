@@ -360,5 +360,10 @@ MigrationBackup/
 
 # JetBrains Rider project files
 .idea/
-
 .editorconfig
+
+# Packaging build state (flatpak builder dir, staged 7z trees)
+/build/
+
+# Packaging output (.7z, .flatpak)
+/dist/
