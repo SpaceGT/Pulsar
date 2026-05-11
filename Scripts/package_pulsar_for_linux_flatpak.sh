@@ -346,7 +346,7 @@ finish-args:
   # Pulsar config / logs: mount the host's real ~/.config/Pulsar so the
   # user can read PulsarLogs/info.log and edit Sources/, Profiles/, and
   # any side-loaded Local/*.dll just like with the developer 7z bundle.
-  - --filesystem=~/.config/Pulsar
+  - --filesystem=~/.config/Pulsar:create
   # System notifications
   - --talk-name=org.freedesktop.Notifications
   # Default env
