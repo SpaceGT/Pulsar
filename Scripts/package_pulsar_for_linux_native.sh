@@ -147,6 +147,7 @@ export DXVK_WSI_DRIVER="${DXVK_WSI_DRIVER:-SDL3}"
 # FFmpeg, OpenAL). The host's /usr/lib/... is searched last via the loader's
 # default path, leaving glibc / libstdc++ / Mesa / libssl / libicu to the
 # host as intended.
+mkdir -p "$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets"
 export LD_LIBRARY_PATH="$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets/:${LD_LIBRARY_PATH:-}"
 
 export SteamAppId=244850

@@ -201,6 +201,7 @@ export SteamAppId=244850
 # LinuxCompat's native assets (built from source by Pulsar on first run)
 # provide all binary dependencies (DXVK, native-wrappers, gaming-platforms,
 # FFmpeg, OpenAL).
+mkdir -p "$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets"
 export LD_LIBRARY_PATH="$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets/:${LD_LIBRARY_PATH:-}"
 
 # SE resolves its user-data dir via .NET's
