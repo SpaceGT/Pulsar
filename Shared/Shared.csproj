@@ -39,6 +39,7 @@
     <ProjectReference Include="..\Compiler\Compiler.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Splash\icon.ico" />
     <EmbeddedResource Include="Splash\text.bmp" />
     <EmbeddedResource Include="Splash\throbber.bmp" />
     <EmbeddedResource Include="Splash\NotoSans-Regular.ttf" />

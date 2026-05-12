@@ -162,6 +162,13 @@ internal static class Sdl3
     public static extern IntPtr SDL_LoadBMP(byte[] file);
 
     [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
+    public static extern IntPtr SDL_CreateSurfaceFrom(int width, int height, uint format, IntPtr pixels, int pitch);
+
+    [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
+    [return: MarshalAs(UnmanagedType.I1)]
+    public static extern bool SDL_SetWindowIcon(IntPtr window, IntPtr surface);
+
+    [DllImport(SDL, CallingConvention = CallingConvention.Cdecl)]
     [return: MarshalAs(UnmanagedType.I1)]
     public static extern bool SDL_ShowSimpleMessageBox(
         uint flags, byte[] title, byte[] message, IntPtr window);

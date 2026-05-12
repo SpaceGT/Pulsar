@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading;
 
 namespace Pulsar.Shared.Splash;
@@ -116,6 +117,10 @@ internal sealed class SplashScreen
             if (window == IntPtr.Zero) return;
 
             Sdl3.SDL_SetWindowPosition(window, Sdl3.SDL_WINDOWPOS_CENTERED, Sdl3.SDL_WINDOWPOS_CENTERED);
+
+            // Set window icon before showing so the taskbar picks it up
+            // on first map (X11 _NET_WM_ICON / Wayland xdg_toplevel).
+            TrySetWindowIcon(window);
 
             // Force the software renderer. The default (GL) backend pulls Steam's
             // overlay/fossilize layers into the splash thread and conflicts with
@@ -461,5 +466,193 @@ internal sealed class SplashScreen
         if (path == null) return;
         try { if (File.Exists(path)) File.Delete(path); }
         catch { }
+    }
+
+    // ICO loading and SDL_SetWindowIcon plumbing. Ported from the
+    // LinuxCompat plugin's SdlIconHelper so the splash window gets a
+    // proper taskbar icon on X11 (_NET_WM_ICON) and Wayland.
+
+    private const uint SdlPixelFormatBgra32 = 0x16862004u;
+
+    private static void TrySetWindowIcon(IntPtr window)
+    {
+        try
+        {
+            Assembly asm = typeof(SplashScreen).Assembly;
+            string resName = asm.GetManifestResourceNames()
+                .FirstOrDefault(n => n.EndsWith("icon.ico", StringComparison.OrdinalIgnoreCase));
+            if (resName == null) return;
+
+            using Stream s = asm.GetManifestResourceStream(resName);
+            if (s == null) return;
+
+            if (!TryLoadIcoSurface(s, out byte[] pixels, out int w, out int h, out int pitch))
+                return;
+
+            GCHandle pin = GCHandle.Alloc(pixels, GCHandleType.Pinned);
+            try
+            {
+                IntPtr surface = Sdl3.SDL_CreateSurfaceFrom(w, h, SdlPixelFormatBgra32, pin.AddrOfPinnedObject(), pitch);
+                if (surface == IntPtr.Zero) return;
+                try
+                {
+                    Sdl3.SDL_SetWindowIcon(window, surface);
+                }
+                finally
+                {
+                    Sdl3.SDL_DestroySurface(surface);
+                }
+            }
+            finally
+            {
+                pin.Free();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"WARNING: Failed to set splash window icon: {ex}");
+        }
+    }
+
+    private static bool TryLoadIcoSurface(Stream stream, out byte[] pixelData, out int width, out int height, out int pitch)
+    {
+        pixelData = null;
+        width = 0;
+        height = 0;
+        pitch = 0;
+
+        using BinaryReader reader = new BinaryReader(stream);
+
+        // ICO header: reserved (0), type (1 = icon), image count.
+        if (reader.ReadUInt16() != 0 || reader.ReadUInt16() != 1)
+            return false;
+
+        int imageCount = reader.ReadUInt16();
+        if (imageCount <= 0)
+            return false;
+
+        // Read directory entries.
+        var entries = new IcoEntry[imageCount];
+        for (int i = 0; i < imageCount; i++)
+        {
+            byte bw = reader.ReadByte();
+            byte bh = reader.ReadByte();
+            entries[i] = new IcoEntry
+            {
+                Width = bw == 0 ? 256 : bw,
+                Height = bh == 0 ? 256 : bh,
+                ColorCount = reader.ReadByte(),
+                Reserved = reader.ReadByte(),
+                Planes = reader.ReadUInt16(),
+                BitCount = reader.ReadUInt16(),
+                BytesInRes = reader.ReadUInt32(),
+                ImageOffset = reader.ReadUInt32()
+            };
+        }
+
+        // Pick the highest-quality entry (largest area × bit depth).
+        Array.Sort(entries, (a, b) =>
+        {
+            int sa = a.Width * a.Height * Math.Max((int)a.BitCount, 1);
+            int sb = b.Width * b.Height * Math.Max((int)b.BitCount, 1);
+            return sb.CompareTo(sa);
+        });
+
+        for (int i = 0; i < entries.Length; i++)
+        {
+            if (TryDecodeIcoEntry(stream, entries[i], out pixelData, out width, out height, out pitch))
+                return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryDecodeIcoEntry(Stream stream, IcoEntry entry, out byte[] pixelData, out int width, out int height, out int pitch)
+    {
+        pixelData = null;
+        width = 0;
+        height = 0;
+        pitch = 0;
+
+        if (entry.ImageOffset == 0 || entry.BytesInRes < 40)
+            return false;
+
+        stream.Position = entry.ImageOffset;
+        using BinaryReader reader = new BinaryReader(stream);
+
+        uint headerSize = reader.ReadUInt32();
+        if (headerSize < 40) return false;
+
+        int dibWidth = reader.ReadInt32();
+        int dibHeight = reader.ReadInt32();
+        reader.ReadUInt16(); // planes
+        ushort bitsPerPixel = reader.ReadUInt16();
+        uint compression = reader.ReadUInt32();
+
+        // Only handle uncompressed 32-bit BGRA entries.
+        if (compression != 0 || bitsPerPixel != 32 || dibWidth <= 0 || dibHeight <= 0)
+            return false;
+
+        // Skip remaining BITMAPINFOHEADER fields.
+        reader.ReadUInt32(); // biSizeImage
+        reader.ReadInt32();  // biXPelsPerMeter
+        reader.ReadInt32();  // biYPelsPerMeter
+        reader.ReadUInt32(); // biClrUsed
+        reader.ReadUInt32(); // biClrImportant
+
+        width = dibWidth;
+        height = dibHeight / 2; // ICO stores double-height (XOR + AND mask).
+        pitch = width * 4;
+        pixelData = new byte[pitch * height];
+
+        int xorStride = ((width * bitsPerPixel + 31) / 32) * 4;
+        byte[] xorData = reader.ReadBytes(xorStride * height);
+        int andStride = ((width + 31) / 32) * 4;
+        byte[] andMask = reader.ReadBytes(andStride * height);
+
+        if (xorData.Length < xorStride * height)
+        {
+            pixelData = null;
+            return false;
+        }
+
+        // Flip bottom-up rows to top-down and apply the AND mask for
+        // entries that carry transparency there instead of in alpha.
+        for (int y = 0; y < height; y++)
+        {
+            int srcRow = (height - 1 - y) * xorStride;
+            int maskRow = (height - 1 - y) * andStride;
+            int dstRow = y * pitch;
+            for (int x = 0; x < width; x++)
+            {
+                int si = srcRow + x * 4;
+                int di = dstRow + x * 4;
+                pixelData[di] = xorData[si];
+                pixelData[di + 1] = xorData[si + 1];
+                pixelData[di + 2] = xorData[si + 2];
+                byte alpha = xorData[si + 3];
+                if (alpha == 0 && andMask.Length >= andStride * height)
+                {
+                    int maskByte = andMask[maskRow + x / 8];
+                    bool transparent = ((maskByte >> (7 - x % 8)) & 1) != 0;
+                    alpha = transparent ? (byte)0 : byte.MaxValue;
+                }
+                pixelData[di + 3] = alpha;
+            }
+        }
+
+        return true;
+    }
+
+    private struct IcoEntry
+    {
+        public int Width;
+        public int Height;
+        public byte ColorCount;
+        public byte Reserved;
+        public ushort Planes;
+        public ushort BitCount;
+        public uint BytesInRes;
+        public uint ImageOffset;
     }
 }
