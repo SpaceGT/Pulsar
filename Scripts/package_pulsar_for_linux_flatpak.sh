@@ -361,6 +361,18 @@ finish-args:
   - --filesystem=~/.local/share/vulkan:ro
   - --env=VK_ADD_LAYER_PATH=/run/host/home/.local/share/vulkan/implicit_layer.d
 modules:
+  # Silk.NET audio (used by se-linux-compat) requires libopenal at runtime.
+  # The freedesktop Platform runtime does not ship it, so build it here.
+  - name: openal-soft
+    buildsystem: cmake-ninja
+    config-opts:
+      - -DALSOFT_UTILS=OFF
+      - -DALSOFT_EXAMPLES=OFF
+      - -DALSOFT_INSTALL_CONFIG=OFF
+    sources:
+      - type: archive
+        url: https://openal-soft.org/openal-releases/openal-soft-1.25.2.tar.bz2
+        sha256: 1dbaac44e7579d5bc8847ca8db4b2e8b9fd3961041f35ee20def4958301e1089
   - name: pulsar
     buildsystem: simple
     sources:
