@@ -197,6 +197,7 @@ export SPACE_ENGINEERS_ROOT="$SE_ROOT"
 export DXVK_ADAPTER="${DXVK_ADAPTER:-1}"
 export DXVK_WSI_DRIVER="${DXVK_WSI_DRIVER:-SDL3}"
 export SteamAppId=244850
+export ALSOFT_DRIVERS="${ALSOFT_DRIVERS:-pulse,alsa,oss,sndio,}"
 
 # LinuxCompat's native assets (built from source by Pulsar on first run)
 # provide all binary dependencies (DXVK, native-wrappers, gaming-platforms,
@@ -342,7 +343,7 @@ finish-args:
   # SE save/config/log dir. The launcher re-points XDG_CONFIG_HOME at
   # $HOME/.config so SE's ApplicationData lookup lands here instead of
   # the Flatpak-default ~/.var/app/<app-id>/config/.
-  - --filesystem=~/.config/SpaceEngineers
+  - --filesystem=~/.config/SpaceEngineers:create
   # Pulsar config / logs: mount the host's real ~/.config/Pulsar so the
   # user can read PulsarLogs/info.log and edit Sources/, Profiles/, and
   # any side-loaded Local/*.dll just like with the developer 7z bundle.
@@ -352,6 +353,7 @@ finish-args:
   # Default env
   - --env=SteamAppId=244850
   - --env=DXVK_WSI_DRIVER=SDL3
+  - --env=ALSOFT_DRIVERS=pulse,alsa,oss,sndio,
   # Steam overlay: enable the Vulkan implicit layer and expose the host's
   # Vulkan layer manifest dir so the Flatpak's Vulkan loader can find
   # steamoverlay_x86_64.json. The .so itself is reached via the loader's
