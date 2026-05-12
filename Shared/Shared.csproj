@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Steamworks.NET">
-      <HintPath>..\SteamLibs\Steamworks.NET.dll</HintPath>
+      <HintPath>..\Libraries\Steamworks.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
 </Project>
