@@ -151,6 +151,7 @@ mkdir -p "$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets"
 export LD_LIBRARY_PATH="$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets/:${LD_LIBRARY_PATH:-}"
 
 export SteamAppId=244850
+export ALSOFT_DRIVERS="${ALSOFT_DRIVERS:-pulse,alsa,oss,sndio,}"
 
 # Steam overlay --------------------------------------------------------------
 # Replicate the env-var setup Steam normally injects when launching a game,
