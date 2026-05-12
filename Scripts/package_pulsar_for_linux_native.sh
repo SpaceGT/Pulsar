@@ -112,8 +112,9 @@ pulsar_pkg_extract_icons "$PKG_ROOT/icons" pulsar
 cat > "$PULSAR_ROOT/Interim" <<'EOF'
 #!/usr/bin/env bash
 # Interim - Native variant launcher. Runs Pulsar/SE on the host directly.
-# Native binary deps are provided by LinuxCompat (built from source by
-# Pulsar on first run); everything else (glibc, libssl, libicu, libstdc++,
+# Native binary deps (DXVK, FFmpeg, Havok, Recast, EOS, Steam, VRageNative,
+# ...) ship next to the apphost in Bin/ and are resolved by .NET's
+# DllImport resolver; everything else (glibc, libssl, libicu, libstdc++,
 # Mesa) comes from the host. Requires .NET 10 installed system-wide.
 #
 # Usage:   ~/.local/share/Pulsar/Interim [extra Pulsar args]
@@ -139,16 +140,12 @@ if pgrep -x Interim >/dev/null 2>&1; then
 fi
 
 # Environment for DXVK + native libs -----------------------------------------
+# All native binary dependencies (DXVK, FFmpeg, Havok, Recast, EOS, Steam,
+# VRageNative, ...) are now shipped in $PKG_DIR/Bin/ next to the Interim
+# apphost. .NET's DllImport resolver finds them there automatically, so no
+# LD_LIBRARY_PATH is needed.
 export DXVK_ADAPTER="${DXVK_ADAPTER:-1}"
 export DXVK_WSI_DRIVER="${DXVK_WSI_DRIVER:-SDL3}"
-
-# LinuxCompat's native assets (built from source by Pulsar on first run)
-# provide all binary dependencies (DXVK, native-wrappers, gaming-platforms,
-# FFmpeg, OpenAL). The host's /usr/lib/... is searched last via the loader's
-# default path, leaving glibc / libstdc++ / Mesa / libssl / libicu to the
-# host as intended.
-mkdir -p "$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets"
-export LD_LIBRARY_PATH="$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets/:${LD_LIBRARY_PATH:-}"
 
 export SteamAppId=244850
 export ALSOFT_DRIVERS="${ALSOFT_DRIVERS:-pulse,alsa,oss,sndio,}"
@@ -521,7 +518,14 @@ ARCHIVE_PATH="$OUTPUT_DIR/$ARCHIVE_NAME"
 rm -f "$ARCHIVE_PATH"
 
 echo "==> Packing $ARCHIVE_NAME"
-( cd "$BUILD_DIR" && 7z a -t7z -mx=9 -bso0 -bsp1 "$ARCHIVE_PATH" "PulsarForLinux-$VARIANT" >/dev/null )
+# -snl: store symlinks AS symlinks (default is to dereference them, which
+# would turn each FFmpeg sover-name link [libavcodec.so -> libavcodec.so.62
+# -> libavcodec.so.62.28.100, etc.] into a separate real copy of the target
+# at extract time. dlopen()'s inode-based dedup would then load two
+# distinct instances of libavcodec into the process, doubling memory and
+# risking static-state corruption in FFmpeg's singletons.) Extraction with
+# `7z x` auto-restores the symlinks; no flag is needed on the unpack side.
+( cd "$BUILD_DIR" && 7z a -t7z -snl -mx=9 -bso0 -bsp1 "$ARCHIVE_PATH" "PulsarForLinux-$VARIANT" >/dev/null )
 
 echo
 echo "Done: $ARCHIVE_PATH"

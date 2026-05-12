@@ -9,7 +9,6 @@
       <env name="DOTNET_DbgEnableMiniDump" value="1" />
       <env name="DXVK_ADAPTER" value="1" />
       <env name="DXVK_WSI_DRIVER" value="SDL3" />
-      <env name="LD_LIBRARY_PATH" value="$PROJECT_DIR$/../se-linux-compat/Assets/:$LD_LIBRARY_PATH" />
       <env name="SPACE_ENGINEERS_ROOT" value="$USER_HOME$/.steam/steam/steamapps/common/SpaceEngineers" />
       <env name="SteamAppId" value="244850" />
     </envs>

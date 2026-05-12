@@ -199,11 +199,10 @@ export DXVK_WSI_DRIVER="${DXVK_WSI_DRIVER:-SDL3}"
 export SteamAppId=244850
 export ALSOFT_DRIVERS="${ALSOFT_DRIVERS:-pulse,alsa,oss,sndio,}"
 
-# LinuxCompat's native assets (built from source by Pulsar on first run)
-# provide all binary dependencies (DXVK, native-wrappers, gaming-platforms,
-# FFmpeg, OpenAL).
-mkdir -p "$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets"
-export LD_LIBRARY_PATH="$HOME/.config/Pulsar/GitHub/viktor-ferenczi/se-linux-compat/Assets/:${LD_LIBRARY_PATH:-}"
+# All native binary dependencies (DXVK, FFmpeg, Havok, Recast, EOS, Steam,
+# VRageNative, ...) are shipped next to the Interim apphost in
+# /app/lib/pulsar/Bin/ and resolved by .NET's DllImport resolver, so no
+# LD_LIBRARY_PATH is needed.
 
 # SE resolves its user-data dir via .NET's
 # Environment.SpecialFolder.ApplicationData, which on Linux maps to
@@ -223,39 +222,10 @@ mkdir -p "$HOME/.config/SpaceEngineers"
 
 cd "$PKG_DIR/Bin"
 
-# Steam overlay (see Native launcher for rationale).
-# Opt out: pass -nosteamoverlay or set PULSAR_NO_STEAM_OVERLAY=1 to skip
-# the LD_PRELOAD entirely. The flag is filtered out before exec'ing the
-# apphost.
-PULSAR_NO_STEAM_OVERLAY="${PULSAR_NO_STEAM_OVERLAY:-}"
-FILTERED_ARGS=()
-for arg in "$@"; do
-    if [ "$arg" = "-nosteamoverlay" ]; then
-        PULSAR_NO_STEAM_OVERLAY=1
-    else
-        FILTERED_ARGS+=("$arg")
-    fi
-done
-set -- ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}
-
-if [ -n "$PULSAR_NO_STEAM_OVERLAY" ]; then
-    echo "Steam overlay: disabled (-nosteamoverlay / PULSAR_NO_STEAM_OVERLAY)" >&2
-else
-    STEAM_ROOT_CANDIDATES=(
-        "$HOME/.steam/root"
-        "$HOME/.steam/steam"
-        "$HOME/.local/share/Steam"
-    )
-    for steam_root in "${STEAM_ROOT_CANDIDATES[@]}"; do
-        overlay64="$steam_root/ubuntu12_64/gameoverlayrenderer.so"
-        if [ -f "$overlay64" ]; then
-            export LD_PRELOAD="$overlay64${LD_PRELOAD:+:$LD_PRELOAD}"
-            export SteamGameId="${SteamGameId:-244850}"
-            echo "Steam overlay: enabled (hooks from $steam_root)" >&2
-            break
-        fi
-    done
-fi
+# Steam overlay LD_PRELOAD is not honored across the Flatpak sandbox boundary
+# (gameoverlayrenderer.so lives in the host's Steam install and has unmet
+# library deps under the freedesktop runtime), so it is not set up here.
+# See the Native launcher for the working LD_PRELOAD hookup.
 
 exec "$INTERIM" "$@"
 LAUNCHER_EOF
