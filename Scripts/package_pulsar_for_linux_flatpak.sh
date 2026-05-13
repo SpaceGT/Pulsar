@@ -237,8 +237,8 @@ cat > "$SRC_DIR/$APP_ID.desktop" <<DESKTOP_EOF
 [Desktop Entry]
 Type=Application
 Version=1.0
-Name=Pulsar
-GenericName=Space Engineers Launcher
+Name=Pulsar (Flatpak)
+GenericName=Space Engineers Launcher (Native Linux)
 Comment=Space Engineers Launcher (Native Linux)
 Exec=pulsar -keepintro
 Icon=$APP_ID
