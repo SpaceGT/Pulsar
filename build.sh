@@ -4,6 +4,9 @@
 # Top-level orchestrator: builds & packages every distributable in this repo.
 #
 # Pipeline (in order):
+#   0. Scripts/build_dependencies.sh
+#         build/Libraries/ <- FFmpeg + DXVK + native wrappers + Steamworks.NET
+#         + Vendor/ blobs (EOS SDK, Steamworks SDK) + Scripts/Licenses/.
 #   1. Scripts/package_pulsar_for_linux_native.sh
 #         developer 7z bundle -> dist/PulsarForLinux-Native.<date>.<sha>.7z
 #   2. Scripts/package_pulsar_for_linux_flatpak.sh
@@ -15,6 +18,8 @@
 #
 # Usage:
 #   ./build.sh                  Build everything.
+#   ./build.sh --skip-deps      Skip phase 0 (assume build/Libraries/ is current).
+#   ./build.sh --deps-only      Only run phase 0 (no packaging).
 #   ./build.sh --native-only    Skip the Flatpak step (faster dev iteration).
 #   ./build.sh --flatpak-only   Skip the 7z native bundle.
 #
@@ -36,17 +41,32 @@ export PULSAR_REPO_DIR BUILD_DIR OUTPUT_DIR
 
 # ---- arg parsing ------------------------------------------------------------
 
+DO_DEPS=1
 DO_NATIVE=1
 DO_FLATPAK=1
 
 for arg in "$@"; do
     case "$arg" in
+        --skip-deps)    DO_DEPS=0 ;;
+        --deps-only)    DO_NATIVE=0; DO_FLATPAK=0 ;;
         --native-only)  DO_FLATPAK=0 ;;
         --flatpak-only) DO_NATIVE=0 ;;
         -h|--help)      sed -n '2,/^$/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "ERROR: unknown arg: $arg" >&2; exit 2 ;;
     esac
 done
+
+# ---- 0. Build dependencies -> build/Libraries/ -----------------------------
+
+if [ "$DO_DEPS" = "1" ]; then
+    echo
+    echo "############################################################"
+    echo "# 0/2  Building dependencies -> $BUILD_DIR/Libraries/"
+    echo "############################################################"
+    bash "$SCRIPTS_DIR/build_dependencies.sh"
+else
+    echo "==> Skipping dependency build (--skip-deps)"
+fi
 
 # ---- 1. Native developer 7z -------------------------------------------------
 

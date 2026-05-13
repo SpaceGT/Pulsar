@@ -3,7 +3,8 @@
 #
 # Builds FFmpeg 8.1 from source as a set of self-contained shared libraries
 # (libavcodec.so.62, libavformat.so.62, libavutil.so.60, libswresample.so.6,
-# libswscale.so.9) and installs them into the Libraries folder.
+# libswscale.so.9) and installs them into the build/Libraries staging folder
+# (gitignored; consumed by Legacy/Legacy.csproj at build time).
 #
 # "Self-contained" here means: built with --disable-* for every optional
 # external codec / hwaccel / network / device backend, so the resulting .so
@@ -34,7 +35,7 @@
 #   FFMPEG_TARBALL   = <repo>/build/ffmpeg-$FFMPEG_VERSION.tar.xz
 #   FFMPEG_SRC_DIR   = <repo>/build/ffmpeg-$FFMPEG_VERSION
 #   FFMPEG_BUILD_DIR = $FFMPEG_SRC_DIR/_build
-#   LIBRARIES_DIR       = <repo>/Libraries
+#   LIBRARIES_DIR       = <repo>/build/Libraries  (also honors $BUILD_DIR override)
 #   JOBS             = $(nproc)
 #
 # Requirements: gcc, make, pkg-config, curl, nasm OR yasm (for x86 SIMD).
@@ -49,7 +50,7 @@ FFMPEG_VERSION="${FFMPEG_VERSION:-8.1}"
 FFMPEG_TARBALL="${FFMPEG_TARBALL:-$BUILD_DIR_DEFAULT/ffmpeg-$FFMPEG_VERSION.tar.xz}"
 FFMPEG_SRC_DIR="${FFMPEG_SRC_DIR:-$BUILD_DIR_DEFAULT/ffmpeg-$FFMPEG_VERSION}"
 FFMPEG_BUILD_DIR="${FFMPEG_BUILD_DIR:-$FFMPEG_SRC_DIR/_build}"
-LIBRARIES_DIR="${REPO_DIR}/Libraries"
+LIBRARIES_DIR="${LIBRARIES_DIR:-${BUILD_DIR:-$BUILD_DIR_DEFAULT}/Libraries}"
 JOBS="${JOBS:-$(nproc)}"
 
 FFMPEG_TARBALL_URL="https://ffmpeg.org/releases/ffmpeg-$FFMPEG_VERSION.tar.xz"
@@ -371,8 +372,9 @@ done
 echo
 echo "==> Staged FFmpeg libs into $LIBRARIES_DIR:"
 # List only the files this script actually touched (the FFmpeg sonames +
-# their symlink aliases). The Libraries/ folder also contains hand-placed
+# their symlink aliases). The build/Libraries/ staging folder also contains
 # non-FFmpeg deps (DXVK, EOS, Havok, Recast, Steam, VRageNative,
-# Steamworks.NET.dll) that this script does NOT manage, so it would be
-# misleading to list them under "Staged".
+# Steamworks.NET.dll) populated by the sibling build_*.sh scripts (or
+# copied from Vendor/ by build_dependencies.sh), so it would be misleading
+# to list them here under "Staged".
 ( cd "$LIBRARIES_DIR" && ls -1 libav*.so* libsw*.so* )

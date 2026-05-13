@@ -365,5 +365,8 @@ MigrationBackup/
 # Packaging build state (flatpak builder dir, staged 7z trees)
 /build/
 
+# Old committed Libraries/ tree — now lives under build/Libraries/
+/Libraries/
+
 # Packaging output (.7z, .flatpak)
 /dist/

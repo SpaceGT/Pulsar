@@ -56,7 +56,24 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Steamworks.NET">
-      <HintPath>..\Libraries\Steamworks.NET.dll</HintPath>
+      <!--
+        The DLL is built dynamically into <repo>/build/Libraries/ by
+        Scripts/build_steamworks_net.sh (invoked from build_dependencies.sh).
+        Run ./Scripts/build_dependencies.sh once before the first build.
+      -->
+      <HintPath>..\build\Libraries\Steamworks.NET.dll</HintPath>
     </Reference>
   </ItemGroup>
+  <!--
+    Fail fast with a clear hint if the HintPath above doesn't resolve.
+    Without this guard, MSBuild only emits MSB3245 as a *warning* and the
+    build proceeds until the CS0246 'Steamworks namespace not found' error,
+    which doesn't tell the user what's actually wrong.
+    Runs before ResolveAssemblyReferences so the error surfaces before the
+    silent reference-resolution failure.
+  -->
+  <Target Name="CheckSteamworksNetDll" BeforeTargets="ResolveAssemblyReferences">
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)../build/Libraries/Steamworks.NET.dll')"
+           Text="$(MSBuildThisFileDirectory)../build/Libraries/Steamworks.NET.dll is missing. Run ./Scripts/build_dependencies.sh from the repo root before building." />
+  </Target>
 </Project>
