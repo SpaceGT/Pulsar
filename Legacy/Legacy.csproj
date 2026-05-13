@@ -72,17 +72,29 @@
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
   </ItemGroup>
   <!--
-    Copy the contents of <repo>/Libraries (native .so deps + Steamworks.NET.dll)
-    next to the Interim executable for both `dotnet build` and `dotnet publish`.
+    Copy the contents of <repo>/build/Libraries (native .so deps +
+    Steamworks.NET.dll) next to the Interim executable for both `dotnet
+    build` and `dotnet publish`. The staging tree is populated by
+    Scripts/build_dependencies.sh - run that once before the first build
+    (and again after pulling). The <Error Condition> below fails fast with
+    a clear hint instead of waiting for `cp` to print a cryptic error.
+
     Uses `cp -a` so the FFmpeg sover-name symlinks (libavcodec.so ->
     libavcodec.so.62 -> libavcodec.so.62.28.100, etc.) are preserved rather
     than blown up into multiple copies of the real file (which `<Content
     Include>` would do by following the symlinks).
+
+    `cp -a` is Linux-only; this build pipeline is Linux-only by design
+    (the produced bundle ships ELF .so deps), so that's acceptable.
   -->
   <Target Name="CopyLibrariesAfterBuild" AfterTargets="Build">
-    <Exec Command="cp -a &quot;$(MSBuildThisFileDirectory)../Libraries/.&quot; &quot;$(OutDir).&quot;" />
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)../build/Libraries')"
+           Text="$(MSBuildThisFileDirectory)../build/Libraries is missing. Run ./Scripts/build_dependencies.sh from the repo root before building." />
+    <Exec Command="cp -a &quot;$(MSBuildThisFileDirectory)../build/Libraries/.&quot; &quot;$(OutDir).&quot;" />
   </Target>
   <Target Name="CopyLibrariesAfterPublish" AfterTargets="Publish">
-    <Exec Command="cp -a &quot;$(MSBuildThisFileDirectory)../Libraries/.&quot; &quot;$(PublishDir).&quot;" />
+    <Error Condition="!Exists('$(MSBuildThisFileDirectory)../build/Libraries')"
+           Text="$(MSBuildThisFileDirectory)../build/Libraries is missing. Run ./Scripts/build_dependencies.sh from the repo root before publishing." />
+    <Exec Command="cp -a &quot;$(MSBuildThisFileDirectory)../build/Libraries/.&quot; &quot;$(PublishDir).&quot;" />
   </Target>
 </Project>

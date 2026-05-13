@@ -1,0 +1,30 @@
+Steamworks SDK
+==============
+
+The shared library shipped under Pulsar/Libraries/ as:
+
+    libsteam_api.so
+
+is the Linux x86_64 runtime component of the Steamworks SDK, distributed by
+Valve Corporation.
+
+License
+-------
+Proprietary. Use and redistribution of the Steamworks SDK is governed by the
+Steamworks SDK Access Agreement, which the Pulsar maintainers have accepted
+in order to obtain and redistribute this binary. The Steamworks SDK is made
+available to Steam partners at:
+
+    https://partner.steamgames.com/
+
+Attribution
+-----------
+"Steam", the Steam logo, "Valve", the Valve logo, and "Steamworks" are
+trademarks or registered trademarks of Valve Corporation in the United States
+and/or other countries.
+
+Pulsar uses the Steamworks SDK solely to interoperate with Space Engineers'
+existing Steam integration. No part of the Steamworks SDK source code is
+included; only the unmodified shipping binary is redistributed.
+
+Copyright (c) Valve Corporation. All rights reserved.
