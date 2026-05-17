@@ -31,10 +31,7 @@
 #
 # Env-var overrides (defaults shown):
 #   LINUX_COMPAT_REPO   = https://github.com/viktor-ferenczi/se-linux-compat.git
-#   LINUX_COMPAT_BRANCH = dev    (origin/main does not yet contain the
-#                                  NativeWrappers code, so we default to
-#                                  the dev branch where it currently lives;
-#                                  this will move to main eventually)
+#   LINUX_COMPAT_BRANCH = main
 #   LINUX_COMPAT_COMMIT = ""     (if set, overrides BRANCH and pins the
 #                                  exact SHA — recommended for CI)
 #   BUILD_DIR           = <repo>/build
@@ -48,7 +45,7 @@ set -euo pipefail
 # ---- top-of-file knobs (per the plan) --------------------------------------
 
 LINUX_COMPAT_REPO="${LINUX_COMPAT_REPO:-https://github.com/viktor-ferenczi/se-linux-compat.git}"
-LINUX_COMPAT_BRANCH="${LINUX_COMPAT_BRANCH:-dev}"
+LINUX_COMPAT_BRANCH="${LINUX_COMPAT_BRANCH:-main}"
 LINUX_COMPAT_COMMIT="${LINUX_COMPAT_COMMIT:-}"
 
 # ---- configuration ----------------------------------------------------------
