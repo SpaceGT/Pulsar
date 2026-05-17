@@ -134,7 +134,7 @@ static class Program
 
         string modDir = Path.Combine(
             game2Dir,
-            @"..\..\..\workshop\content",
+            "..", "..", "..", "workshop", "content",
             Steam.AppIdSe2.ToString()
         );
 
