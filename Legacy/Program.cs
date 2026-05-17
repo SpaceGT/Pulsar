@@ -136,7 +136,7 @@ static class Program
 
         string modDir = Path.Combine(
             bin64Dir,
-            @"..\..\..\workshop\content",
+            "..", "..", "..", "workshop", "content",
             Steam.AppIdSe1.ToString()
         );
 
