@@ -1,4 +1,13 @@
-# Pulsar
+# Pulsar for Linux
+
+TODO:
+- Integrate properly into Pulsar
+- Automatic updates
+
+Corresponding [se-linux-compat](https://github.com/viktor-ferenczi/se-linux-compat/) version: 1.0.8 `04255e2d`
+
+---
+
 A plugin and mod loader for Space Engineers.<br>
 This is a hard fork of the discontinued [PluginLoader](https://github.com/sepluginloader/PluginLoader).<br>
 
