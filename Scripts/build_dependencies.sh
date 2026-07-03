@@ -12,7 +12,7 @@
 #   1. build_ffmpeg.sh           FFmpeg 8.1 (libav*.so* / libsw*.so*)
 #   2. build_dxvk.sh             DXVK Native v2.7.1
 #                                (libdxvk_d3d11.so + libdxvk_dxgi.so + .0 links)
-#   3. build_native_wrappers.sh  se-linux-compat NativeWrappers
+#   3. fetch_native_wrappers.sh  linux-native-wrappers release download
 #                                (libD3DCompiler.so, libHavok.so,
 #                                 libRecastDetour.so, libVRageNative.so)
 #   4. build_steamworks_net.sh   Steamworks.NET.dll
@@ -123,7 +123,7 @@ run_step() {
 
 run_step ffmpeg          "$SCRIPT_DIR/build_ffmpeg.sh"
 run_step dxvk            "$SCRIPT_DIR/build_dxvk.sh"
-run_step native-wrappers "$SCRIPT_DIR/build_native_wrappers.sh"
+run_step native-wrappers "$SCRIPT_DIR/fetch_native_wrappers.sh"
 run_step steamworks-net  "$SCRIPT_DIR/build_steamworks_net.sh"
 
 # ---- 5. Vendor blobs --------------------------------------------------------
