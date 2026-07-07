@@ -4,7 +4,7 @@ using System.Linq;
 using Keen.VRage.Core;
 using Keen.VRage.Library.Threading;
 using Keen.VRage.Library.Utils;
-using Keen.VRage.Steam.EngineComponents;
+using Keen.VRage.Steam.UGC;
 using Pulsar.Shared;
 using Steamworks;
 
