@@ -16,6 +16,9 @@ public partial class GithubPluginControls : UserControl
     {
         base.OnDataContextChanged(e);
 
+        if ((PluginDetailsScreenViewModel)DataContext == null)
+            return;
+
         if (((PluginDetailsScreenViewModel)DataContext).Plugin.PluginData is not GitHubPlugin)
             return;
 

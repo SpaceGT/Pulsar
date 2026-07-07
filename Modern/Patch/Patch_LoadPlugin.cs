@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using HarmonyLib;
-using Keen.Game2.Game.Plugins;
+using Keen.VRage.Core.Plugins;
 
 namespace Pulsar.Modern.Patch;
 

@@ -5,7 +5,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Windows.Forms;
 using HarmonyLib;
-using Keen.Game2.Game.Plugins;
+using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
 using Pulsar.Shared;

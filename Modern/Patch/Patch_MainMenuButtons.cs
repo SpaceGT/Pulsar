@@ -2,6 +2,7 @@
 using HarmonyLib;
 using Keen.Game2.Client.UI.Menu;
 using Keen.Game2.Client.UI.Menu.MainMenu;
+using Pulsar.Modern.Screens;
 using Pulsar.Modern.Screens.PluginsScreen;
 using Tools = Pulsar.Shared.Tools;
 
@@ -19,7 +20,7 @@ internal class Patch_MainMenuButtons
         }
 
         Button pluginsButton = __instance.CreateButton(
-            "Plugins",
+            ScreenTools.GetKeyFromString("Plugins"),
             () => PluginsScreenViewModel.OpenMenu()
         );
 
