@@ -43,7 +43,8 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
             var definition = ScreenTools.GetDefaultOkDialog();
             definition.Title = ScreenTools.GetKeyFromString("Missing Required Info");
             definition.Content = ScreenTools.GetKeyFromString(
-                $"There is missing info that is required to add this source.\n" + "Please add all required infomation."
+                $"There is missing info that is required to add this source.\n"
+                    + "Please add all required infomation."
             );
             definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
 

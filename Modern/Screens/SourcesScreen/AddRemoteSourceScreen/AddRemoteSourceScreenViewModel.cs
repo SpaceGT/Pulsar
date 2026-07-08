@@ -43,8 +43,18 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
         {
             return SourceType switch
             {
-                RemoteSourceType.Hub or RemoteSourceType.Plugin => string.IsNullOrWhiteSpace(DisplayName) || string.IsNullOrWhiteSpace(GithubUser) || string.IsNullOrWhiteSpace(RepoName) || string.IsNullOrWhiteSpace(BranchName) || (string.IsNullOrWhiteSpace(MetadataFile) && SourceType == RemoteSourceType.Plugin),
-                RemoteSourceType.Mod => string.IsNullOrWhiteSpace(DisplayName) || string.IsNullOrWhiteSpace(SteamId),
+                RemoteSourceType.Hub or RemoteSourceType.Plugin => string.IsNullOrWhiteSpace(
+                    DisplayName
+                )
+                    || string.IsNullOrWhiteSpace(GithubUser)
+                    || string.IsNullOrWhiteSpace(RepoName)
+                    || string.IsNullOrWhiteSpace(BranchName)
+                    || (
+                        string.IsNullOrWhiteSpace(MetadataFile)
+                        && SourceType == RemoteSourceType.Plugin
+                    ),
+                RemoteSourceType.Mod => string.IsNullOrWhiteSpace(DisplayName)
+                    || string.IsNullOrWhiteSpace(SteamId),
                 _ => false,
             };
         }
