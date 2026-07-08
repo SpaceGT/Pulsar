@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Media;
+using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 
 namespace Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
@@ -37,8 +38,21 @@ public partial class AddRemoteSourceScreen : PluginScreenBase
 
     private void AddButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        ((AddRemoteSourceScreenViewModel)DataContext).AddSource();
-        Dispose();
+        if (!((AddRemoteSourceScreenViewModel)DataContext).AddSource())
+        {
+            var definition = ScreenTools.GetDefaultOkDialog();
+            definition.Title = ScreenTools.GetKeyFromString("Missing Required Info");
+            definition.Content = ScreenTools.GetKeyFromString(
+                $"There is missing info that is required to add this source.\n" + "Please add all required infomation."
+            );
+            definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
+
+            ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
+        }
+        else
+        {
+            Dispose();
+        }
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

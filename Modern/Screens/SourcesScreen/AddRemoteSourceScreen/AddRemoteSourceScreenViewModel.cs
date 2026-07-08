@@ -37,6 +37,19 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
         }
     } = string.Empty;
 
+    public bool IsRequiredFieldsEmpty
+    {
+        get
+        {
+            return SourceType switch
+            {
+                RemoteSourceType.Hub or RemoteSourceType.Plugin => string.IsNullOrWhiteSpace(DisplayName) || string.IsNullOrWhiteSpace(GithubUser) || string.IsNullOrWhiteSpace(RepoName) || string.IsNullOrWhiteSpace(BranchName) || (string.IsNullOrWhiteSpace(MetadataFile) && SourceType == RemoteSourceType.Plugin),
+                RemoteSourceType.Mod => string.IsNullOrWhiteSpace(DisplayName) || string.IsNullOrWhiteSpace(SteamId),
+                _ => false,
+            };
+        }
+    }
+
     private readonly SourcesScreenViewModel parentVm;
 
     public AddRemoteSourceScreenViewModel(SourcesScreenViewModel vm, RemoteSourceType sourceType)
@@ -93,8 +106,11 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
         }
     }
 
-    public void AddSource()
+    public bool AddSource()
     {
+        if (IsRequiredFieldsEmpty)
+            return false;
+
         switch (SourceType)
         {
             case RemoteSourceType.Hub:
@@ -133,5 +149,7 @@ internal class AddRemoteSourceScreenViewModel : ScreenViewModel
                 parentVm.AddMod(new(source));
                 break;
         }
+
+        return true;
     }
 }
