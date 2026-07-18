@@ -1,5 +1,3 @@
-#nullable disable
-
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
@@ -12,7 +10,8 @@ namespace Pulsar.Interface.Protocol;
 
 public sealed class InterfaceClient : IDisposable
 {
-    private readonly ConcurrentDictionary<long, TaskCompletionSource<InterfaceResponse>> pending = new();
+    private readonly ConcurrentDictionary<long, TaskCompletionSource<InterfaceResponse>> pending =
+        new();
     private readonly object processLock = new();
     private readonly object writeLock = new();
     private readonly Action<string> log;
@@ -56,7 +55,12 @@ public sealed class InterfaceClient : IDisposable
 
     public string OpenFile(string title, string directory, string filter)
     {
-        FilePickerRequest request = new() { Title = title, Directory = directory, Filter = filter };
+        FilePickerRequest request = new()
+        {
+            Title = title,
+            Directory = directory,
+            Filter = filter,
+        };
         return Send(InterfaceMethods.FileOpen, filePicker: request).Text;
     }
 
@@ -96,7 +100,9 @@ public sealed class InterfaceClient : IDisposable
         };
         InterfaceResponse response = SendRequest(request).GetAwaiter().GetResult();
         if (!response.Ok)
-            throw new InvalidOperationException(response.Error ?? "Pulsar interface request failed.");
+            throw new InvalidOperationException(
+                response.Error ?? "Pulsar interface request failed."
+            );
         return response;
     }
 

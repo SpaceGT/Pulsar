@@ -9,8 +9,8 @@
     <RootNamespace>Pulsar.Interface</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -41,10 +41,13 @@
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetFrameworkIdentifier)&quot;" />
+  </Target>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Win32" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Skia" Version="11.0.10" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
   </ItemGroup>
   <PropertyGroup>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>

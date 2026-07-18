@@ -16,5 +16,5 @@ internal static class Program
     }
 
     public static AppBuilder BuildAvaloniaApp() =>
-        AppBuilder.Configure<App>().UsePlatformDetect().LogToTrace();
+        AppBuilder.Configure<App>().UseWin32().UseSkia().LogToTrace();
 }
