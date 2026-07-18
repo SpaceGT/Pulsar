@@ -1,5 +1,4 @@
 using Avalonia.Controls;
-using Avalonia.Media;
 using Pulsar.Interface.Protocol;
 
 namespace Pulsar.Interface;
@@ -11,9 +10,7 @@ internal partial class PromptWindow : Window
         InitializeComponent();
 
         Title = request.Caption;
-        Heading.Text = request.Caption;
         MessageText.Text = request.Message;
-        Header.Background = new SolidColorBrush(GetHeaderColor(request.Icon));
 
         switch (request.Buttons)
         {
@@ -42,17 +39,5 @@ internal partial class PromptWindow : Window
         };
         button.Click += (_, _) => Close(result);
         ButtonsPanel.Children.Add(button);
-    }
-
-    private static Color GetHeaderColor(PromptIcon icon)
-    {
-        return icon switch
-        {
-            PromptIcon.Error => Color.Parse("#733A3A"),
-            PromptIcon.Warning => Color.Parse("#765F2E"),
-            PromptIcon.Question => Color.Parse("#355B70"),
-            PromptIcon.Information => Color.Parse("#355B70"),
-            _ => Color.Parse("#3C4C52"),
-        };
     }
 }

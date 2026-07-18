@@ -31,6 +31,10 @@ internal sealed class InterfaceServer(WindowManager windows)
                 _ = HandleRequest(request);
             }
         }
+        catch (IOException)
+        {
+            // Parent pipe closed unexpectedly
+        }
         catch (Exception e)
         {
             await Console.Error.WriteLineAsync(e.ToString());

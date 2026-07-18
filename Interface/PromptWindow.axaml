@@ -2,27 +2,57 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="Pulsar.Interface.PromptWindow"
         Width="520"
-        MinHeight="210"
+        MinHeight="160"
         SizeToContent="Height"
         CanResize="False"
         ShowInTaskbar="False"
         WindowStartupLocation="CenterOwner"
-        Background="#252F35">
-  <Grid RowDefinitions="Auto,*,Auto">
-    <Border Name="Header" Background="#3C4C52" Padding="18,12">
-      <TextBlock Name="Heading" Foreground="White" FontSize="22" />
-    </Border>
+        SystemDecorations="Full"
+        RequestedThemeVariant="Light"
+        Background="#FFFFFF"
+        Title="Pulsar">
+
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="MinWidth" Value="88" />
+      <Setter Property="Height" Value="28" />
+      <Setter Property="Padding" Value="12,2" />
+      <Setter Property="FontSize" Value="14" />
+      <Setter Property="Foreground" Value="#000000" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+      <Setter Property="Background" Value="#E1E1E1" />
+      <Setter Property="BorderBrush" Value="#ADADAD" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#D0D0D0" />
+      <Setter Property="BorderBrush" Value="#888888" />
+    </Style>
+
+    <Style Selector="Button:pressed /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="#BABABA" />
+      <Setter Property="BorderBrush" Value="#666666" />
+    </Style>
+  </Window.Styles>
+
+  <Grid Margin="18" RowDefinitions="*,Auto">
+
     <TextBlock Name="MessageText"
-               Grid.Row="1"
-               Margin="24"
-               Foreground="White"
-               FontSize="16"
-               TextWrapping="Wrap" />
+               Foreground="#000000"
+               FontSize="15"
+               LineHeight="20"
+               TextWrapping="Wrap"
+               VerticalAlignment="Center" />
+
     <StackPanel Name="ButtonsPanel"
-                Grid.Row="2"
-                Margin="24,0,24,20"
+                Grid.Row="1"
+                Margin="0,20,0,0"
                 HorizontalAlignment="Right"
                 Orientation="Horizontal"
-                Spacing="12" />
+                Spacing="8" />
+
   </Grid>
 </Window>

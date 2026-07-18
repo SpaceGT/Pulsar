@@ -101,6 +101,10 @@ copy /y /b "%SOURCE%\MicroCom.Runtime.dll" "%INTERFACE%\" >NUL 2>&1
 echo Copying "Microsoft.Bcl.AsyncInterfaces.dll"
 copy /y /b "%SOURCE%\Microsoft.Bcl.AsyncInterfaces.dll" "%INTERFACE%\" >NUL 2>&1
 
+echo Copying "AnimatedImage.*.dll"
+copy /y /b "%SOURCE%\AnimatedImage.dll" "%INTERFACE%\" >NUL 2>&1
+copy /y /b "%SOURCE%\AnimatedImage.Avalonia.dll" "%INTERFACE%\" >NUL 2>&1
+
 echo Copying "Avalonia.*.dll"
 copy /y /b "%SOURCE%\Avalonia.dll" "%INTERFACE%\" >NUL 2>&1
 copy /y /b "%SOURCE%\Avalonia.Base.dll" "%INTERFACE%\" >NUL 2>&1
@@ -115,6 +119,7 @@ copy /y /b "%SOURCE%\Avalonia.Skia.dll" "%INTERFACE%\" >NUL 2>&1
 copy /y /b "%SOURCE%\Avalonia.Themes.Fluent.dll" "%INTERFACE%\" >NUL 2>&1
 copy /y /b "%SOURCE%\Avalonia.Win32.dll" "%INTERFACE%\" >NUL 2>&1
 copy /y /b "%SOURCE%\Avalonia.Metal.dll" "%INTERFACE%\" >NUL 2>&1
+
 
 echo Copying "System.*.dll"
 copy /y /b "%SOURCE%\System.Buffers.dll" "%INTERFACE%\" >NUL 2>&1

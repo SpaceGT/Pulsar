@@ -48,6 +48,7 @@
     <PackageReference Include="Avalonia.Win32" Version="11.0.10" />
     <PackageReference Include="Avalonia.Skia" Version="11.0.10" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
   </ItemGroup>
   <PropertyGroup>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>

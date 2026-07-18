@@ -1,5 +1,6 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:anim="https://github.com/whistyun/AnimatedImage.Avalonia"
         x:Class="Pulsar.Interface.SplashWindow"
         Width="675"
         Height="375"
@@ -7,14 +8,15 @@
         ShowInTaskbar="True"
         SystemDecorations="None"
         WindowStartupLocation="CenterScreen"
-        Background="#050708"
+        Background="#000000"
         Title="Pulsar">
   <Grid Margin="10" RowDefinitions="*,42,14">
     <Grid Grid.Row="0" ColumnDefinitions="45*,55*">
-      <Image Source="avares://Pulsar.Interface/Assets/throbber.gif" Stretch="Uniform" />
-      <Image Grid.Column="1"
-             Source="avares://Pulsar.Interface/Assets/text.png"
-             Stretch="Uniform" />
+      <Image
+          anim:ImageBehavior.AnimatedSource="avares://Pulsar.Interface/Assets/throbber.gif"
+          anim:ImageBehavior.RepeatBehavior="Forever"
+          Stretch="Uniform" />
+      <Image Grid.Column="1" Source="avares://Pulsar.Interface/Assets/text.png" Stretch="Uniform" />
     </Grid>
     <TextBlock Name="ProgressText"
                Grid.Row="1"
@@ -26,6 +28,9 @@
                  Grid.Row="2"
                  Minimum="0"
                  Maximum="1"
+                 Value="0"
+                 Background="DimGray"
+                 Foreground="White"
                  IsVisible="False" />
   </Grid>
 </Window>
