@@ -4,8 +4,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
+using Pulsar.Interface.Protocol;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
@@ -35,22 +35,22 @@ public class Updater(string repoName)
         {
             LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
 
-            DialogResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
-            if (result == DialogResult.Yes)
+            PromptResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
+            if (result == PromptResult.Yes)
                 Update();
-            else if (result == DialogResult.Cancel)
+            else if (result == PromptResult.Cancel)
                 Environment.Exit(0);
         }
     }
 
-    private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
+    private static PromptResult ShowUpdatePrompt(Version localVer, Version remoteVer)
     {
         string prompt =
             $"An update is available for {PulsarName}:\n"
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        return Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNoCancel);
+        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -70,9 +70,9 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        DialogResult result = Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNo);
+        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo);
 
-        if (result == DialogResult.No)
+        if (result != PromptResult.Yes)
             Environment.Exit(0);
 
         GitHubPlugin.ClearGitHubCache();
@@ -80,23 +80,23 @@ public class Updater(string repoName)
 
     public void ShowBitrotPrompt()
     {
-        MessageBoxButtons buttons;
+        PromptButtons buttons;
         string message = "You have a broken Pulsar insallation!\n";
 
         if (Flags.UpdateType == UpdateType.None)
         {
             message += "Please rebuild or manually redownload.";
-            buttons = MessageBoxButtons.OK;
+            buttons = PromptButtons.Ok;
         }
         else
         {
             message += "Attempt to download the latest version?";
-            buttons = MessageBoxButtons.YesNo;
+            buttons = PromptButtons.YesNo;
         }
 
-        DialogResult result = Tools.ShowMessageBox(message, buttons);
+        PromptResult result = Tools.ShowMessageBox(message, buttons);
 
-        if (result == DialogResult.Yes)
+        if (result == PromptResult.Yes)
             Update();
 
         Environment.Exit(1);
@@ -108,7 +108,7 @@ public class Updater(string repoName)
             $"An error occurred while updating {PulsarName}!\n"
             + "Please check the log for more information!";
 
-        Tools.ShowMessageBox(prompt, MessageBoxButtons.OK);
+        Tools.ShowMessageBox(prompt, PromptButtons.Ok);
     }
 
     private void Update()

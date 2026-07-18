@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Shared;
 using Sandbox;
@@ -154,7 +153,7 @@ public static class LoaderTools
             args.Add(DebugArg);
 
         ProcessStartInfo startInfo = new(
-            fileName: Application.ExecutablePath,
+            fileName: Process.GetCurrentProcess().MainModule.FileName,
             arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
         );
 

@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Modern", "Modern\Modern.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Shared", "Shared\Shared.csproj", "{351C080E-65CE-45E4-AD41-BCFF7D9B143C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Interface", "Interface\Interface.csproj", "{67079BC8-C863-445A-944D-4B2D4F0E3840}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -61,6 +63,14 @@ Global
 		{351C080E-65CE-45E4-AD41-BCFF7D9B143C}.Release|Any CPU.Build.0 = Release|x64
 		{351C080E-65CE-45E4-AD41-BCFF7D9B143C}.Release|x64.ActiveCfg = Release|x64
 		{351C080E-65CE-45E4-AD41-BCFF7D9B143C}.Release|x64.Build.0 = Release|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Debug|Any CPU.ActiveCfg = Debug|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Debug|Any CPU.Build.0 = Debug|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Debug|x64.ActiveCfg = Debug|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Debug|x64.Build.0 = Debug|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Release|Any CPU.ActiveCfg = Release|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Release|Any CPU.Build.0 = Release|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Release|x64.ActiveCfg = Release|x64
+		{67079BC8-C863-445A-944D-4B2D4F0E3840}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

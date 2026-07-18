@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Compiler;
 using Pulsar.Legacy.Launcher;
@@ -49,8 +48,6 @@ static class Program
     static void PulsarMain(string[] args)
     {
 #endif
-        Application.EnableVisualStyles();
-
         if (SharedLauncher.IsOtherPulsarRunning())
         {
             Tools.ShowMessageBox("Error: Pulsar is already running!");

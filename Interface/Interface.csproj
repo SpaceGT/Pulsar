@@ -1,16 +1,16 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
     <Copyright>© 2025 SpaceGT</Copyright>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyName>Pulsar.Shared</AssemblyName>
-    <RootNamespace>Pulsar.Shared</RootNamespace>
+    <AssemblyName>Pulsar.Interface</AssemblyName>
+    <RootNamespace>Pulsar.Interface</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>Library</OutputType>
-    <TargetFrameworks>net48;net8.0-windows;net10.0-windows</TargetFrameworks>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -35,23 +35,21 @@
     <LangVersion>latest</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Compiler\Compiler.csproj" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
   </ItemGroup>
+  <PropertyGroup>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\Interface\Protocol\InterfaceClient.cs" Link="Interface\InterfaceClient.cs" />
-    <Compile Include="..\Interface\Protocol\Protocol.cs" Link="Interface\Protocol.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)" Private="False" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="FuzzySharp" Version="2.0.2" />
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-    <PackageReference Include="Mono.Cecil" Version="0.11.6" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="NLog" Version="6.0.3" />
-    <PackageReference Include="NuGet.Resolver" Version="6.7.1" />
-    <PackageReference Include="protobuf-net" Version="2.4.9" />
+    <AvaloniaResource Include="Assets\**" />
   </ItemGroup>
 </Project>

@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Windows.Forms;
 using HarmonyLib;
 using Keen.VRage.Core.Platform.CrashReporting;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Platform.Windows;
+using Pulsar.Interface.Protocol;
 using Pulsar.Shared;
 
 namespace Pulsar.Modern.Patch;
@@ -26,18 +26,18 @@ internal class Patch_HandleCrash
         );
         Log.Default.Flush();
 
-        DialogResult result = Pulsar.Shared.Tools.ShowMessageBox(
+        PromptResult result = Pulsar.Shared.Tools.ShowMessageBox(
             "Space Engineers 2 encountered an unhandled error.\n"
                 + "The game will now close as it can no longer proceed safely.\n"
                 + "Try running the game without Pulsar to see if this resolves the issue.\n"
                 + "Do NOT report this crash to Keen, as the crash may be cased by plugins or Pulsar.\n"
                 + "Instead, report this crash in Pulsar's Discord server.\n"
                 + "Do you want to the open Pulsar's and the game's log now?",
-            MessageBoxButtons.YesNo,
-            MessageBoxIcon.Error
+            PromptButtons.YesNo,
+            PromptIcon.Error
         );
 
-        if (result == DialogResult.Yes)
+        if (result == PromptResult.Yes)
         {
             if (LogFile.GameLog?.Exists() ?? false)
                 LogFile.GameLog.Open();

@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 using System.Xml;
 using System.Xml.Serialization;
+using Pulsar.Interface.Protocol;
 using Pulsar.Shared.Data;
 
 namespace Pulsar.Shared.Config;
@@ -147,7 +147,7 @@ public class ProfilesConfig(string folderPath)
                         "The current profile could not be loaded!\n"
                         + "The list of enabled plugins has been reset.\n\n"
                         + $"The original profile has been saved to Profiles\\{currentKey}.xml{suffix}";
-                    Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Warning);
                 }
             }
         }

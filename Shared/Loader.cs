@@ -4,8 +4,8 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using HarmonyLib;
+using Pulsar.Interface.Protocol;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
@@ -31,15 +31,15 @@ public class Loader
 
         splash = SplashManager.Instance;
 
-        if (Tools.IsKeyPressed(Keys.Escape))
+        if (Tools.IsEscapePressed())
         {
-            DialogResult result = Tools.ShowMessageBox(
+            PromptResult result = Tools.ShowMessageBox(
                 "Escape pressed. Start the game with all plugins disabled?",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
+                PromptButtons.YesNo,
+                PromptIcon.Question
             );
 
-            if (result == DialogResult.Yes)
+            if (result == PromptResult.Yes)
             {
                 LogFile.Warn("Safe mode active. No plugins will be loaded!");
                 ConfigManager.Instance.SafeMode = true;
@@ -83,7 +83,7 @@ public class Loader
             LogFile.Error(message);
 
             string fullMessage = $"{message}\nPulsar cannot continue loading!";
-            Tools.ShowMessageBox(fullMessage, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Tools.ShowMessageBox(fullMessage, PromptButtons.Ok, PromptIcon.Error);
 
             Environment.Exit(1);
         }

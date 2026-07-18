@@ -17,7 +17,6 @@ using Pulsar.Modern.Loader;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
-using Application = System.Windows.Forms.Application;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
@@ -49,8 +48,6 @@ static class Program
 
     private static void PulsarMain(string[] args)
     {
-        Application.EnableVisualStyles();
-
         if (SharedLauncher.IsOtherPulsarRunning())
         {
             Tools.ShowMessageBox("Error: Pulsar is already running!");

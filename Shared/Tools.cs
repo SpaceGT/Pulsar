@@ -2,13 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
+using Pulsar.Interface.Protocol;
 
 namespace Pulsar.Shared;
 
@@ -22,6 +21,7 @@ public static class Tools
     public const string XmlDataType = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
     public static IExternalTools External { get; private set; }
     public static ICompilerFactory Compiler { get; private set; }
+    public static InterfaceClient Interface { get; } = new(message => LogFile.Error(message));
 
     public static void Init(IExternalTools external, ICompilerFactory compiler)
     {
@@ -70,14 +70,15 @@ public static class Tools
 
     public static string GetClipboard()
     {
-        string cliptext = string.Empty;
-
-        Thread thread = new(new ThreadStart(() => cliptext = Clipboard.GetText()));
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        return cliptext;
+        try
+        {
+            return Interface.GetClipboard();
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Error while reading clipboard: " + e);
+            return string.Empty;
+        }
     }
 
     public static string DateToString(DateTime? lastCheck)
@@ -112,136 +113,53 @@ public static class Tools
         Action<string> onOk
     )
     {
-        Thread t = new(new ThreadStart(() => OpenFileDialogThread(title, directory, filter, onOk)));
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
-    }
-
-    private static void OpenFileDialogThread(
-        string title,
-        string directory,
-        string filter,
-        Action<string> onOk
-    )
-    {
-        // Prompt the user to select a file.
-        try
+        Task.Run(() =>
         {
-            using OpenFileDialog openFileDialog = new();
-            if (Directory.Exists(directory))
-                openFileDialog.InitialDirectory = directory;
-            openFileDialog.Title = title;
-            openFileDialog.Filter = filter;
-            openFileDialog.RestoreDirectory = true;
-
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string fileName = openFileDialog.FileName;
-
-            form.Close();
-
-            if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(fileName))
+            try
             {
-                // Move back to the main thread so that we can interact with keen code again
-                External.OnMainThread(() => onOk(fileName));
+                string file = Interface.OpenFile(title, directory, filter);
+                if (!string.IsNullOrWhiteSpace(file))
+                    External.OnMainThread(() => onOk(file));
             }
-        }
-        catch (Exception e)
-        {
-            LogFile.Error("Error while opening file dialog: " + e);
-        }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening file dialog: " + e);
+            }
+        });
     }
 
     public static void OpenFolderDialog(Action<string> onOk)
     {
-        Thread t = new(new ThreadStart(() => OpenFolderDialogThread(onOk)));
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
+        Task.Run(() =>
+        {
+            try
+            {
+                string folder = Interface.OpenFolder();
+                if (!string.IsNullOrWhiteSpace(folder))
+                    External.OnMainThread(() => onOk(folder));
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening folder dialog: " + e);
+            }
+        });
     }
 
-    private static void OpenFolderDialogThread(Action<string> onOk)
+    public static PromptResult ShowMessageBox(
+        string msg,
+        PromptButtons buttons = PromptButtons.Ok,
+        PromptIcon icon = PromptIcon.None
+    )
     {
-        // Prompt the user to select a folder.
-        // Net Core - FolderBrowserDialog supports the modern Vista-style dialog.
-        // Net Framework - We must hack OpenFileDialog to set some internal flags.
-
         try
         {
-#if NETCOREAPP
-            using FolderBrowserDialog openFolderDialog = new();
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFolderDialog.ShowDialog(form);
-            string selectedPath = openFolderDialog.SelectedPath;
-
-            form.Close();
-#else
-            using OpenFileDialog openFileDialog = new();
-            openFileDialog.CheckFileExists = false;
-            openFileDialog.CheckPathExists = true;
-            openFileDialog.RestoreDirectory = true;
-            openFileDialog.Filter = "Folders (*.*)|*.*";
-
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string selectedPath = openFileDialog.FileName;
-
-            form.Close();
-#endif
-
-            if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(selectedPath))
-            {
-                // Move back to the main thread so that we can interact with keen code again
-                External.OnMainThread(() => onOk(selectedPath));
-            }
+            return Interface.ShowPrompt(msg, buttons, icon);
         }
         catch (Exception e)
         {
-            LogFile.Error("Error while opening file dialog: " + e);
+            LogFile.Error("Error while opening message box: " + e);
+            return buttons == PromptButtons.Ok ? PromptResult.Ok : PromptResult.Cancel;
         }
-    }
-
-    public static DialogResult ShowMessageBox(
-        string msg,
-        MessageBoxButtons buttons = MessageBoxButtons.OK,
-        MessageBoxIcon icon = MessageBoxIcon.None,
-        MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1
-    )
-    {
-        if (Application.OpenForms.Count > 0)
-        {
-            Form form = Application.OpenForms[0];
-            if (form.InvokeRequired)
-            {
-                // Form is on a different thread
-                try
-                {
-                    object result = form.Invoke(() =>
-                        MessageBox.Show(form, msg, "Pulsar", buttons, icon, defaultButton)
-                    );
-                    if (result is DialogResult dialogResult)
-                        return dialogResult;
-                }
-                catch (Exception) { }
-            }
-            else
-            {
-                // Form is on the same thread
-                return MessageBox.Show(form, msg, "Pulsar", buttons, icon, defaultButton);
-            }
-        }
-
-        // No form
-        return MessageBox.Show(
-            msg,
-            "Pulsar",
-            buttons,
-            icon,
-            defaultButton,
-            MessageBoxOptions.DefaultDesktopOnly
-        );
     }
 
     public static IEnumerable<string> GetFiles(
@@ -295,8 +213,5 @@ public static class Tools
     public static bool IsNative() =>
         Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
 
-    [DllImport("user32.dll")]
-    private static extern short GetAsyncKeyState(int vKey);
-
-    public static bool IsKeyPressed(Keys key) => GetAsyncKeyState((int)key) < 0;
+    public static bool IsEscapePressed() => Interface.IsEscapePressed();
 }

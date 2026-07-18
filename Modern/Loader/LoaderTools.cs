@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Windows.Forms;
 using HarmonyLib;
 using Keen.Game2;
 using Keen.Game2.Client.UI.InGame;
@@ -92,7 +91,7 @@ internal static class LoaderTools
             args.Add(DebugArg);
 
         ProcessStartInfo startInfo = new(
-            fileName: Application.ExecutablePath,
+            fileName: Process.GetCurrentProcess().MainModule.FileName,
             arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
         );
 

@@ -4,10 +4,10 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Windows.Forms;
 using System.Xml.Serialization;
 using FuzzySharp;
 using ProtoBuf;
+using Pulsar.Interface.Protocol;
 using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
@@ -222,10 +222,13 @@ public abstract class PluginData : IEquatable<PluginData>
         else
             msg += "See info.log for details.\n\nWould you like to open the Pulsar log?";
 
-        MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-        DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
+        PromptResult result = Tools.ShowMessageBox(
+            msg,
+            PromptButtons.YesNo,
+            PromptIcon.Error
+        );
 
-        if (result == DialogResult.No)
+        if (result != PromptResult.Yes)
             return;
 
         if (LogFile.GameLog?.Exists() ?? false)
