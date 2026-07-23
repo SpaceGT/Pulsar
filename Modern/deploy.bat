@@ -78,8 +78,9 @@ REM Copy Pulsar dependencies
 echo Copying "Pulsar.Shared.dll"
 copy /y /b "%SOURCE%\Pulsar.Shared.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
-echo Copying "Pulsar.Compiler.dll"
-copy /y /b "%SOURCE%\Pulsar.Compiler.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+echo Copying "Pulsar.Protocol.dll"
+copy /y /b "%SOURCE%\Pulsar.Protocol.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+if ERRORLEVEL 1 exit /b 1
 
 REM Copy other dependencies
 echo Copying "0Harmony.dll"
@@ -105,25 +106,5 @@ copy /y /b "%SOURCE%\FuzzySharp.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
 echo Copying "NuGet.*.dll"
 copy /y /b "%SOURCE%\NuGet.*.dll" "%LIBRARY_DIR%\" >NUL 2>&1
-
-REM Get the compiler directory
-set COMPILER_DIR=%LIBRARY_DIR%\Compiler
-if not exist "%COMPILER_DIR%" (
-    echo Creating "Pulsar\Libraries\%NAME%\Compiler"
-    mkdir "%COMPILER_DIR%" >NUL 2>&1
-)
-echo Switching to "Pulsar\Libraries\%NAME%\Compiler"
-
-REM Copy compiler dependencies
-echo Copying "Microsoft.CodeAnalysis.*.dll"
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\Microsoft.CodeAnalysis.CSharp.dll" "%COMPILER_DIR%\" >NUL 2>&1
-
-echo Copying "System.*.dll"
-copy /y /b "%SOURCE%\System.Collections.Immutable.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.Memory.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.Runtime.CompilerServices.Unsafe.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.Reflection.Metadata.dll" "%COMPILER_DIR%\" >NUL 2>&1
-copy /y /b "%SOURCE%\System.Numerics.Vectors.dll" "%COMPILER_DIR%\" >NUL 2>&1
 
 exit /b 0

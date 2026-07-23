@@ -69,13 +69,16 @@
     <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Bin64)&quot;" />
   </Target>
   <ItemGroup>
+    <ProjectReference Include="..\Compiler\Compiler.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)\Microsoft.CodeAnalysis.dll" Private="False" />
     <Reference Include="Sandbox.Game" HintPath="$(Bin64)\Sandbox.Game.dll" Private="False" />
     <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)\Sandbox.Graphics.dll" Private="False" />
     <Reference Include="SpaceEngineers" HintPath="$(Bin64)\SpaceEngineers.exe" Private="False" />
     <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)\SpaceEngineers.Game.dll" Private="False" />
+    <Reference Include="System.Collections.Immutable" HintPath="$(Bin64)\System.Collections.Immutable.dll" Private="False" />
     <Reference Include="VRage" HintPath="$(Bin64)\VRage.dll" Private="False" />
     <Reference Include="VRage.Game" HintPath="$(Bin64)\VRage.Game.dll" Private="False" />
     <Reference Include="VRage.Input" HintPath="$(Bin64)\VRage.Input.dll" Private="False" />

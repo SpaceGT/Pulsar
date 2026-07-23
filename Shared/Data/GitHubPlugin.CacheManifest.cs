@@ -34,6 +34,17 @@ public partial class GitHubPlugin
         public string Runtime { get; set; }
 
         [XmlIgnore]
+        public Version PulsarVersion { get; set; }
+
+        [XmlElement("PulsarVersion")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string PulsarVersionString
+        {
+            get => PulsarVersion?.ToString();
+            set => PulsarVersion = string.IsNullOrWhiteSpace(value) ? null : new Version(value);
+        }
+
+        [XmlIgnore]
         public Version GameVersion { get; set; }
 
         [XmlElement("GameVersion")]
@@ -124,10 +135,14 @@ public partial class GitHubPlugin
             bool requiresPackages
         )
         {
+            Version currentPulsarVersion =
+                System.Reflection.Assembly.GetEntryAssembly().GetName().Version;
+
             if (
                 !File.Exists(DllFile)
                 || Commit != currentCommit
                 || Runtime != RuntimeInformation.FrameworkDescription
+                || PulsarVersion != currentPulsarVersion
             )
                 return false;
 

@@ -3,10 +3,12 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using HarmonyLib;
+using Pulsar.Compiler;
 using Pulsar.Legacy.Compiler;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
@@ -16,9 +18,6 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
-#if NETCOREAPP
-using System.Runtime.InteropServices;
-#endif
 
 namespace Pulsar.Legacy;
 
@@ -202,14 +201,40 @@ static class Program
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string bin64Dir = ConfigManager.Instance.GameDir;
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Pulsar.Compiler.exe"
+        );
+        string[] runtimeDirs = CompilerFactory.GetRuntimeDirectories();
+        string[] probeDirs = [.. runtimeDirs, bin64Dir, dependencyDir];
 
-        using (CompilerFactory compiler = new([bin64Dir, dependencyDir], bin64Dir, pulsarDir))
+#if NETFRAMEWORK
+        string runtimeFlag = "NETFRAMEWORK";
+        bool includeNativeReferences = Tools.IsNative();
+        if (includeNativeReferences)
         {
-            // The AppDomain must be created ASAP if running under Mono
-            // as Mono does not isolate assemblies properly.
-            if (!Tools.IsNative())
-                compiler.Init();
+            string wpfDir = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "WPF");
+            probeDirs = [.. probeDirs, wpfDir];
+        }
+#else
+        string runtimeFlag = "NETCOREAPP";
+        bool includeNativeReferences = true;
+#endif
 
+        string[] references = [.. References.GetReferences(bin64Dir, includeNativeReferences)];
+
+        using (
+            CompilerFactory compiler = new(
+                compilerPath,
+                references,
+                probeDirs,
+                pulsarDir,
+                runtimeFlag
+            )
+        )
+        {
             Tools.Init(new ExternalTools(), compiler);
             SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }

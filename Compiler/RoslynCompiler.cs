@@ -6,63 +6,40 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Text;
+using Pulsar.Protocol.Compiler;
 
 namespace Pulsar.Compiler;
 
-public interface ICompilerFactory : IDisposable
+internal class RoslynCompiler(CompileRequest request)
 {
-    void Init();
-    ICompiler Create(bool debugBuild = false);
-}
-
-public interface ICompiler
-{
-    void Load(Stream s, string name, string embedFile = null);
-    byte[] Compile(string assemblyName, out byte[] symbols);
-    void TryAddDependency(string dll);
-}
-
-public class RoslynCompiler : MarshalByRefObject, ICompiler
-{
-    public bool DebugBuild;
-    public string[] Flags;
-
     private readonly List<Source> source = [];
     private readonly PublicizedAssemblies publicizedAssemblies = new();
     private readonly List<MetadataReference> customReferences = [];
 
-    public void Load(Stream s, string name, string embedFile = null)
+    public CompileResponse Compile()
     {
-        var options = CSharpParseOptions
-            .Default.WithLanguageVersion(LanguageVersion.CSharp14)
-            .WithPreprocessorSymbols(Flags);
-
-        using MemoryStream mem = new();
-
-        s.CopyTo(mem);
-        source.Add(new Source(mem, name, options, embedFile));
-
-        SourceText sourceText = SourceText.From(mem);
-        publicizedAssemblies.InspectSource(sourceText);
-    }
-
-    public byte[] Compile(string assemblyName, out byte[] symbols)
-    {
-        symbols = null;
+        LoadSources();
+        LoadReferences();
 
         var references = RoslynReferences
             .Instance.AllReferences.Select(kv =>
-                publicizedAssemblies.PublicizeReferenceIfRequired(assemblyName, kv.Key, kv.Value)
+                publicizedAssemblies.PublicizeReferenceIfRequired(
+                    request.AssemblyName,
+                    kv.Key,
+                    kv.Value
+                )
             )
             .Concat(customReferences);
 
         CSharpCompilation compilation = CSharpCompilation.Create(
-            assemblyName,
+            request.AssemblyName,
             syntaxTrees: source.Select(x => x.Tree),
             references: references,
             options: new CSharpCompilationOptions(
                 OutputKind.DynamicallyLinkedLibrary,
-                optimizationLevel: DebugBuild ? OptimizationLevel.Debug : OptimizationLevel.Release,
+                optimizationLevel: request.DebugBuild
+                    ? OptimizationLevel.Debug
+                    : OptimizationLevel.Release,
                 allowUnsafe: true
             )
         );
@@ -72,15 +49,15 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
 
         // write IL code into memory
         EmitResult result;
-        if (DebugBuild)
+        if (request.DebugBuild)
         {
             result = compilation.Emit(
                 ms,
                 pdb,
-                embeddedTexts: source.Select(x => x.Text),
+                embeddedTexts: source.Where(x => x.Text is not null).Select(x => x.Text),
                 options: new EmitOptions(
                     debugInformationFormat: DebugInformationFormat.PortablePdb,
-                    pdbFilePath: Path.ChangeExtension(assemblyName, "pdb")
+                    pdbFilePath: Path.ChangeExtension(request.AssemblyName, "pdb")
                 )
             );
         }
@@ -90,41 +67,37 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
         }
 
         if (!result.Success)
+            return GetErrors(result.Diagnostics);
+
+        return new CompileResponse
         {
-            // handle exceptions
-            IEnumerable<Diagnostic> failures = result.Diagnostics.Where(diagnostic =>
-                diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error
-            );
+            Success = true,
+            Assembly = ms.ToArray(),
+            Symbols = request.DebugBuild ? pdb.ToArray() : null,
+        };
+    }
 
-            List<Exception> exceptions = [];
-            foreach (Diagnostic diagnostic in failures)
-            {
-                Location location = diagnostic.Location;
-                Source source = this.source.FirstOrDefault(x => x.Tree == location.SourceTree);
-                LinePosition pos = location.GetLineSpan().StartLinePosition;
+    private void LoadSources()
+    {
+        CSharpParseOptions options = CSharpParseOptions
+            .Default.WithLanguageVersion(LanguageVersion.CSharp14)
+            .WithPreprocessorSymbols(request.Flags ?? []);
 
-                string message = $"{diagnostic.Id}: {diagnostic.GetMessage()}";
-                if (source?.Name is not null)
-                    message += $" in file: {source?.Name} ({pos.Line + 1},{pos.Character + 1})";
-
-                exceptions.Add(new Exception(message));
-            }
-            throw new AggregateException("Compilation failed!", exceptions);
-        }
-        else
+        foreach (SourceFile file in request.Sources ?? [])
         {
-            if (DebugBuild)
-            {
-                pdb.Seek(0, SeekOrigin.Begin);
-                symbols = pdb.ToArray();
-            }
-
-            ms.Seek(0, SeekOrigin.Begin);
-            return ms.ToArray();
+            Source item = new(file, options);
+            source.Add(item);
+            publicizedAssemblies.InspectSource(item.SourceText);
         }
     }
 
-    public void TryAddDependency(string dll)
+    private void LoadReferences()
+    {
+        foreach (string dll in request.References ?? [])
+            TryAddDependency(dll);
+    }
+
+    private void TryAddDependency(string dll)
     {
         if (
             Path.HasExtension(dll)
@@ -145,26 +118,55 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
         }
     }
 
+    private CompileResponse GetErrors(IEnumerable<Diagnostic> diagnostics)
+    {
+        IEnumerable<CompilerDiagnostic> failures = diagnostics
+            .Where(diagnostic =>
+                diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error
+            )
+            .Select(GetError);
+
+        return new CompileResponse { Success = false, Diagnostics = [.. failures] };
+    }
+
+    private CompilerDiagnostic GetError(Diagnostic diagnostic)
+    {
+        Location location = diagnostic.Location;
+        Source item = source.FirstOrDefault(x => x.Tree == location.SourceTree);
+        LinePosition pos = location.GetLineSpan().StartLinePosition;
+
+        return new CompilerDiagnostic
+        {
+            Id = diagnostic.Id,
+            Message = diagnostic.GetMessage(),
+            Source = item?.Name,
+            Line = pos.Line + 1,
+            Column = pos.Character + 1,
+        };
+    }
+
     private class Source
     {
         public string Name { get; }
         public SyntaxTree Tree { get; }
         public EmbeddedText Text { get; }
+        public SourceText SourceText { get; }
 
-        public Source(Stream s, string name, CSharpParseOptions options, string embedFile = null)
+        public Source(SourceFile source, CSharpParseOptions options)
         {
-            Name = name;
-            bool includeText = embedFile is not null;
-            SourceText source = SourceText.From(s, canBeEmbedded: includeText);
+            Name = source.Name;
+            bool includeText = source.EmbedFile is not null;
+            using MemoryStream stream = new(source.Data ?? []);
+            SourceText = SourceText.From(stream, canBeEmbedded: includeText);
 
             if (includeText)
             {
-                Text = EmbeddedText.FromSource(embedFile, source);
-                Tree = CSharpSyntaxTree.ParseText(source, options, embedFile);
+                Text = EmbeddedText.FromSource(source.EmbedFile, SourceText);
+                Tree = CSharpSyntaxTree.ParseText(SourceText, options, source.EmbedFile);
             }
             else
             {
-                Tree = CSharpSyntaxTree.ParseText(source, options);
+                Tree = CSharpSyntaxTree.ParseText(SourceText, options);
             }
         }
     }

@@ -11,6 +11,7 @@ using Avalonia.ReactiveUI;
 using HarmonyLib;
 using Keen.VRage.Core;
 using Keen.VRage.Library.Utils;
+using Pulsar.Compiler;
 using Pulsar.Modern.Compiler;
 using Pulsar.Modern.Launcher;
 using Pulsar.Modern.Loader;
@@ -197,14 +198,25 @@ static class Program
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string game2Dir = ConfigManager.Instance.GameDir;
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Pulsar.Compiler.exe"
+        );
+        string[] runtimeDirs = CompilerFactory.GetRuntimeDirectories();
+        string[] references = [.. References.GetReferences(game2Dir)];
 
-        using (CompilerFactory compiler = new([game2Dir, dependencyDir], game2Dir, pulsarDir))
+        using (
+            CompilerFactory compiler = new(
+                compilerPath,
+                references,
+                [.. runtimeDirs, game2Dir, dependencyDir],
+                pulsarDir,
+                "NETCOREAPP"
+            )
+        )
         {
-            // The AppDomain must be created ASAP if running under Mono
-            // as Mono does not isolate assemblies properly.
-            if (!Tools.IsNative())
-                compiler.Init();
-
             Tools.Init(new ExternalTools(), compiler);
             SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }

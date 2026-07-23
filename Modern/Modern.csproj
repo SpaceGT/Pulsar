@@ -61,6 +61,7 @@
     <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Game2)&quot;" />
   </Target>
   <ItemGroup>
+    <ProjectReference Include="..\Compiler\Compiler.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>

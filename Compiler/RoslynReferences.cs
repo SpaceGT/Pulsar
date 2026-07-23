@@ -13,6 +13,26 @@ public class RoslynReferences
     public DefaultAssemblyResolver Resolver = new();
 
     internal readonly Dictionary<string, MetadataReference> AllReferences = [];
+    private string[] searchDirectories = [];
+    private bool useFrameworkReferences;
+
+    public void SetSearchDirectories(
+        IEnumerable<string> directories,
+        bool useFrameworkReferences
+    )
+    {
+        foreach (string dir in Resolver.GetSearchDirectories().ToArray())
+            Resolver.RemoveSearchDirectory(dir);
+
+        searchDirectories =
+        [
+            .. directories.Where(x => !string.IsNullOrWhiteSpace(x)).Distinct(),
+        ];
+        this.useFrameworkReferences = useFrameworkReferences;
+
+        foreach (string dir in searchDirectories)
+            Resolver.AddSearchDirectory(dir);
+    }
 
     public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
     {
@@ -68,7 +88,7 @@ public class RoslynReferences
         {
             definition = Resolver.Resolve(nameReference);
         }
-        catch (IOException)
+        catch (Exception e) when (e is IOException || e is AssemblyResolutionException)
         {
             return false;
         }
@@ -76,9 +96,30 @@ public class RoslynReferences
         var references = definition.MainModule.AssemblyReferences;
         string fileName = definition.MainModule.FileName;
 
+        if (!useFrameworkReferences && !IsInSearchDirectory(fileName))
+            return false;
+
         reference = MetadataReference.CreateFromFile(fileName);
         dependencies = references.Select(x => x.Name);
 
         return true;
+    }
+
+    private bool IsInSearchDirectory(string file)
+    {
+        string target = Path.GetFullPath(file);
+        StringComparison comparison = Path.DirectorySeparatorChar == '\\'
+            ? StringComparison.OrdinalIgnoreCase
+            : StringComparison.Ordinal;
+
+        foreach (string dir in searchDirectories)
+        {
+            string root = Path.GetFullPath(dir).TrimEnd(Path.DirectorySeparatorChar)
+                + Path.DirectorySeparatorChar;
+            if (target.StartsWith(root, comparison))
+                return true;
+        }
+
+        return false;
     }
 }
