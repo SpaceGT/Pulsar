@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -10,15 +9,19 @@ namespace Pulsar.Compiler;
 public class RoslynReferences
 {
     public static RoslynReferences Instance = new();
-    public DefaultAssemblyResolver Resolver = new();
+    public DefaultAssemblyResolver Resolver = new ProbeAssemblyResolver([]);
 
     internal readonly Dictionary<string, MetadataReference> AllReferences = [];
 
+    public void SetSearchDirectories(IReadOnlyCollection<string> directories)
+    {
+        Resolver.Dispose();
+        Resolver = new ProbeAssemblyResolver(directories);
+    }
+
     public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
     {
-        if (AllReferences.Any())
-            return;
-
+        AllReferences.Clear();
         LogFile.WriteLine($"Assembly References:\n{string.Join(", ", assemblies)}");
         LoadAssemblies(assemblies);
     }
@@ -80,5 +83,18 @@ public class RoslynReferences
         dependencies = references.Select(x => x.Name);
 
         return true;
+    }
+
+    private sealed class ProbeAssemblyResolver(IReadOnlyCollection<string> directories)
+        : DefaultAssemblyResolver
+    {
+        public override AssemblyDefinition Resolve(
+            AssemblyNameReference name,
+            ReaderParameters parameters
+        )
+        {
+            return SearchDirectory(name, directories, parameters)
+                ?? throw new AssemblyResolutionException(name);
+        }
     }
 }

@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Version>2.3.1</Version>
     <Product>Pulsar</Product>
-    <Copyright>© 2025 SpaceGT</Copyright>
+    <Copyright>© 2026 SpaceGT</Copyright>
     <AssemblyTitle>Pulsar</AssemblyTitle>
     <Description>Plugin and Mod loader for Space Engineers 1</Description>
   </PropertyGroup>
@@ -17,7 +17,6 @@
     <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <AssemblyName>Legacy</AssemblyName>
@@ -72,6 +71,7 @@
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)\Microsoft.CodeAnalysis.dll" Private="False" />
     <Reference Include="Sandbox.Game" HintPath="$(Bin64)\Sandbox.Game.dll" Private="False" />
     <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)\Sandbox.Graphics.dll" Private="False" />
     <Reference Include="SpaceEngineers" HintPath="$(Bin64)\SpaceEngineers.exe" Private="False" />
@@ -83,6 +83,9 @@
     <Reference Include="VRage.Math" HintPath="$(Bin64)\VRage.Math.dll" Private="False" />
     <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)\VRage.Platform.Windows.dll" Private="False" />
     <Reference Include="VRage.Scripting" HintPath="$(Bin64)\VRage.Scripting.dll" Private="False" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Collections.Immutable" HintPath="$(Bin64)\System.Collections.Immutable.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />

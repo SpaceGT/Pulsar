@@ -203,7 +203,7 @@ public class AddPluginMenu : PluginScreen
 
     private int ComparePluginsByName(PluginData x, PluginData y)
     {
-        return x.FriendlyName.CompareTo(y.FriendlyName, StringComparison.OrdinalIgnoreCase);
+        return StringComparer.OrdinalIgnoreCase.Compare(x.FriendlyName, y.FriendlyName);
     }
 
     private int ComparePluginsByUsage(PluginData x, PluginData y)

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using Pulsar.Shared;
 
-namespace Pulsar.Legacy.Compiler;
+namespace Pulsar.Legacy;
 
 internal static class References
 {

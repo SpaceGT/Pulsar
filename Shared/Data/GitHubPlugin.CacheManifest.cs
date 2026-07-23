@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using Pulsar.Shared.Config;
@@ -32,6 +33,17 @@ public partial class GitHubPlugin
         public string Commit { get; set; }
 
         public string Runtime { get; set; }
+
+        [XmlIgnore]
+        public Version PulsarVersion { get; set; }
+
+        [XmlElement("PulsarVersion")]
+        [EditorBrowsable(EditorBrowsableState.Never)]
+        public string PulsarVersionString
+        {
+            get => PulsarVersion?.ToString();
+            set => PulsarVersion = string.IsNullOrWhiteSpace(value) ? null : new Version(value);
+        }
 
         [XmlIgnore]
         public Version GameVersion { get; set; }
@@ -124,10 +136,13 @@ public partial class GitHubPlugin
             bool requiresPackages
         )
         {
+            Version currentPulsarVersion = Assembly.GetEntryAssembly().GetName().Version;
+
             if (
                 !File.Exists(DllFile)
                 || Commit != currentCommit
                 || Runtime != RuntimeInformation.FrameworkDescription
+                || PulsarVersion != currentPulsarVersion
             )
                 return false;
 

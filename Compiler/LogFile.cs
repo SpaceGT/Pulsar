@@ -1,5 +1,4 @@
-﻿using System.IO;
-using NLog;
+﻿using NLog;
 using NLog.Config;
 using NLog.Layouts;
 
@@ -7,13 +6,11 @@ namespace Pulsar.Compiler;
 
 public static class LogFile
 {
-    private const string fileName = "info.log";
     private static Logger logger;
     private static LogFactory logFactory;
 
-    public static void Init(string mainPath)
+    public static void Init(string file)
     {
-        string file = Path.Combine(mainPath, fileName);
         LoggingConfiguration config = new();
         config.AddRuleForAllLevels(
             new NLog.Targets.FileTarget()

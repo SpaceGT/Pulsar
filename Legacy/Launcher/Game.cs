@@ -51,12 +51,13 @@ internal static class Game
         );
         var m_plugins = (List<IPlugin>)m_pluginsField.GetValue(null);
         m_plugins.Add(plugin);
-        
+
         FieldInfo m_handleInputPluginsField = typeof(MyPlugins).GetField(
             "m_handleInputPlugins",
             BindingFlags.Static | BindingFlags.NonPublic
         );
-        var m_handleInputPlugins = (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
+        var m_handleInputPlugins =
+            (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
         m_handleInputPlugins.Add(plugin);
     }
 

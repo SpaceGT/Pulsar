@@ -253,7 +253,7 @@ public abstract class PluginData : IEquatable<PluginData>
 
             int score = 0;
             foreach (string term in terms)
-                if (value.Contains(term, StringComparison.OrdinalIgnoreCase))
+                if (value.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
                     score += 1;
 
             return score;

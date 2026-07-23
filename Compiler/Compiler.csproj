@@ -2,15 +2,15 @@
   <PropertyGroup>
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
-    <Copyright>© 2025 SpaceGT</Copyright>
+    <Copyright>© 2026 SpaceGT</Copyright>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyName>Pulsar.Compiler</AssemblyName>
+    <AssemblyName>Compiler</AssemblyName>
     <RootNamespace>Pulsar.Compiler</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net48</TargetFramework>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
@@ -35,6 +35,12 @@
     <LangVersion>latest</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
+  </Target>
+  <ItemGroup>
+    <ProjectReference Include="..\Protocol\Protocol.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />

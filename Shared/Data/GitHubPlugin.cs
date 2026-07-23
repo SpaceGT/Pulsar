@@ -173,6 +173,7 @@ public partial class GitHubPlugin : PluginData
             manifest.GameVersion = gameVersion;
             manifest.Commit = selectedCommit;
             manifest.Runtime = RuntimeInformation.FrameworkDescription;
+            manifest.PulsarVersion = Assembly.GetEntryAssembly().GetName().Version;
             manifest.ClearAssets();
             string name = assemblyName + '_' + Path.GetRandomFileName();
             Action<float> setBarValue = lbl is not null ? lbl.SetBarValue : null;

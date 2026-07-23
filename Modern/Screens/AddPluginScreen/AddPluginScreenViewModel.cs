@@ -74,12 +74,16 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Plugins.Clear();
 
-        Plugins.AddRange([
-            .. plugins.Where(x =>
-                (!x.IsHidden || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
-                && x.IsSupportedRuntime
-            ),
-        ]);
+        Plugins.AddRange(
+            [
+                .. plugins.Where(x =>
+                    (
+                        !x.IsHidden
+                        || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase)
+                    ) && x.IsSupportedRuntime
+                ),
+            ]
+        );
     }
 
     public void SortPluginsBySearch()
