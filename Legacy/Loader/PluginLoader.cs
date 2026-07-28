@@ -4,7 +4,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
@@ -105,7 +104,7 @@ public class PluginLoader : IHandleInputPlugin
 
         if (Flags.CheckAllPlugins)
         {
-            MessageBox.Show("All plugins compiled, log file will now open");
+            Tools.ShowMessageBox("All plugins compiled, log file will now open");
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }
@@ -183,8 +182,8 @@ public class PluginLoader : IHandleInputPlugin
 
     private void InstantiatePlugins()
     {
-        foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+        foreach (var plugin in SharedLoader.Instance.Plugins)
+            if (PluginInstance.TryGet(plugin.Key, plugin.Value, out PluginInstance instance))
                 plugins.Add(instance);
 
         for (int i = plugins.Count - 1; i >= 0; i--)

@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Shared;
 using Sandbox;
@@ -142,8 +142,19 @@ public static class LoaderTools
 
     private static void Start(bool autoRejoin, bool debugger)
     {
+        List<string> args = [.. Environment.GetCommandLineArgs()];
+        string fileName = Process.GetCurrentProcess().MainModule.FileName;
+
         // First "argument" is the invoked executable
-        List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
+        // Preserve if invoked via `dotnet` or drop if invoking directly.
+        if (
+            string.Equals(
+                Path.GetFileNameWithoutExtension(args[0]),
+                Path.GetFileNameWithoutExtension(fileName),
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+            args.RemoveAt(0);
 
         args.Remove(ContinueArg);
         if (autoRejoin)
@@ -154,7 +165,7 @@ public static class LoaderTools
             args.Add(DebugArg);
 
         ProcessStartInfo startInfo = new(
-            fileName: Application.ExecutablePath,
+            fileName: fileName,
             arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
         );
 

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
@@ -12,6 +11,7 @@ using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLoader = Pulsar.Shared.Loader;
+using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Loader;
 
@@ -100,8 +100,8 @@ internal class PluginLoader : IPlugin, IDisposable
         if (Flags.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
-        foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+        foreach (var plugin in SharedLoader.Instance.Plugins)
+            if (PluginInstance.TryGet(plugin.Key, plugin.Value, out PluginInstance instance))
                 plugins.Add(instance);
 
         LogFile.WriteLine($"Initializing {plugins.Count} plugins");
@@ -130,7 +130,7 @@ internal class PluginLoader : IPlugin, IDisposable
 
         if (Flags.CheckAllPlugins)
         {
-            MessageBox.Show("All plugins compiled, log file will now open");
+            Tools.ShowMessageBox("All plugins compiled, log file will now open");
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }

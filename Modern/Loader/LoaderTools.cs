@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
-using System.Windows.Forms;
 using HarmonyLib;
 using Keen.Game2;
 using Keen.Game2.Client.UI.InGame;
@@ -17,7 +17,8 @@ namespace Pulsar.Modern.Loader;
 
 internal static class LoaderTools
 {
-    // This is changed to -startLast from -continue, as SE2 already has a system to load the last world you were in at startup.
+    // This is changed to -startLast from -continue.
+    // SE2 already has a system to load the last world you were in at startup.
     private const string ContinueArg = "-startLast";
     private const string DebugArg = "-debug";
 
@@ -80,8 +81,19 @@ internal static class LoaderTools
 
     private static void Start(bool autoRejoin, bool debugger)
     {
+        List<string> args = [.. Environment.GetCommandLineArgs()];
+        string fileName = Process.GetCurrentProcess().MainModule.FileName;
+
         // First "argument" is the invoked executable
-        List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
+        // Preserve if invoked via `dotnet` or drop if invoking directly.
+        if (
+            string.Equals(
+                Path.GetFileNameWithoutExtension(args[0]),
+                Path.GetFileNameWithoutExtension(fileName),
+                StringComparison.OrdinalIgnoreCase
+            )
+        )
+            args.RemoveAt(0);
 
         args.Remove(ContinueArg);
         if (autoRejoin)
@@ -92,7 +104,7 @@ internal static class LoaderTools
             args.Add(DebugArg);
 
         ProcessStartInfo startInfo = new(
-            fileName: Application.ExecutablePath,
+            fileName: fileName,
             arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
         );
 

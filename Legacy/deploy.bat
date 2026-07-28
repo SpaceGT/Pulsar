@@ -94,6 +94,9 @@ copy /y /b "%SOURCE%\0Harmony.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 echo Copying "Mono.Cecil.dll"
 copy /y /b "%SOURCE%\Mono.Cecil.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 
+echo Copying "Microsoft.Win32.Registry.dll"
+copy /y /b "%SOURCE%\Microsoft.Win32.Registry.dll" "%LIBRARY_DIR%\" >NUL 2>&1
+
 echo Copying "Newtonsoft.Json.dll"
 copy /y /b "%SOURCE%\Newtonsoft.Json.dll" "%LIBRARY_DIR%\" >NUL 2>&1
 

@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Compiler;
+using Pulsar.Interface;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Patch;
@@ -47,7 +47,12 @@ static class Program
     static void PulsarMain(string[] args)
     {
 #endif
-        Application.EnableVisualStyles();
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
+        string guiPath = Path.Combine(baseDir, "Libraries", "Interface", "Interface.exe");
+
+        using InterfaceClient interfaceClient = new(guiPath);
+        Tools.EarlyInit(interfaceClient);
 
         if (SharedLauncher.IsOtherPulsarRunning())
         {
@@ -57,9 +62,6 @@ static class Program
 
         if (Flags.ExternalDebug)
             Debugger.Launch();
-
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
         SetupCoreData(baseDir);
         Updater updater = TryUpdate(baseDir);
@@ -229,7 +231,7 @@ static class Program
             SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }
 
-        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
+        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Value));
         if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");

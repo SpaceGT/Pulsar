@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using Pulsar.Compiler;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
 
@@ -269,7 +270,10 @@ public class LocalFolderPlugin : PluginData
         Tools.OpenFileDialog(
             "Open an xml data file",
             Folder,
-            Tools.XmlDataType,
+            [
+                new FilePickerFilter { Name = "Xml files (*.xml)", Patterns = ["*.xml"] },
+                new FilePickerFilter { Name = "All files (*.*)", Patterns = ["*.*"] },
+            ],
             (file) =>
             {
                 DeserializeFile(file);
