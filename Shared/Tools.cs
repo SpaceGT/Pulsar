@@ -219,8 +219,7 @@ public static class Tools
     public static bool IsNative() =>
         Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
 
-    public static bool IsNetFramework() =>
-        typeof(object).Assembly.GetName().Name == "mscorlib";
+    public static bool IsNetFramework() => typeof(object).Assembly.GetName().Name == "mscorlib";
 
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);

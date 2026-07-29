@@ -72,10 +72,11 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
             {
                 Title = request.Title,
                 AllowMultiple = false,
-                FileTypeFilter = request.Filters
-                    ?.Select(filter =>
-                        new FilePickerFileType(filter.Name) { Patterns = filter.Patterns }
-                    )
+                FileTypeFilter = request
+                    .Filters?.Select(filter => new FilePickerFileType(filter.Name)
+                    {
+                        Patterns = filter.Patterns,
+                    })
                     .ToArray(),
             };
 

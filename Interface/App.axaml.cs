@@ -18,7 +18,9 @@ internal class App : Application
     public override void OnFrameworkInitializationCompleted()
     {
         if (ApplicationLifetime is not IClassicDesktopStyleApplicationLifetime desktop)
-            throw new InvalidOperationException("The Pulsar interface requires a desktop lifetime.");
+            throw new InvalidOperationException(
+                "The Pulsar interface requires a desktop lifetime."
+            );
 
         desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
         server = new InterfaceServer(new WindowManager(desktop));

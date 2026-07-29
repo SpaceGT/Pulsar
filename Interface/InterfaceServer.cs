@@ -9,10 +9,7 @@ namespace Pulsar.Interface;
 
 internal sealed class InterfaceServer(WindowManager windows)
 {
-    private readonly IpcStream ipc = new(
-        Console.OpenStandardInput(),
-        Console.OpenStandardOutput()
-    );
+    private readonly IpcStream ipc = new(Console.OpenStandardInput(), Console.OpenStandardOutput());
 
     public void Start() => Task.Run(ReadRequests);
 

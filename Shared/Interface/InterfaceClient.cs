@@ -131,14 +131,21 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
                 throw new InvalidOperationException("Unable to start the Pulsar interface.");
 
             errorOutput = process.StandardError.ReadToEndAsync();
-            ipc = new IpcStream(process.StandardOutput.BaseStream, process.StandardInput.BaseStream);
+            ipc = new IpcStream(
+                process.StandardOutput.BaseStream,
+                process.StandardInput.BaseStream
+            );
 
             Task<InterfaceResponse> hello = Task.Run(() =>
                 Exchange(new InterfaceRequest { Operation = InterfaceOperation.Hello })
             );
-            Task completed = Task.WhenAny(hello, Task.Delay(StartupTimeout)).GetAwaiter().GetResult();
+            Task completed = Task.WhenAny(hello, Task.Delay(StartupTimeout))
+                .GetAwaiter()
+                .GetResult();
             if (completed != hello)
-                throw new TimeoutException("The Pulsar interface process timed out during startup.");
+                throw new TimeoutException(
+                    "The Pulsar interface process timed out during startup."
+                );
 
             hello.GetAwaiter().GetResult();
         }
@@ -146,10 +153,7 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
         {
             string error = Stop();
             if (!string.IsNullOrWhiteSpace(error))
-                throw new InvalidOperationException(
-                    $"The interface process failed:\n{error}",
-                    e
-                );
+                throw new InvalidOperationException($"The interface process failed:\n{error}", e);
 
             throw;
         }
