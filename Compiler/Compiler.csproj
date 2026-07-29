@@ -21,25 +21,51 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin/Debug/</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <LangVersion>latest</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin/Release/</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
     <LangVersion>latest</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
+  <Target Name="Deploy" AfterTargets="Build">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/Compiler</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployFile Include="$(TargetPath)" />
+      <DeployFile Include="$(TargetPath).config" />
+      <DeployFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployFile Include="$(TargetDir)Mono.Cecil.dll" />
+      <DeployFile Include="$(TargetDir)NLog.dll" />
+      <DeployFile Include="$(TargetDir)Microsoft.CodeAnalysis.dll" />
+      <DeployFile Include="$(TargetDir)Microsoft.CodeAnalysis.CSharp.dll" />
+      <DeployFile Include="$(TargetDir)System.Collections.Immutable.dll" />
+      <DeployFile Include="$(TargetDir)System.Memory.dll" />
+      <DeployFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      <DeployFile Include="$(TargetDir)System.Reflection.Metadata.dll" />
+      <DeployFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
+  </Target>
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="..\Protocol\Protocol.csproj" />
+    <ProjectReference Include="../Protocol/Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />

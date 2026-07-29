@@ -19,11 +19,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <AssemblyName>Legacy</AssemblyName>
-    <StartProgram>$(Pulsar)\Legacy.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Legacy.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
     <AssemblyName>Interim</AssemblyName>
-    <StartProgram>$(Pulsar)\Interim.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Interim.exe</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
@@ -32,14 +32,14 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
     <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>bin/Debug/</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <DebugType>full</DebugType>
     <LangVersion>latest</LangVersion>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin/Release/</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -47,7 +47,7 @@
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>..\Interface\Assets\icon.ico</ApplicationIcon>
+    <ApplicationIcon>../Interface/Assets/icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -60,14 +60,42 @@
     <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetFrameworkIdentifier)&quot;" />
+  <Target Name="Deploy" AfterTargets="Build">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/$(AssemblyName)</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)0Harmony.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Mono.Cecil.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
+      <DeployLibraryFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
+      <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
+      <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.*.dll" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
+    <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Bin64)&quot;" />
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
+    <Error Condition="'$(Bin64)' == '' or !Exists('$(Bin64)')" Text="Specify SpaceEngineers Bin64 path!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
     <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather then WinForms. -->

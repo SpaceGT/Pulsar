@@ -14,7 +14,7 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Protocol\Protocol.csproj" />
+    <ProjectReference Include="../Protocol/Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Steamworks.NET" HintPath="$(Steamworks)" Private="False" />
