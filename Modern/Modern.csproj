@@ -90,22 +90,23 @@
     <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
     <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers;</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Publicize Include="0Harmony" />
     <Publicize Include="Game2.Client" />
-    <Publicize Include="Game2.Game" />
     <Publicize Include="SpaceEngineers2" />
     <Publicize Include="VRage.Client" />
     <Publicize Include="VRage.Steam" />
     <Publicize Include="VRage.UI" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Required by Avalonia's Visual Designer; SpaceEngineers2 uses the Keen Assemblies. -->
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" PrivateAssets="all" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" PrivateAssets="all" />
   </ItemGroup>
 </Project>

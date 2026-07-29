@@ -14,12 +14,12 @@ public partial class PluginConfigurationScreen : PluginScreenBase
         }
     }
 
-    private void CornerCancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void CornerCancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
         Dispose();
     }
 
-    private void PluginItem_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    private void PluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (((Border)sender).DataContext is not PluginViewModel pluginVM)
             return;

@@ -48,7 +48,7 @@ public partial class GithubPluginControls : UserControl
         }
     }
 
-    private void VersionSelectorBox_SelectionChanged(object? sender, SelectionChangedEventArgs e)
+    private void VersionSelectorBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         (
             (GitHubPluginConfig)((PluginDetailsScreenViewModel)DataContext).Plugin.PluginConfig
