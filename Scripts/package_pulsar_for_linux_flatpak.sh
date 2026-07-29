@@ -333,18 +333,14 @@ finish-args:
   - --filesystem=~/.local/share/vulkan:ro
   - --env=VK_ADD_LAYER_PATH=/run/host/home/.local/share/vulkan/implicit_layer.d
 modules:
-  # Silk.NET audio (used by se-linux-compat) requires libopenal at runtime.
-  # The freedesktop Platform runtime does not ship it, so build it here.
-  - name: openal-soft
-    buildsystem: cmake-ninja
-    config-opts:
-      - -DALSOFT_UTILS=OFF
-      - -DALSOFT_EXAMPLES=OFF
-      - -DALSOFT_INSTALL_CONFIG=OFF
-    sources:
-      - type: archive
-        url: https://openal-soft.org/openal-releases/openal-soft-1.25.2.tar.bz2
-        sha256: 1dbaac44e7579d5bc8847ca8db4b2e8b9fd3961041f35ee20def4958301e1089
+  # OpenAL Soft used to be compiled here, because Silk.NET audio (used by
+  # se-linux-compat) needs libopenal at runtime and the freedesktop Platform
+  # runtime does not ship it. It now arrives prebuilt in the
+  # CometWorks/linux-dependencies release like every other native dependency,
+  # so it is already inside pulsar-bundle/pulsar/Bin/ and the pulsar module
+  # below only has to put it on the loader path. That drops a from-source
+  # compile from every Flatpak build and gives the 7z bundle the same pinned
+  # binary instead of leaving it to the host.
   - name: pulsar
     buildsystem: simple
     sources:
@@ -355,6 +351,11 @@ modules:
       - install -d /app/lib/pulsar /app/bin /app/share/applications /app/share/metainfo
       - cp -a pulsar/. /app/lib/pulsar/
       - chmod +x /app/lib/pulsar/Bin/Interim
+      # Silk.NET dlopens libopenal by SONAME, which ld.so resolves against the
+      # runtime's search path -- and Bin/ is not on it. Symlink the bundled
+      # copy into /app/lib so resolution works exactly as it did when OpenAL
+      # was its own Flatpak module, without relying on preload ordering.
+      - ln -sf pulsar/Bin/libopenal.so.1 /app/lib/libopenal.so.1
       - install -m 0755 pulsar.sh /app/bin/pulsar
       - install -m 0644 $APP_ID.desktop /app/share/applications/$APP_ID.desktop
       - install -m 0644 $APP_ID.metainfo.xml /app/share/metainfo/$APP_ID.metainfo.xml

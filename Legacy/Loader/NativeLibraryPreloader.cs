@@ -53,6 +53,16 @@ internal static class NativeLibraryPreloader
         ("dxgi",      "libdxvk_dxgi.so"),
         ("dxgi.dll",  "libdxvk_dxgi.so"),
 
+        // OpenAL Soft (Silk.NET.OpenAL, used by se-linux-compat's audio).
+        // Bundled since the dependency release started shipping it; Silk.NET
+        // probes several name variants depending on the DllImport site.
+        ("openal",         "libopenal.so"),
+        ("OpenAL32",       "libopenal.so"),
+        ("OpenAL32.dll",   "libopenal.so"),
+        ("soft_oal",       "libopenal.so"),
+        ("soft_oal.dll",   "libopenal.so"),
+        ("libopenal.so.1", "libopenal.so"),
+
         // Epic Online Services SDK (VRage.EOS / Epic.OnlineServices).
         ("EOSSDK-Shipping",     "libEOSSDK-Linux-Shipping.so"),
         ("EOSSDK-Shipping.dll", "libEOSSDK-Linux-Shipping.so"),

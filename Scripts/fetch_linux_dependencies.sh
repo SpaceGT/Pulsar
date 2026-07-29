@@ -79,6 +79,7 @@ EXPECTED_FILES=(
     libswscale.so.9
     libdxvk_d3d11.so
     libdxvk_dxgi.so
+    libopenal.so.1
     libEOSSDK-Linux-Shipping.so
     libsteam_api.so
     Steamworks.NET.dll

@@ -16,8 +16,9 @@
 #
 #   1. fetch_linux_dependencies.sh   CometWorks/linux-dependencies release
 #                                    (FFmpeg 8.1, DXVK Native 2.7.1,
-#                                     Steamworks.NET.dll, libEOSSDK-Linux-
-#                                     Shipping.so, libsteam_api.so, LICENSES/)
+#                                     OpenAL Soft 1.25.2, Steamworks.NET.dll,
+#                                     libEOSSDK-Linux-Shipping.so,
+#                                     libsteam_api.so, LICENSES/)
 #   2. fetch_native_wrappers.sh      CometWorks/linux-native-wrappers release
 #                                    (libD3DCompiler.so, libHavok.so,
 #                                     libRecastDetour.so, libVRageNative.so)
@@ -68,7 +69,7 @@ for arg in "$@"; do
         --clean)    CLEAN_ARGS+=("--clean") ;;
         --only=*)   ONLY="${arg#--only=}" ;;
         --skip=*)   SKIP="${arg#--skip=}" ;;
-        -h|--help)  sed -n '2,49p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)  sed -n '2,50p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "ERROR: unknown arg: $arg" >&2; exit 2 ;;
     esac
 done
@@ -148,6 +149,8 @@ EXPECTED_FILES=(
     # DXVK
     libdxvk_d3d11.so libdxvk_d3d11.so.0
     libdxvk_dxgi.so  libdxvk_dxgi.so.0
+    # OpenAL
+    libopenal.so libopenal.so.1
     # Native wrappers
     libD3DCompiler.so libHavok.so libRecastDetour.so libVRageNative.so
     # Proprietary SDK runtimes
@@ -159,6 +162,9 @@ EXPECTED_FILES=(
     LICENSES/EOS-NOTICE.txt
     LICENSES/FFmpeg-LGPL-2.1.txt
     LICENSES/FFmpeg-README.txt
+    LICENSES/OpenAL-Soft-LGPL-2.0.txt
+    LICENSES/OpenAL-Soft-NOTICES.txt
+    LICENSES/OpenAL-Soft-README.txt
     LICENSES/README.txt
     LICENSES/Steam-NOTICE.txt
     LICENSES/Steamworks.NET-LICENSE.txt
