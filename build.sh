@@ -5,8 +5,9 @@
 #
 # Pipeline (in order):
 #   0. Scripts/build_dependencies.sh
-#         build/Libraries/ <- FFmpeg + DXVK + native wrappers + Steamworks.NET
-#         + Vendor/ blobs (EOS SDK, Steamworks SDK) + Scripts/Licenses/.
+#         build/Libraries/ <- the CometWorks/linux-dependencies release
+#         (FFmpeg + DXVK + Steamworks.NET + EOS/Steam SDK runtimes + LICENSES/)
+#         and the CometWorks/linux-native-wrappers release.
 #   1. Scripts/package_pulsar_for_linux_native.sh
 #         developer 7z bundle -> dist/PulsarForLinux-Native.<date>.<sha>.7z
 #   2. Scripts/package_pulsar_for_linux_flatpak.sh

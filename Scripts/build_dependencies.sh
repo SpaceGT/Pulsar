@@ -7,37 +7,46 @@
 # Interim apphost, and what Shared/Shared.csproj references for the
 # managed Steamworks.NET assembly.
 #
+# Nothing is compiled here any more. Every artefact is downloaded from a
+# GitHub release of the repo that builds it, so a clean Pulsar build no
+# longer waits ~15 minutes on FFmpeg and DXVK, and the binaries are
+# byte-for-byte the same ones Magnetar ships.
+#
 # Pipeline (in order):
 #
-#   1. build_ffmpeg.sh           FFmpeg 8.1 (libav*.so* / libsw*.so*)
-#   2. build_dxvk.sh             DXVK Native v2.7.1
-#                                (libdxvk_d3d11.so + libdxvk_dxgi.so + .0 links)
-#   3. fetch_native_wrappers.sh  linux-native-wrappers release download
-#                                (libD3DCompiler.so, libHavok.so,
-#                                 libRecastDetour.so, libVRageNative.so)
-#   4. build_steamworks_net.sh   Steamworks.NET.dll
-#   5. Vendor copy:              libEOSSDK-Linux-Shipping.so + libsteam_api.so
-#                                (proprietary, committed under Vendor/)
-#   6. License copy:             Scripts/Licenses/*.txt -> LICENSES/ subdir
+#   1. fetch_linux_dependencies.sh   CometWorks/linux-dependencies release
+#                                    (FFmpeg 8.1, DXVK Native 2.7.1,
+#                                     Steamworks.NET.dll, libEOSSDK-Linux-
+#                                     Shipping.so, libsteam_api.so, LICENSES/)
+#   2. fetch_native_wrappers.sh      CometWorks/linux-native-wrappers release
+#                                    (libD3DCompiler.so, libHavok.so,
+#                                     libRecastDetour.so, libVRageNative.so)
+#
+# The two releases are kept separate on purpose: the PE-loader wrappers change
+# far more often than FFmpeg or DXVK do, so bundling them together would put a
+# full FFmpeg + DXVK rebuild in front of every wrapper fix.
 #
 # After every step succeeds, a final assertion verifies that every expected
 # artefact landed in build/Libraries/ and aborts otherwise so the failure
 # surfaces here, not deep inside `dotnet publish`.
 #
 # Usage:
-#   ./build_dependencies.sh                 Build the full set.
-#   ./build_dependencies.sh --clean         Pass --clean to every sub-script.
-#   ./build_dependencies.sh --only=ffmpeg,dxvk
-#                                           Only run the listed sub-builds.
-#                                           Vendor + license copies always run.
-#   ./build_dependencies.sh --skip=dxvk     Run every sub-build except the listed ones.
+#   ./build_dependencies.sh                 Fetch the full set.
+#   ./build_dependencies.sh --clean         Pass --clean to every sub-script
+#                                           (forces a fresh download).
+#   ./build_dependencies.sh --only=linux-dependencies
+#                                           Only run the listed sub-fetches.
+#   ./build_dependencies.sh --skip=native-wrappers
+#                                           Run every sub-fetch except the
+#                                           listed ones.
 #
 # Env-var overrides (defaults shown):
 #   PULSAR_REPO_DIR = <dir of this script>/..
 #   BUILD_DIR       = $PULSAR_REPO_DIR/build
 #   LIBRARIES_DIR   = $BUILD_DIR/Libraries
-#   VENDOR_DIR      = $PULSAR_REPO_DIR/Vendor
-#   LICENSES_SRC    = $PULSAR_REPO_DIR/Scripts/Licenses
+#
+# To pin exact upstream releases (recommended for reproducible CI), set
+# LINUX_DEPENDENCIES_TAG and NATIVE_WRAPPERS_TAG; see the sub-scripts.
 
 set -euo pipefail
 
@@ -45,8 +54,6 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PULSAR_REPO_DIR="${PULSAR_REPO_DIR:-$(cd "$SCRIPT_DIR/.." && pwd)}"
 BUILD_DIR="${BUILD_DIR:-$PULSAR_REPO_DIR/build}"
 LIBRARIES_DIR="${LIBRARIES_DIR:-$BUILD_DIR/Libraries}"
-VENDOR_DIR="${VENDOR_DIR:-$PULSAR_REPO_DIR/Vendor}"
-LICENSES_SRC="${LICENSES_SRC:-$PULSAR_REPO_DIR/Scripts/Licenses}"
 
 export PULSAR_REPO_DIR BUILD_DIR LIBRARIES_DIR
 
@@ -61,9 +68,25 @@ for arg in "$@"; do
         --clean)    CLEAN_ARGS+=("--clean") ;;
         --only=*)   ONLY="${arg#--only=}" ;;
         --skip=*)   SKIP="${arg#--skip=}" ;;
-        -h|--help)  sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+        -h|--help)  sed -n '2,49p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
         *) echo "ERROR: unknown arg: $arg" >&2; exit 2 ;;
     esac
+done
+
+# Reject unknown step names, so a typo doesn't silently skip everything and
+# then report only that staging is incomplete.
+STEP_NAMES="linux-dependencies native-wrappers"
+for spec in "$ONLY" "$SKIP"; do
+    [ -n "$spec" ] || continue
+    IFS=',' read -ra names <<< "$spec"
+    for name in "${names[@]}"; do
+        case " $STEP_NAMES " in
+            *" $name "*) ;;
+            *) echo "ERROR: unknown step name: $name" >&2
+               echo "       Valid names: $STEP_NAMES" >&2
+               exit 2 ;;
+        esac
+    done
 done
 
 want_step() {
@@ -85,26 +108,13 @@ want_step() {
 
 # ---- preflight --------------------------------------------------------------
 
-mkdir -p "$LIBRARIES_DIR/LICENSES"
-
-[ -d "$VENDOR_DIR" ] || {
-    echo "ERROR: $VENDOR_DIR not found." >&2
-    echo "       Vendor/ holds the committed proprietary SDK blobs" >&2
-    echo "       (libEOSSDK-Linux-Shipping.so + libsteam_api.so)." >&2
-    exit 1
-}
-
-[ -d "$LICENSES_SRC" ] || {
-    echo "ERROR: $LICENSES_SRC not found." >&2
-    echo "       Scripts/Licenses/ holds the committed third-party license texts." >&2
-    exit 1
-}
+mkdir -p "$LIBRARIES_DIR"
 
 echo "==> Pulsar repo : $PULSAR_REPO_DIR"
 echo "==> Build dir   : $BUILD_DIR"
 echo "==> Staging dir : $LIBRARIES_DIR"
 
-# ---- 1..4. per-dependency build scripts ------------------------------------
+# ---- 1..2. per-release fetch scripts ---------------------------------------
 
 run_step() {
     local name="$1"; shift
@@ -118,45 +128,13 @@ run_step() {
     echo "############################################################"
     echo "# build_dependencies: $name"
     echo "############################################################"
-    bash "$script" "${CLEAN_ARGS[@]}" "$@"
+    bash "$script" "${CLEAN_ARGS[@]+"${CLEAN_ARGS[@]}"}" "$@"
 }
 
-run_step ffmpeg          "$SCRIPT_DIR/build_ffmpeg.sh"
-run_step dxvk            "$SCRIPT_DIR/build_dxvk.sh"
-run_step native-wrappers "$SCRIPT_DIR/fetch_native_wrappers.sh"
-run_step steamworks-net  "$SCRIPT_DIR/build_steamworks_net.sh"
+run_step linux-dependencies "$SCRIPT_DIR/fetch_linux_dependencies.sh"
+run_step native-wrappers    "$SCRIPT_DIR/fetch_native_wrappers.sh"
 
-# ---- 5. Vendor blobs --------------------------------------------------------
-
-echo
-echo "############################################################"
-echo "# build_dependencies: vendor blobs (Vendor/ -> Libraries/)"
-echo "############################################################"
-for blob in libEOSSDK-Linux-Shipping.so libsteam_api.so; do
-    src="$VENDOR_DIR/$blob"
-    if [ ! -f "$src" ]; then
-        echo "ERROR: missing vendor blob: $src" >&2
-        echo "       These SDKs are proprietary and must stay committed under Vendor/." >&2
-        exit 1
-    fi
-    install -m 0755 "$src" "$LIBRARIES_DIR/$blob"
-    echo "  copied $blob"
-done
-
-# ---- 6. Licenses ------------------------------------------------------------
-
-echo
-echo "############################################################"
-echo "# build_dependencies: licenses (Scripts/Licenses/ -> Libraries/LICENSES/)"
-echo "############################################################"
-shopt -s nullglob
-for f in "$LICENSES_SRC"/*.txt; do
-    install -m 0644 "$f" "$LIBRARIES_DIR/LICENSES/$(basename "$f")"
-    echo "  copied $(basename "$f")"
-done
-shopt -u nullglob
-
-# ---- 7. final assertion ----------------------------------------------------
+# ---- 3. final assertion ----------------------------------------------------
 # Confirm every artefact every consumer expects is present. Missing files
 # here are far easier to debug than a cryptic dotnet publish failure later.
 
@@ -172,7 +150,7 @@ EXPECTED_FILES=(
     libdxvk_dxgi.so  libdxvk_dxgi.so.0
     # Native wrappers
     libD3DCompiler.so libHavok.so libRecastDetour.so libVRageNative.so
-    # Vendor
+    # Proprietary SDK runtimes
     libEOSSDK-Linux-Shipping.so libsteam_api.so
     # Managed
     Steamworks.NET.dll
@@ -196,7 +174,7 @@ done
 if [ "$MISSING" = "1" ]; then
     if [ -n "$ONLY" ] || [ -n "$SKIP" ]; then
         echo "Note: --only/--skip filters were active; partial staging is expected." >&2
-        exit 1
+        exit 0
     fi
     echo "ERROR: dependency staging is incomplete." >&2
     exit 1

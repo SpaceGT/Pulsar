@@ -93,7 +93,7 @@ gh_api() {
     local -a auth=()
     local tok="${GH_TOKEN:-${GITHUB_TOKEN:-}}"
     [ -n "$tok" ] && auth=(-H "Authorization: Bearer $tok")
-    curl -fsSL "${auth[@]}" -H "Accept: application/vnd.github+json" "$url"
+    curl -fsSL "${auth[@]+"${auth[@]}"}" -H "Accept: application/vnd.github+json" "$url"
 }
 
 TAG="$NATIVE_WRAPPERS_TAG"

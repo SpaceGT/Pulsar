@@ -57,8 +57,9 @@
   <ItemGroup>
     <Reference Include="Steamworks.NET">
       <!--
-        The DLL is built dynamically into <repo>/build/Libraries/ by
-        Scripts/build_steamworks_net.sh (invoked from build_dependencies.sh).
+        The DLL is downloaded into <repo>/build/Libraries/ from the
+        CometWorks/linux-dependencies release by
+        Scripts/fetch_linux_dependencies.sh (invoked from build_dependencies.sh).
         Run ./Scripts/build_dependencies.sh once before the first build.
       -->
       <HintPath>..\build\Libraries\Steamworks.NET.dll</HintPath>
