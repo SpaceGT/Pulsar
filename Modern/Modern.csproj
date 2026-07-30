@@ -15,9 +15,17 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup>
     <Platforms>x64</Platforms>
@@ -59,7 +67,7 @@
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
     </PropertyGroup>
     <ItemGroup>
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
@@ -88,8 +96,8 @@
   <ItemGroup>
     <ProjectReference Include="../Shared/Shared.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather then WinForms. -->
+  <ItemGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>

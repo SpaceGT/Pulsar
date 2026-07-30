@@ -1,15 +1,33 @@
 <Project>
+  <!-- Override Project Settings -->
   <PropertyGroup>
-    <!-- Folder containing Pulsar -->
-    <Pulsar>$(APPDATA)\Pulsar</Pulsar>
+    <TargetPlatform></TargetPlatform>   <!-- Target platform for Pulsar build -->
+    <Pulsar></Pulsar>                   <!-- Folder where Pulsar will be deployed -->
+    <Bin64></Bin64>                     <!-- Folder containing SpaceEngineers.exe -->
+    <Game2></Game2>                     <!-- Folder containing SpaceEngineers2.exe -->
+    <Steamworks></Steamworks>           <!-- Path to Steamworks.NET -->
+  </PropertyGroup>
 
-    <!-- Folder containing SpaceEngineers.exe -->
-    <Bin64>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)\Bin64</Bin64>
+  <!-- Default Project Settings -->
+  <PropertyGroup>
+    <TargetPlatform Condition="'$(TargetPlatform)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">Windows</TargetPlatform>
+    <TargetPlatform Condition="'$(TargetPlatform)' == '' and $([MSBuild]::IsOSPlatform('Linux'))">Linux</TargetPlatform>
+  </PropertyGroup>
 
-    <!-- Folder containing SpaceEngineers2.exe -->
-    <Game2>$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1133870@InstallLocation)\Game2</Game2>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Windows'))">
+    <Bin64 Condition="'$(Bin64)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 244850@InstallLocation)\Bin64</Bin64>
+    <Game2 Condition="'$(Game2)' == ''">$(registry:HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\Steam App 1133870@InstallLocation)\Game2</Game2>
+    <Pulsar Condition="'$(Pulsar)' == '' and '$(APPDATA)' != ''">$(APPDATA)\Pulsar</Pulsar>
+  </PropertyGroup>
 
-    <!-- Path to Steamworks.NET (for .NET 4.8) -->
-    <Steamworks>$(Bin64)\Steamworks.NET.dll</Steamworks>
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('Linux'))">
+    <Bin64 Condition="'$(Bin64)' == '' and '$(HOME)' != ''">$(HOME)/.steam/steam/steamapps/common/SpaceEngineers/Bin64</Bin64>
+    <Game2 Condition="'$(Game2)' == '' and '$(HOME)' != ''">$(HOME)/.steam/steam/steamapps/common/SpaceEngineers2/Game2</Game2>
+    <Pulsar Condition="'$(Pulsar)' == '' and '$(XDG_CONFIG_HOME)' != ''">$(XDG_CONFIG_HOME)/Pulsar</Pulsar>
+    <Pulsar Condition="'$(Pulsar)' == '' and '$(HOME)' != ''">$(HOME)/.config/Pulsar</Pulsar>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <Steamworks Condition="'$(Steamworks)' == '' and '$(Bin64)' != ''">$(Bin64)/Steamworks.NET.dll</Steamworks>
   </PropertyGroup>
 </Project>

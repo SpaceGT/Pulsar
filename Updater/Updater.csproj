@@ -45,7 +45,7 @@
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
     <StartProgram>$(Pulsar)/Updater.exe</StartProgram>
   </PropertyGroup>
-  <Target Name="Deploy" AfterTargets="Build">
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(TargetPlatform)' == 'Windows'">
     <PropertyGroup>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
     </PropertyGroup>

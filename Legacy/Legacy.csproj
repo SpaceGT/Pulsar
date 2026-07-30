@@ -13,9 +13,17 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net10.0-windows</TargetFrameworks>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <AssemblyName>Legacy</AssemblyName>
@@ -60,28 +68,33 @@
     <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
-  <Target Name="Deploy" AfterTargets="Build">
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
     <PropertyGroup>
       <DeployDirectory>$(Pulsar)/Libraries/$(AssemblyName)</DeployDirectory>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
     </PropertyGroup>
     <ItemGroup>
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'" />
       <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
       <DeployLibraryFile Include="$(TargetDir)Pulsar.Protocol.dll" />
       <DeployLibraryFile Include="$(TargetDir)0Harmony.dll" />
       <DeployLibraryFile Include="$(TargetDir)Mono.Cecil.dll" />
-      <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'" />
       <DeployLibraryFile Include="$(TargetDir)Newtonsoft.Json.dll" />
       <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
       <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
       <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.*.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
     </ItemGroup>
     <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
     <RemoveDir Directories="$(DeployDirectory)" />
@@ -97,8 +110,8 @@
   <ItemGroup>
     <ProjectReference Include="../Shared/Shared.csproj" />
   </ItemGroup>
-  <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows'">
-    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather then WinForms. -->
+  <ItemGroup Condition="'$(TargetPlatform)' == 'Windows' and '$(TargetFramework)' == 'net10.0'">
+    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>
