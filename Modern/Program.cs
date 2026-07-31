@@ -51,7 +51,12 @@ static class Program
     {
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
-        string guiPath = Path.Combine(baseDir, "Libraries", "Interface", "Interface.exe");
+        string guiPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Interface",
+            "Interface" + Tools.ExecutableExtension
+        );
 
         using InterfaceClient interfaceClient = new(guiPath);
         Tools.EarlyInit(interfaceClient);
@@ -136,7 +141,11 @@ static class Program
 
         string modDir = Path.Combine(
             game2Dir,
-            @"..\..\..\workshop\content",
+            "..",
+            "..",
+            "..",
+            "workshop",
+            "content",
             Steam.AppIdSe2.ToString()
         );
 
@@ -185,8 +194,6 @@ static class Program
     private static void SetupSteam()
     {
         SplashManager.Instance?.SetText("Starting Steam...");
-        string game2Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(game2Dir);
         Steam.Init(Steam.AppIdSe2);
     }
 
@@ -196,7 +203,12 @@ static class Program
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string dependencyDir = Path.Combine(baseDir, "Libraries", asmName.Name);
-        string compilerPath = Path.Combine(baseDir, "Libraries", "Compiler", "Compiler.exe");
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Compiler" + Tools.ExecutableExtension
+        );
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string game2Dir = ConfigManager.Instance.GameDir;
@@ -279,7 +291,7 @@ static class Program
         Game.RegisterPlugin(typeof(PluginLoader));
 
         SplashManager.Instance?.SetText("Launching Space Engineers 2...");
-        if (Tools.IsNative())
+        if (SplashManager.Instance is not null)
             ProgressPollFactory().Start();
 
         Game.StartSpaceEngineers2(args);

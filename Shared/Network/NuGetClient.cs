@@ -21,7 +21,9 @@ public class NuGetClient
 {
     const string NugetServiceIndex = "https://api.nuget.org/v3/index.json";
     private static readonly NuGetFramework ProjectFramework = NuGetFramework.Parse(
-        Tools.IsNetFramework() ? "net48" : "net10.0-windows"
+        Tools.IsNetFramework() ? "net48"
+        : Tools.IsWindows() ? "net10.0-windows"
+        : "net10.0"
     );
 
     private static readonly ILogger logger = new NuGetLogger();

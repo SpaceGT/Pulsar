@@ -28,7 +28,7 @@ public class LocalFolderPlugin : PluginData
 
     public LocalFolderPlugin(string folder)
     {
-        Id = Path.GetFileName(folder.TrimEnd('\\'));
+        Id = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
         Folder = folder;
         Status = PluginStatus.None;
         FriendlyName = Id;
@@ -69,7 +69,7 @@ public class LocalFolderPlugin : PluginData
         StringBuilder sb = new();
         sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
 
-        IEnumerable<string> projectFiles = Tools.IsNative() ? GetProjectFilesGit(Folder) : null;
+        IEnumerable<string> projectFiles = GetProjectFilesGit(Folder);
         projectFiles ??= GetProjectFilesFallback(Folder);
 
         foreach (var file in projectFiles)
@@ -78,7 +78,7 @@ public class LocalFolderPlugin : PluginData
             hasFile = true;
             string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
             sb.Append(name).Append(", ");
-            string relFile = file.Replace(Folder, "").TrimStart('\\');
+            string relFile = GetRelativePath(file);
             compiler.Load(fileStream, relFile, debug ? file : null);
         }
 
@@ -117,7 +117,9 @@ public class LocalFolderPlugin : PluginData
 
         if (!string.IsNullOrWhiteSpace(packageList.Config))
         {
-            string nugetFile = Path.GetFullPath(Path.Combine(Folder, packageList.Config));
+            string nugetFile = Path.GetFullPath(
+                Path.Combine(Folder, packageList.PackagesConfigNormalized)
+            );
             if (File.Exists(nugetFile))
             {
                 NuGetPackage[] packages;
@@ -325,7 +327,7 @@ public class LocalFolderPlugin : PluginData
                 .ToArray();
 
             if (file.Contains(Folder))
-                settings.DataFile = file.Replace(Folder, "").TrimStart('\\');
+                settings.DataFile = GetRelativePath(file);
             else
                 settings.DataFile = file;
 
@@ -344,4 +346,7 @@ public class LocalFolderPlugin : PluginData
 
         return Path.GetFullPath(Path.Combine(Folder, github.AssetFolder));
     }
+
+    private string GetRelativePath(string file) =>
+        file.Replace(Folder, "").TrimStart(Path.DirectorySeparatorChar);
 }

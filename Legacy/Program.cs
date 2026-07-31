@@ -49,7 +49,12 @@ static class Program
 #endif
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
-        string guiPath = Path.Combine(baseDir, "Libraries", "Interface", "Interface.exe");
+        string guiPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Interface",
+            "Interface" + Tools.ExecutableExtension
+        );
 
         using InterfaceClient interfaceClient = new(guiPath);
         Tools.EarlyInit(interfaceClient);
@@ -134,7 +139,11 @@ static class Program
 
         string modDir = Path.Combine(
             bin64Dir,
-            @"..\..\..\workshop\content",
+            "..",
+            "..",
+            "..",
+            "workshop",
+            "content",
             Steam.AppIdSe1.ToString()
         );
 
@@ -188,8 +197,6 @@ static class Program
     private static void SetupSteam()
     {
         SplashManager.Instance?.SetText("Starting Steam...");
-        string bin64Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(bin64Dir);
         Steam.Init(Steam.AppIdSe1);
     }
 
@@ -199,7 +206,12 @@ static class Program
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string dependencyDir = Path.Combine(baseDir, "Libraries", asmName.Name);
-        string compilerPath = Path.Combine(baseDir, "Libraries", "Compiler", "Compiler.exe");
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Compiler" + Tools.ExecutableExtension
+        );
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string bin64Dir = ConfigManager.Instance.GameDir;
@@ -215,7 +227,7 @@ static class Program
         string[] probeDirs = [.. runtimeDirs, bin64Dir, dependencyDir];
 #endif
 
-        string[] references = [.. References.GetReferences(bin64Dir, Tools.IsNative())];
+        string[] references = [.. References.GetReferences(bin64Dir, Tools.IsWindows())];
 
         using (
             CompilerFactory compiler = new(
@@ -252,8 +264,14 @@ static class Program
         return [];
 #else
         string bin64Dir = ConfigManager.Instance.GameDir;
-        bool isGameFramework = Tools.GetFiles(bin64Dir, ["*.config"], []).Any();
-        return isGameFramework ? ["se-dotnet-compat"] : [];
+
+        // Recompiled SpaceEngineers builds have built-in compatibility
+        if (!Tools.GetFiles(bin64Dir, ["*.config"], []).Any()) 
+            return [];
+
+        return Tools.IsWindows()
+            ? ["se-dotnet-compat"]
+            : ["se-dotnet-compat", "se-linux-compat"];
 #endif
     }
 
@@ -306,7 +324,7 @@ static class Program
 #endif
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
-        if (Tools.IsNative())
+        if (SplashManager.Instance is not null)
             ProgressPollFactory().Start();
 
         Game.StartSpaceEngineers(args);

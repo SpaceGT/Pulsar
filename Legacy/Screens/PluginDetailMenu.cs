@@ -172,7 +172,7 @@ public class PluginDetailMenu : PluginScreen
             btnVoteDown.ButtonClicked += OnRateDownClicked;
         else
             btnVoteDown.Enabled = false;
-        AddImageToButton(btnVoteDown, @"Textures\GUI\\Icons\Blueprints\dislike_test.png", 0.8f);
+        AddImageToButton(btnVoteDown, @"Textures\GUI\Icons\Blueprints\dislike_test.png", 0.8f);
         layout.Add(btnVoteDown, MyAlignV.Bottom);
 
         MyGuiControlLabel lblVoteDown = new(text: stats.Downvotes.ToString());

@@ -20,6 +20,7 @@
     <TargetFrameworks>net48;net10.0</TargetFrameworks>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Steamworks>$(Bin64)</Steamworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
     <TargetFramework>net10.0</TargetFramework>
@@ -85,6 +86,10 @@
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.*.dll" />
     </ItemGroup>
+    <ItemGroup>
+      <DeployLibraryFile Include="$(Steamworks)/Steamworks.NET.dll" />
+      <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
+    </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" />
@@ -106,30 +111,33 @@
     <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
     <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
     <Error Condition="'$(Bin64)' == '' or !Exists('$(Bin64)')" Text="Specify SpaceEngineers Bin64 path!" />
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+    <Error Condition="!Exists('$(Steamworks)/$(SteamApiFileName)')" Text="$(SteamApiFileName) not found!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="../Shared/Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" AdditionalProperties="Steamworks=$(Steamworks)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetPlatform)' == 'Windows' and '$(TargetFramework)' == 'net10.0'">
     <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)\Microsoft.CodeAnalysis.dll" Private="False" />
-    <Reference Include="Sandbox.Game" HintPath="$(Bin64)\Sandbox.Game.dll" Private="False" />
-    <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)\Sandbox.Graphics.dll" Private="False" />
-    <Reference Include="SpaceEngineers" HintPath="$(Bin64)\SpaceEngineers.exe" Private="False" />
-    <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)\SpaceEngineers.Game.dll" Private="False" />
-    <Reference Include="VRage" HintPath="$(Bin64)\VRage.dll" Private="False" />
-    <Reference Include="VRage.Game" HintPath="$(Bin64)\VRage.Game.dll" Private="False" />
-    <Reference Include="VRage.Input" HintPath="$(Bin64)\VRage.Input.dll" Private="False" />
-    <Reference Include="VRage.Library" HintPath="$(Bin64)\VRage.Library.dll" Private="False" />
-    <Reference Include="VRage.Math" HintPath="$(Bin64)\VRage.Math.dll" Private="False" />
-    <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)\VRage.Platform.Windows.dll" Private="False" />
-    <Reference Include="VRage.Scripting" HintPath="$(Bin64)\VRage.Scripting.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)/Microsoft.CodeAnalysis.dll" Private="False" />
+    <Reference Include="Sandbox.Game" HintPath="$(Bin64)/Sandbox.Game.dll" Private="False" />
+    <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)/Sandbox.Graphics.dll" Private="False" />
+    <Reference Include="SpaceEngineers" HintPath="$(Bin64)/SpaceEngineers.exe" Private="False" />
+    <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)/SpaceEngineers.Game.dll" Private="False" />
+    <Reference Include="VRage" HintPath="$(Bin64)/VRage.dll" Private="False" />
+    <Reference Include="VRage.Game" HintPath="$(Bin64)/VRage.Game.dll" Private="False" />
+    <Reference Include="VRage.Input" HintPath="$(Bin64)/VRage.Input.dll" Private="False" />
+    <Reference Include="VRage.Library" HintPath="$(Bin64)/VRage.Library.dll" Private="False" />
+    <Reference Include="VRage.Math" HintPath="$(Bin64)/VRage.Math.dll" Private="False" />
+    <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)/VRage.Platform.Windows.dll" Private="False" />
+    <Reference Include="VRage.Scripting" HintPath="$(Bin64)/VRage.Scripting.dll" Private="False" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
-    <Reference Include="System.Collections.Immutable" HintPath="$(Bin64)\System.Collections.Immutable.dll" Private="False" />
+    <Reference Include="System.Collections.Immutable" HintPath="$(Bin64)/System.Collections.Immutable.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />

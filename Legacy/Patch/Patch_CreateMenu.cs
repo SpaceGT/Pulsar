@@ -60,7 +60,8 @@ public static class Patch_CreateMainMenu
         };
         __instance.Controls.Add(openBtn);
 
-        ___m_exitGameButton?.Text = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+        string host = !Tools.IsWindows() || Tools.IsProton() ? "Linux" : "Windows";
+        ___m_exitGameButton?.Text = $"Exit to {host}";
 
         if (
             ___m_continueButton is not null

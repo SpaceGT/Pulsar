@@ -13,11 +13,23 @@
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup>
+    <!-- Ensure different SteamWorks versions don't overwrite. -->
+    <SteamFlavour Condition="'$(Steamworks)' == '$(Bin64)'">Legacy</SteamFlavour>
+    <SteamFlavour Condition="'$(Steamworks)' == '$(Game2)'">Modern</SteamFlavour>
+    <SteamFlavour Condition="'$(TargetPlatform)' == 'Linux'">Linux</SteamFlavour>
+    <OutputPath>bin/$(SteamFlavour)/$(Configuration)/</OutputPath>
+    <IntermediateOutputPath>obj/$(SteamFlavour)/$(Configuration)/</IntermediateOutputPath>
+  </PropertyGroup>
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+  </Target>
   <ItemGroup>
-    <ProjectReference Include="../Protocol/Protocol.csproj" />
+    <ProjectReference Include="../Protocol/Protocol.csproj" GlobalPropertiesToRemove="Steamworks" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)" Private="False" />
+    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)/Steamworks.NET.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FuzzySharp" Version="2.0.2" />

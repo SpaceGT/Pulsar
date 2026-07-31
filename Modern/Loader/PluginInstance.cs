@@ -88,7 +88,7 @@ internal class PluginInstance
         try
         {
             FieldInfo nativeFunc = AccessTools.DeclaredField(mainType, "IsNative");
-            nativeFunc?.SetValue(null, Tools.IsNative());
+            nativeFunc?.SetValue(null, !Tools.IsProton());
         }
         catch (Exception e)
         {

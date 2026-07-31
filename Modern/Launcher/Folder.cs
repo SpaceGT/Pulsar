@@ -46,13 +46,16 @@ internal class Folder
         // Windows can handle forward slashes in paths so all we need to
         // do is point it to where the system root is mounted under.
 
-        if (!Tools.IsNative() && path.StartsWith('/'))
+        if (Tools.IsProton() && path.StartsWith('/'))
             return "Z:" + path;
         return path;
     }
 
     private static string FromRegistry()
     {
+        if (!Tools.IsWindows())
+            return null;
+
         using var baseKey = RegistryKey.OpenBaseKey(
             RegistryHive.LocalMachine,
             RegistryView.Registry64
@@ -121,7 +124,7 @@ internal class Folder
     private static string FromSteamFiles()
     {
         // VDF files within Proton prefixes are unreliable.
-        if (!Tools.IsNative())
+        if (Tools.IsProton())
             return null;
 
         string steamPath = Steam.GetSteamPath();

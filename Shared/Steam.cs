@@ -2,7 +2,6 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
-using System.Reflection;
 using System.Threading;
 using Microsoft.Win32;
 using Steamworks;
@@ -16,7 +15,6 @@ public static class Steam
     private const int SteamTimeout = 30; // seconds
     private const string registryKey = @"SOFTWARE\Valve\Steam";
     private const string registryName = "SteamPath";
-    private const string Steamworks = "Steamworks.NET";
 
     public static void SubscribeToItem(ulong id) =>
         SteamUGC.SubscribeItem(new PublishedFileId_t(id));
@@ -39,16 +37,16 @@ public static class Steam
             return;
         }
 
-        string path = GetSteamPath();
-
         try
         {
-            if (path is not null)
+            if (!Tools.IsWindows())
+                Process.Start("steam", "-silent");
+            else if (GetSteamPath() is string path)
                 Process.Start(Path.Combine(path, "steam.exe"), "-silent");
             else
                 Process.Start(new ProcessStartInfo("steam://open/main") { UseShellExecute = true });
         }
-        catch (Win32Exception)
+        catch (Win32Exception) // This is cross-platform despite the misleading name
         {
             ShowWarning();
             Environment.Exit(1);
@@ -66,24 +64,25 @@ public static class Steam
         Environment.Exit(1);
     }
 
-    public static ResolveEventHandler SteamworksResolver(string baseDir)
-    {
-        return (sender, args) =>
-        {
-            string targetName = new AssemblyName(args.Name).Name;
-            if (targetName != Steamworks)
-                return null;
-
-            string targetPath = Path.Combine(baseDir, $"{Steamworks}.dll");
-            if (File.Exists(targetPath))
-                return Assembly.LoadFrom(targetPath);
-
-            return null;
-        };
-    }
-
     public static string GetSteamPath()
     {
+        if (!Tools.IsWindows())
+        {
+            string home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
+            string[] paths =
+            [
+                Path.Combine(home, ".steam", "steam"),
+                Path.Combine(home, ".steam", "root"),
+                Path.Combine(home, ".local", "share", "Steam"),
+            ];
+
+            foreach (string steamPath in paths)
+                if (Directory.Exists(steamPath))
+                    return steamPath;
+
+            return null;
+        }
+
         using var baseKey = RegistryKey.OpenBaseKey(
             RegistryHive.CurrentUser,
             RegistryView.Registry64

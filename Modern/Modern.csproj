@@ -22,6 +22,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Steamworks>$(Game2)</Steamworks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
     <TargetFramework>net10.0</TargetFramework>
@@ -82,6 +83,10 @@
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.*.dll" />
     </ItemGroup>
+    <ItemGroup>
+      <DeployLibraryFile Include="$(Steamworks)/Steamworks.NET.dll" />
+      <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
+    </ItemGroup>
     <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
     <RemoveDir Directories="$(DeployDirectory)" />
     <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
@@ -92,36 +97,39 @@
     <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
     <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
     <Error Condition="'$(Game2)' == '' or !Exists('$(Game2)')" Text="Specify SpaceEngineers Game2 path!" />
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+    <Error Condition="!Exists('$(Steamworks)/$(SteamApiFileName)')" Text="$(SteamApiFileName) not found!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="../Shared/Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" AdditionalProperties="Steamworks=$(Steamworks)" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetPlatform)' == 'Windows'">
     <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
     <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Avalonia.Controls.ItemsRepeater" HintPath="$(Game2)\Avalonia.Controls.ItemsRepeater.dll" Private="False" />
-    <Reference Include="Avalonia.Diagnostics" HintPath="$(Game2)\Avalonia.Diagnostics.dll" Private="False" />
-    <Reference Include="Avalonia.ReactiveUI" HintPath="$(Game2)\Avalonia.ReactiveUI.dll" Private="False" />
-    <Reference Include="Avalonia.Themes.Fluent" HintPath="$(Game2)\Avalonia.Themes.Fluent.dll" Private="False" />
-    <Reference Include="DynamicData" HintPath="$(Game2)\DynamicData.dll" Private="False" />
-    <Reference Include="Game2.Client" HintPath="$(Game2)\Game2.Client.dll" Private="False" />
-    <Reference Include="Game2.Game" HintPath="$(Game2)\Game2.Game.dll" Private="False" />
-    <Reference Include="Game2.Simulation" HintPath="$(Game2)\Game2.Simulation.dll" Private="False" />
-    <Reference Include="SpaceEngineers2" HintPath="$(Game2)\SpaceEngineers2.dll" Private="False" />
-    <Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
-    <Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
-    <Reference Include="VRage.Core" HintPath="$(Game2)\VRage.Core.dll" Private="False" />
-    <Reference Include="VRage.Core.Game" HintPath="$(Game2)\VRage.Core.Game.dll" Private="False" />
-    <Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
-    <Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
-    <Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
-    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)\VRage.Platform.Windows.dll" Private="False" />
-    <Reference Include="VRage.Render" HintPath="$(Game2)\VRage.Render.dll" Private="False" />
-    <Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
-    <Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
-    <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
+    <Reference Include="Avalonia.Controls.ItemsRepeater" HintPath="$(Game2)/Avalonia.Controls.ItemsRepeater.dll" Private="False" />
+    <Reference Include="Avalonia.Diagnostics" HintPath="$(Game2)/Avalonia.Diagnostics.dll" Private="False" />
+    <Reference Include="Avalonia.ReactiveUI" HintPath="$(Game2)/Avalonia.ReactiveUI.dll" Private="False" />
+    <Reference Include="Avalonia.Themes.Fluent" HintPath="$(Game2)/Avalonia.Themes.Fluent.dll" Private="False" />
+    <Reference Include="DynamicData" HintPath="$(Game2)/DynamicData.dll" Private="False" />
+    <Reference Include="Game2.Client" HintPath="$(Game2)/Game2.Client.dll" Private="False" />
+    <Reference Include="Game2.Game" HintPath="$(Game2)/Game2.Game.dll" Private="False" />
+    <Reference Include="Game2.Simulation" HintPath="$(Game2)/Game2.Simulation.dll" Private="False" />
+    <Reference Include="SpaceEngineers2" HintPath="$(Game2)/SpaceEngineers2.dll" Private="False" />
+    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)/Steamworks.NET.dll" Private="False" />
+    <Reference Include="VRage.Client" HintPath="$(Game2)/VRage.Client.dll" Private="False" />
+    <Reference Include="VRage.Core" HintPath="$(Game2)/VRage.Core.dll" Private="False" />
+    <Reference Include="VRage.Core.Game" HintPath="$(Game2)/VRage.Core.Game.dll" Private="False" />
+    <Reference Include="VRage.DCS" HintPath="$(Game2)/VRage.DCS.dll" Private="False" />
+    <Reference Include="VRage.Input" HintPath="$(Game2)/VRage.Input.dll" Private="False" />
+    <Reference Include="VRage.Library" HintPath="$(Game2)/VRage.Library.dll" Private="False" />
+    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)/VRage.Platform.Windows.dll" Private="False" />
+    <Reference Include="VRage.Render" HintPath="$(Game2)/VRage.Render.dll" Private="False" />
+    <Reference Include="VRage.Steam" HintPath="$(Game2)/VRage.Steam.dll" Private="False" />
+    <Reference Include="VRage.UI" HintPath="$(Game2)/VRage.UI.dll" Private="False" />
+    <Reference Include="VRage.UI.Shared" HintPath="$(Game2)/VRage.UI.Shared.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Krafs.Publicizer" Version="2.3.0">

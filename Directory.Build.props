@@ -5,7 +5,7 @@
     <Pulsar></Pulsar>                   <!-- Folder where Pulsar will be deployed -->
     <Bin64></Bin64>                     <!-- Folder containing SpaceEngineers.exe -->
     <Game2></Game2>                     <!-- Folder containing SpaceEngineers2.exe -->
-    <Steamworks></Steamworks>           <!-- Path to Steamworks.NET -->
+    <Steamworks></Steamworks>           <!-- Folder containing Linux Steamworks.NET and steam_api -->
   </PropertyGroup>
 
   <!-- Default Project Settings -->
@@ -28,6 +28,7 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <Steamworks Condition="'$(Steamworks)' == '' and '$(Bin64)' != ''">$(Bin64)/Steamworks.NET.dll</Steamworks>
+    <SteamApiFileName Condition="'$(TargetPlatform)' == 'Windows'">steam_api64.dll</SteamApiFileName>
+    <SteamApiFileName Condition="'$(TargetPlatform)' == 'Linux'">libsteam_api.so</SteamApiFileName>
   </PropertyGroup>
 </Project>

@@ -327,7 +327,6 @@ public abstract class PluginData : IEquatable<PluginData>
         string config = Path.Combine(data, name);
         if (extension is null)
         {
-            config += @"\";
             if (!Directory.Exists(config))
                 Directory.CreateDirectory(config);
         }

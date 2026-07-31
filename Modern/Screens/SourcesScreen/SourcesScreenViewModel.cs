@@ -300,7 +300,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
         {
             string localPluginDir = Path.Combine(ConfigManager.Instance.PulsarDir, "Local");
             Directory.CreateDirectory(localPluginDir);
-            Process.Start("explorer.exe", $"\"{localPluginDir}\"");
+            Tools.ShowInFileManager(localPluginDir);
         }
         catch (Exception e)
         {

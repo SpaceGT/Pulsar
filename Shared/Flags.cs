@@ -40,7 +40,8 @@ public static class Flags
         else
             SplashType = SplashType.Pulsar;
 
-        if (HasArg("noupdate"))
+        // Linux updater will come in a future pass
+        if (HasArg("noupdate") || !Tools.IsWindows())
             UpdateType = UpdateType.None;
         else if (HasArg("prerelease"))
             UpdateType = UpdateType.Tester;

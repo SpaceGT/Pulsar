@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -10,6 +11,9 @@ using Newtonsoft.Json;
 using Pulsar.Compiler;
 using Pulsar.Interface;
 using Pulsar.Protocol.Interface;
+#if NETCOREAPP
+using System.Runtime.Versioning;
+#endif
 
 namespace Pulsar.Shared;
 
@@ -203,6 +207,27 @@ public static class Tools
         return newName.ToString();
     }
 
+    public static void ShowInFileManager(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return;
+
+        if (IsWindows())
+        {
+            string arguments = File.Exists(path) ? $"/select, \"{path}\"" : $"\"{path}\"";
+            Process.Start(
+                new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = false }
+            );
+        }
+        else
+        {
+            if (File.Exists(path))
+                path = Path.GetDirectoryName(path);
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+        }
+    }
+
     public static T DeepCopy<T>(T obj)
     {
         string json = JsonConvert.SerializeObject(obj);
@@ -216,13 +241,21 @@ public static class Tools
         return text;
     }
 
-    public static bool IsNative() =>
-        Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
+#if NETCOREAPP
+    [SupportedOSPlatformGuard("windows")]
+#endif
+    public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+    public static bool IsProton() =>
+        IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
+
+    public static string ExecutableExtension => IsWindows() ? ".exe" : string.Empty;
 
     public static bool IsNetFramework() => typeof(object).Assembly.GetName().Name == "mscorlib";
 
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
 
-    public static bool IsEscapePressed() => GetAsyncKeyState(0x1B) < 0;
+    // Linux safe-mode will come in a future pass
+    public static bool IsEscapePressed() => IsWindows() && GetAsyncKeyState(0x1B) < 0;
 }

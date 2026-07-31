@@ -46,10 +46,11 @@ public class AssemblyResolver
             return;
 
         sourceFolders.Add(Path.GetFullPath(folder));
-        foreach (string name in Directory.EnumerateFiles(folder, "*.dll", fileSearch))
+        foreach (string name in Directory.EnumerateFiles(folder, "*", fileSearch))
         {
             if (!Path.GetExtension(name).Equals(".dll", StringComparison.OrdinalIgnoreCase))
                 continue;
+
             string assemblyName = Path.GetFileNameWithoutExtension(name);
             if (!assemblies.ContainsKey(assemblyName))
             {

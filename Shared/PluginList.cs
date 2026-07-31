@@ -444,14 +444,12 @@ public class PluginList : IEnumerable<PluginData>
             if (source.Enabled)
                 AddLocalPlugin(source);
             else
-                localPlugins.Remove(Path.GetFileName(source.Folder.TrimEnd('\\')));
+                localPlugins.Remove(new DirectoryInfo(source.Folder).Name);
 
         foreach (
-            string dll in Directory.EnumerateFiles(
-                LocalPluginDir,
-                "*.dll",
-                SearchOption.AllDirectories
-            )
+            string dll in Directory
+                .EnumerateFiles(LocalPluginDir, "*", SearchOption.AllDirectories)
+                .Where(x => Path.GetExtension(x).Equals(".dll", StringComparison.OrdinalIgnoreCase))
         )
         {
             if (IsNativeAssembly(dll))
@@ -463,12 +461,7 @@ public class PluginList : IEnumerable<PluginData>
 
         foreach (PluginData source in new List<PluginData>(localPlugins.Values))
         {
-            if (
-                source is LocalPlugin local
-                && Directory
-                    .EnumerateFiles(LocalPluginDir, "*.dll", SearchOption.AllDirectories)
-                    .Any(x => x == local.Dll)
-            )
+            if (source is LocalPlugin local && File.Exists(local.Dll))
                 continue;
 
             if (
