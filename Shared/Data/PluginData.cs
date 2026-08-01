@@ -167,8 +167,11 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public bool IsSupportedRuntime()
     {
-        return Runtimes is null
-            || Runtimes.Contains(Tools.IsNetFramework() ? "NETFramework" : "NETCoreApp");
+#if NETFRAMEWORK
+        return Runtimes is null || Runtimes.Contains("NETFramework");
+#else
+        return Runtimes is null || Runtimes.Contains("NETCoreApp");
+#endif
     }
 
     public override bool Equals(object obj)

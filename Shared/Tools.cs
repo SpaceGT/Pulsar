@@ -251,8 +251,6 @@ public static class Tools
 
     public static string ExecutableExtension => IsWindows() ? ".exe" : string.Empty;
 
-    public static bool IsNetFramework() => typeof(object).Assembly.GetName().Name == "mscorlib";
-
     [DllImport("user32.dll")]
     private static extern short GetAsyncKeyState(int vKey);
 
