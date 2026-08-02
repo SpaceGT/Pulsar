@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Pulsar.Protocol.Interface;
-using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
 
@@ -134,7 +133,7 @@ public class Updater(string repoName)
             return;
         }
 
-        string lPulsarPath = Path.Combine(ConfigManager.Instance.PulsarDir, "..");
+        string lPulsarPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
         string lUpdaterPath = Path.Combine(lPulsarPath, UpdaterName + ".exe");
         Version lUpdaterVer = GetLocalUpdaterVersion(lUpdaterPath);
 

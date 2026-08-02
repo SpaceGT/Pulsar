@@ -89,10 +89,12 @@ static class Program
         Environment.CurrentDirectory = baseDir;
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
-        string pulsarDir = Path.Combine(baseDir, asmName.Name);
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string dataDir = Flags.UseHome ? Path.Combine(appData, "Pulsar") : baseDir;
+        string pulsarDir = Path.Combine(dataDir, asmName.Name);
 
         if (!Directory.Exists(pulsarDir))
-            pulsarDir = Path.Combine(baseDir, "Legacy");
+            pulsarDir = Path.Combine(dataDir, "Legacy");
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
