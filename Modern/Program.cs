@@ -51,6 +51,13 @@ static class Program
     {
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
+
+        if (Flags.HelpRequested)
+        {
+            Flags.LogHelp();
+            return;
+        }
+
         string guiPath = Path.Combine(
             baseDir,
             "Libraries",

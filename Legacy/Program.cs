@@ -49,6 +49,13 @@ static class Program
 #endif
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
+
+        if (Flags.HelpRequested)
+        {
+            Flags.LogHelp();
+            return;
+        }
+
         string guiPath = Path.Combine(
             baseDir,
             "Libraries",
@@ -266,12 +273,10 @@ static class Program
         string bin64Dir = ConfigManager.Instance.GameDir;
 
         // Recompiled SpaceEngineers builds have built-in compatibility
-        if (!Tools.GetFiles(bin64Dir, ["*.config"], []).Any()) 
+        if (!Tools.GetFiles(bin64Dir, ["*.config"], []).Any())
             return [];
 
-        return Tools.IsWindows()
-            ? ["se-dotnet-compat"]
-            : ["se-dotnet-compat", "se-linux-compat"];
+        return Tools.IsWindows() ? ["se-dotnet-compat"] : ["se-dotnet-compat", "se-linux-compat"];
 #endif
     }
 
