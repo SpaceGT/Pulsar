@@ -27,8 +27,13 @@
     <Pulsar Condition="'$(Pulsar)' == '' and '$(HOME)' != ''">$(HOME)/.config/Pulsar</Pulsar>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <SteamApiFileName Condition="'$(TargetPlatform)' == 'Windows'">steam_api64.dll</SteamApiFileName>
-    <SteamApiFileName Condition="'$(TargetPlatform)' == 'Linux'">libsteam_api.so</SteamApiFileName>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <SteamApiFileName>steam_api64.dll</SteamApiFileName>
+    <ExecutableExtension>.exe</ExecutableExtension>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <SteamApiFileName>libsteam_api.so</SteamApiFileName>
+    <ExecutableExtension>.bin</ExecutableExtension>
   </PropertyGroup>
 </Project>

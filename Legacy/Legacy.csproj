@@ -28,11 +28,11 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <AssemblyName>Legacy</AssemblyName>
-    <StartProgram>$(Pulsar)/Legacy.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Legacy$(ExecutableExtension)</StartProgram>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
     <AssemblyName>Interim</AssemblyName>
-    <StartProgram>$(Pulsar)/Interim.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Interim$(ExecutableExtension)</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
     <PlatformTarget>x64</PlatformTarget>
@@ -55,6 +55,8 @@
     <PropertyGroup>
       <DeployDirectory>$(Pulsar)/Libraries/$(AssemblyName)</DeployDirectory>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(Pulsar)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
     </PropertyGroup>
     <ItemGroup>
       <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
@@ -73,12 +75,10 @@
       <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" />
       <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
@@ -87,6 +87,7 @@
     <RemoveDir Directories="$(DeployDirectory)" />
     <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
     <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">

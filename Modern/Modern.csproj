@@ -10,7 +10,7 @@
     <AssemblyName>Modern</AssemblyName>
     <RootNamespace>Pulsar.Modern</RootNamespace>
     <PackageId>Pulsar</PackageId>
-    <StartProgram>$(Pulsar)/Modern.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Modern$(ExecutableExtension)</StartProgram>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
@@ -48,9 +48,10 @@
     <PropertyGroup>
       <DeployDirectory>$(Pulsar)/Libraries/Modern</DeployDirectory>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(Pulsar)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
     </PropertyGroup>
     <ItemGroup>
-      <DeployRootFile Include="$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
@@ -73,6 +74,7 @@
     <RemoveDir Directories="$(DeployDirectory)" />
     <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
     <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">

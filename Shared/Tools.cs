@@ -249,6 +249,6 @@ public static class Tools
     public static bool IsProton() =>
         IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
 
-    public static string ExecutableExtension => IsWindows() ? ".exe" : string.Empty;
+    public static string ExecutableExtension => IsWindows() ? ".exe" : ".bin";
 
 }

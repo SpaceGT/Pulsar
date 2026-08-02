@@ -28,6 +28,8 @@
     <PropertyGroup>
       <DeployDirectory>$(Pulsar)/Libraries/Compiler</DeployDirectory>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(DeployDirectory)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
     </PropertyGroup>
     <ItemGroup>
       <DeployFile Include="$(TargetDir)Pulsar.Protocol.dll" />
@@ -38,7 +40,6 @@
       <DeployFile Include="$(TargetDir)Microsoft.CodeAnalysis.CSharp.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
-      <DeployFile Include="$(TargetDir)$(AssemblyName).exe" />
       <DeployFile Include="$(TargetDir)$(AssemblyName).exe.config" />
       <DeployFile Include="$(TargetDir)System.Collections.Immutable.dll" />
       <DeployFile Include="$(TargetDir)System.Memory.dll" />
@@ -47,7 +48,6 @@
       <DeployFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
-      <DeployFile Include="$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)" />
       <DeployFile Include="$(TargetDir)$(AssemblyName).dll" />
       <DeployFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
       <DeployFile Include="$(TargetDir)$(AssemblyName).deps.json" />
@@ -55,6 +55,7 @@
     <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
     <RemoveDir Directories="$(DeployDirectory)" />
     <Copy SourceFiles="@(DeployFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">
