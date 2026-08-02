@@ -244,7 +244,7 @@ static class Program
         }
 
         Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Value));
-        if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
+        if (preloader.HasPatches)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
             string preloadDir = Path.Combine(pulsarDir, "Preloader");

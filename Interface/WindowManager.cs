@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Input;
 using Avalonia.Platform.Storage;
 using Pulsar.Protocol.Interface;
 
@@ -14,6 +15,7 @@ namespace Pulsar.Interface;
 internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desktop)
 {
     private readonly SemaphoreSlim dialogLock = new(1, 1);
+    private bool escapePressed;
     private SplashWindow splash;
     private Window owner;
 
@@ -23,6 +25,7 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
             return;
 
         splash = new SplashWindow();
+        splash.KeyDown += (_, e) => escapePressed |= e.Key == Key.Escape;
         splash.Closed += (_, _) => splash = null;
         splash.Show();
         splash.Activate();
@@ -47,6 +50,13 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
     {
         splash?.Close();
         splash = null;
+    }
+
+    public bool TakeEscapePressed()
+    {
+        bool pressed = escapePressed;
+        escapePressed = false;
+        return pressed;
     }
 
     public async Task<PromptResult> ShowPrompt(PromptRequest request)

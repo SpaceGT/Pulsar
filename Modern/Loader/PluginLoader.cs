@@ -8,7 +8,6 @@ using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
 using Pulsar.Shared;
-using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
@@ -33,15 +32,7 @@ internal class PluginLoader : IPlugin, IDisposable
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
-        if (ConfigManager.Instance.SafeMode)
-        {
-            plugins.Clear();
-            LogFile.Warn("Skipping plugin instantiation");
-        }
-        else
-        {
-            InstantiatePlugins(host);
-        }
+        InstantiatePlugins(host);
 
         init = true;
     }

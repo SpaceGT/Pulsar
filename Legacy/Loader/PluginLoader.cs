@@ -68,35 +68,27 @@ public class PluginLoader : IHandleInputPlugin
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
-        if (ConfigManager.Instance.SafeMode)
-        {
-            plugins.Clear();
-            LogFile.Warn("Skipping plugin instantiation");
-        }
-        else
-        {
-            InstantiatePlugins();
-            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
+        InstantiatePlugins();
+        LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+        SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 
-            if (Flags.CheckAllPlugins)
-                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
+        if (Flags.CheckAllPlugins)
+            debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
-            for (int i = plugins.Count - 1; i >= 0; i--)
+        for (int i = plugins.Count - 1; i >= 0; i--)
+        {
+            PluginInstance p = plugins[i];
+            if (!p.Init(gameInstance))
             {
-                PluginInstance p = plugins[i];
-                if (!p.Init(gameInstance))
-                {
-                    plugins.RemoveAtFast(i);
-                    if (Flags.CheckAllPlugins)
-                        debugCompileResults
-                            .Append(p.FriendlyName ?? "(null)")
-                            .Append(" - ")
-                            .Append(p.Id ?? "(null)")
-                            .Append(" by ")
-                            .Append(p.Author ?? "(null)")
-                            .AppendLine();
-                }
+                plugins.RemoveAtFast(i);
+                if (Flags.CheckAllPlugins)
+                    debugCompileResults
+                        .Append(p.FriendlyName ?? "(null)")
+                        .Append(" - ")
+                        .Append(p.Id ?? "(null)")
+                        .Append(" by ")
+                        .Append(p.Author ?? "(null)")
+                        .AppendLine();
             }
         }
 

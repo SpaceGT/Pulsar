@@ -62,6 +62,8 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
 
     public string GetClipboard() => Send(InterfaceOperation.ClipboardGet).Text ?? string.Empty;
 
+    public bool TakeEscapePressed() => Send(InterfaceOperation.EscapePressed).Value;
+
     public void Dispose()
     {
         lock (processLock)

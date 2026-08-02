@@ -31,21 +31,6 @@ public class Loader
 
         splash = SplashManager.Instance;
 
-        if (Tools.IsEscapePressed())
-        {
-            PromptResult result = Tools.ShowMessageBox(
-                "Escape pressed. Start the game with all plugins disabled?",
-                PromptButtons.YesNo,
-                PromptIcon.Question
-            );
-
-            if (result == PromptResult.Yes)
-            {
-                LogFile.Warn("Safe mode active. No plugins will be loaded!");
-                ConfigManager.Instance.SafeMode = true;
-            }
-        }
-
         GitHub.Init();
         LogEnabledPlugins();
 
@@ -68,7 +53,8 @@ public class Loader
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
         // FIXME: Treat as a plugin dependency in the future.
-        foreach (string id in forceEnable ?? [])
+        forceEnable ??= [];
+        foreach (string id in forceEnable)
         {
             if (
                 ConfigManager.Instance.List.TryGetPlugin(id, out PluginData data)
@@ -91,6 +77,9 @@ public class Loader
         //TODO: Compile in parallel
         foreach (PluginData data in GetEnabledPlugins())
         {
+            if (VerifySafeMode())
+                break;
+
             if (forceEnable.Contains(data.Id))
                 continue;
 
@@ -112,10 +101,32 @@ public class Loader
             }
         }
 
+        if (VerifySafeMode())
+            Plugins.RemoveAll(plugin => !forceEnable.Contains(plugin.Key.Id));
+
         if (Flags.CheckAllPlugins)
             LogFile.WriteLine(debugCompileResults.ToString());
 
         Task.Run(ReportEnabledPlugins);
+    }
+
+    private static bool VerifySafeMode()
+    {
+        ConfigManager manager = ConfigManager.Instance;
+        if (manager.SafeMode || !Tools.Interface.TakeEscapePressed())
+            return manager.SafeMode;
+
+        PromptResult result = Tools.ShowMessageBox(
+            "Escape pressed: Start the game with user plugins disabled?",
+            PromptButtons.YesNo,
+            PromptIcon.Question
+        );
+        manager.SafeMode = result == PromptResult.Yes;
+
+        if (manager.SafeMode)
+            LogFile.Warn("Safe mode active. No user plugins will be loaded!");
+
+        return manager.SafeMode;
     }
 
     private void ReportEnabledPlugins()

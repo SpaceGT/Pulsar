@@ -251,9 +251,4 @@ public static class Tools
 
     public static string ExecutableExtension => IsWindows() ? ".exe" : string.Empty;
 
-    [DllImport("user32.dll")]
-    private static extern short GetAsyncKeyState(int vKey);
-
-    // Linux safe-mode will come in a future pass
-    public static bool IsEscapePressed() => IsWindows() && GetAsyncKeyState(0x1B) < 0;
 }

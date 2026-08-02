@@ -12,6 +12,7 @@ public enum InterfaceOperation
     FileOpen,
     FolderOpen,
     ClipboardGet,
+    EscapePressed,
 }
 
 public class InterfaceRequest

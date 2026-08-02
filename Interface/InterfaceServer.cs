@@ -114,6 +114,9 @@ internal sealed class InterfaceServer(WindowManager windows)
             case InterfaceOperation.ClipboardGet:
                 response.Text = await windows.GetClipboard();
                 return;
+            case InterfaceOperation.EscapePressed:
+                response.Value = windows.TakeEscapePressed();
+                return;
             default:
                 throw new InvalidDataException(
                     $"Unknown interface operation '{request.Operation}'."

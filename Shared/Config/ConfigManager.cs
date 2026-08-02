@@ -29,7 +29,7 @@ public class ConfigManager
     {
         Instance = new()
         {
-            SafeMode = false,
+            SafeMode = Flags.SafeMode,
             PulsarDir = pulsarDir,
             Core = CoreConfig.Load(pulsarDir),
         };
