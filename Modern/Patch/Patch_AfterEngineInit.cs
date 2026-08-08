@@ -8,7 +8,6 @@ using Keen.VRage.Library.Utils;
 using Keen.VRage.Render.EngineComponents;
 using Keen.VRage.UI.AvaloniaInterface;
 using Pulsar.Shared;
-using Pulsar.Shared.Splash;
 
 namespace Pulsar.Modern.Patch;
 
@@ -19,8 +18,6 @@ internal static class Patch_AfterEngineInit
 {
     public static void Prefix()
     {
-        Singleton<VRageCore>.Instance.OnApplicationReady += () => SplashManager.Instance?.Delete();
-
         if (Flags.DebugMenu)
         {
             AvaloniaApp.Instance.MainWindow?.AttachDevTools(

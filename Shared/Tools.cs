@@ -250,5 +250,4 @@ public static class Tools
         IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
 
     public static string ExecutableExtension => IsWindows() ? ".exe" : ".bin";
-
 }

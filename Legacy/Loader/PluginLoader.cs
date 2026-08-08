@@ -10,6 +10,7 @@ using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
+using Sandbox.Engine.Utils;
 using Sandbox.Game.World;
 using VRage;
 using VRage.Plugins;
@@ -101,7 +102,7 @@ public class PluginLoader : IHandleInputPlugin
             LogFile.Open();
         }
 
-        SplashManager.Instance?.SetText($"Updating workshop items...");
+        SplashManager.Instance?.SetText("Updating workshop items...");
 
         PluginList list = ConfigManager.Instance.List;
         Profile current = ConfigManager.Instance.Profiles.Current;
@@ -189,7 +190,7 @@ public class PluginLoader : IHandleInputPlugin
     private static void ShowGame()
     {
         SplashManager.Instance?.Delete();
-        Patch.Patch_ShowAndFocus.Enabled = true;
+        MyFakes.ENABLE_HIDDEN_GAME_FORM = false;
         MyVRage.Platform.Windows.Window.ShowAndFocus();
     }
 }

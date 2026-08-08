@@ -5,7 +5,6 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using HarmonyLib;
 using Pulsar.Compiler;
 using Pulsar.Interface;
@@ -321,6 +320,7 @@ static class Program
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");
+        Progress.Start(assemblyName + ".Progress");
 
         Game.SetupMyFakes();
         Game.ShowIntroVideo(Flags.GameIntroVideo);
@@ -331,31 +331,7 @@ static class Program
 #endif
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
-        if (SplashManager.Instance is not null)
-            ProgressPollFactory().Start();
-
+        SplashManager.Instance?.SetBarValue(0);
         Game.StartSpaceEngineers(args);
-    }
-
-    private static Thread ProgressPollFactory()
-    {
-        static void ProgressPoll()
-        {
-            float progress = 0;
-            SplashManager splash = SplashManager.Instance;
-
-            while (SplashManager.Instance is not null && progress < 1)
-            {
-                // FIXME: Does not work well with preloaded assemblies
-                progress = Game.GetLoadProgress();
-
-                if (float.IsNaN(splash.BarValue) || splash.BarValue < progress)
-                    splash?.SetBarValue(progress);
-
-                Thread.Sleep(250); // ms
-            }
-        }
-
-        return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
 }

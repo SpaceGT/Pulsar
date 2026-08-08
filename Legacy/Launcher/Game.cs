@@ -106,24 +106,11 @@ internal static class Game
     {
         typeof(MyFakes).TypeInitializer.Invoke(null, null);
         MyFakes.ENABLE_F12_MENU = Flags.DebugMenu;
+        MyFakes.ENABLE_HIDDEN_GAME_FORM = true;
 
         // Note SpaceEngineers internally prioritises -nosplash over ENABLE_SPLASHSCREEN
         // (therefore SplashType.Native and SplashType.None are mutually exclusive)
         MyFakes.ENABLE_SPLASHSCREEN = Flags.SplashType == SplashType.Native;
-    }
-
-    public static float GetLoadProgress()
-    {
-        // No native function in Space Engineers does this but we can estimate
-        // FIXME: Does not work well with Preloaders or under Proton
-        float expectedGrowth = 700f * 1024 * 1024;
-
-        Process process = Process.GetCurrentProcess();
-        process.Refresh();
-
-        float ratio = process.PrivateMemorySize64 / expectedGrowth;
-
-        return Math.Min(1f, Math.Max(0f, ratio));
     }
 
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);

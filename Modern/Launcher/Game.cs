@@ -67,19 +67,5 @@ internal static class Game
         return new Version(version.FileVersion);
     }
 
-    public static float GetLoadProgress()
-    {
-        // No native function in Space Engineers does this but we can estimate
-        // FIXME: Does not work well with Preloaders or under Proton
-        const float expectedGrowth = 2100f * 1024 * 1024;
-
-        Process process = Process.GetCurrentProcess();
-        process.Refresh();
-
-        float ratio = process.PrivateMemorySize64 / expectedGrowth;
-
-        return Math.Min(1f, Math.Max(0f, ratio));
-    }
-
     public static void StartSpaceEngineers2(string[] args) => Keen.Game2.Program.Main(args);
 }

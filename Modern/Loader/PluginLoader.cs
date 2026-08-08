@@ -8,7 +8,6 @@ using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
 using Pulsar.Shared;
-using Pulsar.Shared.Splash;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
 
@@ -101,7 +100,6 @@ internal class PluginLoader : IPlugin, IDisposable
 
         for (int i = plugins.Count - 1; i >= 0; i--)
         {
-            SplashManager.Instance?.SetText($"Loading {i + 1} of {totalPlugins} plugins");
             PluginInstance p = plugins[i];
             if (!p.Instantiate(host))
                 plugins.RemoveAtFast(i);
@@ -117,7 +115,6 @@ internal class PluginLoader : IPlugin, IDisposable
         }
 
         LogFile.WriteLine($"Initialized {plugins.Count} of {totalPlugins} plugins");
-        SplashManager.Instance?.SetText($"Launching Space Engineers 2...");
 
         if (Flags.CheckAllPlugins)
         {
