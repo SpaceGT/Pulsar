@@ -228,10 +228,8 @@ static class Program
 
 #if NETFRAMEWORK
         string wpfDir = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "WPF");
-        string[] globalFlags = ["NETFRAMEWORK"];
         string[] probeDirs = [.. runtimeDirs, wpfDir, bin64Dir, dependencyDir];
 #else
-        string[] globalFlags = ["NETCOREAPP"];
         string[] probeDirs = [.. runtimeDirs, bin64Dir, dependencyDir];
 #endif
 
@@ -243,7 +241,7 @@ static class Program
                 references,
                 probeDirs,
                 LogFile.FilePath,
-                globalFlags
+                Tools.GetCompilationSymbols(trusted: true)
             )
         )
         {
@@ -326,9 +324,8 @@ static class Program
         Game.ShowIntroVideo(Flags.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
-#if NETCOREAPP
-        Game.AddCompilationSymbols("NETCOREAPP");
-#endif
+        string[] symbols = Tools.GetCompilationSymbols(trusted: false);
+        Game.AddCompilationSymbols(symbols);
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
         SplashManager.Instance?.SetBarValue(0);

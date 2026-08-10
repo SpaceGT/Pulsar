@@ -246,9 +246,34 @@ public static class Tools
 #endif
     public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+    public static bool IsMono() => Type.GetType("Mono.Runtime") is not null;
+
+    public static string[] GetCompilationSymbols(bool trusted)
+    {
+        List<string> symbols = [];
+
+#if NETCOREAPP
+        symbols.Add("NETCOREAPP");
+#endif
+
+        if (!IsWindows())
+            symbols.Add("LINUX");
+
+        if (!trusted)
+            return [.. symbols];
+
+#if NETFRAMEWORK
+        symbols.Add("NETFRAMEWORK");
+#endif
+
+        symbols.Add("PULSAR");
+
+        return [.. symbols];
+    }
+
     public static bool IsSupportedEnvironment(string runtimes, string platforms)
     {
-        string runtime = Type.GetType("Mono.Runtime") is not null ? "Mono"
+        string runtime = IsMono() ? "Mono"
 #if NETFRAMEWORK
             : "CLR";
 #else

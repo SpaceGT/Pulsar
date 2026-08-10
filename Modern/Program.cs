@@ -226,7 +226,7 @@ static class Program
                 [.. References.GetReferences(game2Dir)],
                 [.. runtimeDirs, game2Dir, dependencyDir],
                 LogFile.FilePath,
-                ["NETCOREAPP"]
+                Tools.GetCompilationSymbols(trusted: true)
             )
         )
         {
