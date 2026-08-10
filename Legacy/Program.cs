@@ -235,7 +235,7 @@ static class Program
         string[] probeDirs = [.. runtimeDirs, bin64Dir, dependencyDir];
 #endif
 
-        string[] references = [.. References.GetReferences(bin64Dir, Tools.IsWindows())];
+        string[] references = [.. References.GetReferences(bin64Dir)];
 
         using (
             CompilerFactory compiler = new(

@@ -98,7 +98,7 @@ public class PluginList : IEnumerable<PluginData>
         return this[profile]
             .OfType<ModPlugin>()
             .Where(mod => !ignore.Contains(mod.WorkshopId))
-            .Where(mod => mod.Exists && mod.IsSupportedRuntime());
+            .Where(mod => mod.Exists && mod.IsSupportedEnvironment());
     }
 
     private void LoadPluginData(PluginData plugin, PluginDataConfig config = null)

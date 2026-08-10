@@ -46,7 +46,7 @@ public class AddPluginMenu : PluginScreen
     public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
         : base(size: new Vector2(0.8f, 0.9f))
     {
-        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime());
+        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedEnvironment());
         this.plugins = [.. supported.Where(x => !x.Hidden)];
         hidden = [.. supported.Where(x => x.Hidden)];
 

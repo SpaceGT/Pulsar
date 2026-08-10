@@ -295,6 +295,7 @@ public class LocalFolderPlugin : PluginData
             Author = null;
             Description = null;
             Runtimes = null;
+            Platforms = null;
             DependencyIds = null;
             return;
         }
@@ -320,6 +321,7 @@ public class LocalFolderPlugin : PluginData
             Author = github.Author;
             Description = github.Description;
             Runtimes = github.Runtimes;
+            Platforms = github.Platforms;
             DependencyIds = github.DependencyIds;
 
             sourceDirectories = github

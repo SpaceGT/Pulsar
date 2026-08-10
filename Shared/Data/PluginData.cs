@@ -36,7 +36,7 @@ public abstract class PluginData : IEquatable<PluginData>
             return Status switch
             {
                 PluginStatus.Network => "Network!",
-                PluginStatus.Runtime => "Runtime!",
+                PluginStatus.Environment => "Host!",
                 PluginStatus.Updated => "Updated",
                 PluginStatus.Error => "Error!",
                 PluginStatus.Blocked => "Blocked!",
@@ -69,6 +69,9 @@ public abstract class PluginData : IEquatable<PluginData>
     [ProtoMember(8)]
     public string Runtimes { get; set; }
 
+    [ProtoMember(10)]
+    public string Platforms { get; set; }
+
     [ProtoMember(9)]
     [XmlArray]
     [XmlArrayItem("Id")]
@@ -94,9 +97,9 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public virtual bool TryLoadAssembly(out Assembly a)
     {
-        if (!IsSupportedRuntime())
+        if (!IsSupportedEnvironment())
         {
-            Status = PluginStatus.Runtime;
+            Status = PluginStatus.Environment;
             a = null;
             return false;
         }
@@ -165,13 +168,9 @@ public abstract class PluginData : IEquatable<PluginData>
         }
     }
 
-    public bool IsSupportedRuntime()
+    public bool IsSupportedEnvironment()
     {
-#if NETFRAMEWORK
-        return Runtimes is null || Runtimes.Contains("NETFramework");
-#else
-        return Runtimes is null || Runtimes.Contains("NETCoreApp");
-#endif
+        return Tools.IsSupportedEnvironment(Runtimes, Platforms);
     }
 
     public override bool Equals(object obj)

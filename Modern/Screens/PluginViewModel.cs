@@ -152,7 +152,7 @@ internal class PluginViewModel : AttachedViewModel
         );
 
     public bool IsHidden => PluginData.Hidden;
-    public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
+    public bool IsSupportedEnvironment => PluginData.IsSupportedEnvironment();
 
     private readonly Profile draft;
     private readonly PluginInstance pluginInstance;

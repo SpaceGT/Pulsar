@@ -89,7 +89,11 @@ public class Loader
                 if (data.IsLocal)
                     ConfigManager.Instance.HasLocal = true;
             }
-            else if (Flags.CheckAllPlugins && data is not ModPlugin && data.IsSupportedRuntime())
+            else if (
+                Flags.CheckAllPlugins
+                && data is not ModPlugin
+                && data.IsSupportedEnvironment()
+            )
             {
                 debugCompileResults
                     .Append(data.FriendlyName ?? "(null)")

@@ -246,6 +246,28 @@ public static class Tools
 #endif
     public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
+    public static bool IsSupportedEnvironment(string runtimes, string platforms)
+    {
+        string runtime = Type.GetType("Mono.Runtime") is not null ? "Mono"
+#if NETFRAMEWORK
+            : "CLR";
+#else
+            : "CoreCLR";
+#endif
+        string platform =
+            IsProton() ? "Proton"
+            : IsWindows() ? "Windows"
+            : "Linux";
+
+        return IsSupportedValue(runtimes, runtime) && IsSupportedValue(platforms, platform);
+    }
+
+    public static bool IsSupportedValue(string supportedValues, string value) =>
+        string.IsNullOrWhiteSpace(supportedValues)
+        || supportedValues
+            .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
+            .Any(x => x.Trim().Equals(value, StringComparison.OrdinalIgnoreCase));
+
     public static bool IsProton() =>
         IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
 

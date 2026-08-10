@@ -7,5 +7,5 @@ public enum PluginStatus
     Updated,
     Error,
     Blocked,
-    Runtime,
+    Environment,
 }

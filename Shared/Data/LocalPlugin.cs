@@ -24,23 +24,38 @@ public class LocalPlugin : PluginData
         Id = Path.GetFileName(dll);
         FriendlyName = Path.GetFileNameWithoutExtension(dll);
         Status = PluginStatus.None;
-        Runtimes = GetRuntimes(dll);
+        (Runtimes, Platforms) = GetEnvironment(dll);
 
         TryLoadDataFile(Dll + ".xml");
     }
 
-    private static string GetRuntimes(string dll)
+    private static (string runtimes, string platforms) GetEnvironment(string dll)
     {
+        const string platformAttribute = "System.Runtime.Versioning.TargetPlatformAttribute";
+
         using var assembly = AssemblyDefinition.ReadAssembly(dll);
         var references = assembly.MainModule.AssemblyReferences;
 
+        string runtimes = null;
         if (references.Any(r => r.Name == "System.Runtime"))
-            return "NETCoreApp";
+            runtimes = "CoreCLR";
+        else if (references.Any(r => r.Name == "mscorlib"))
+            runtimes = "CLR;Mono";
 
-        if (references.Any(r => r.Name == "mscorlib"))
-            return "NETFramework";
+        string platforms = null;
+        foreach (var attribute in assembly.CustomAttributes)
+        {
+            if (attribute.AttributeType.FullName != platformAttribute)
+                continue;
 
-        return null;
+            string name = (string)attribute.ConstructorArguments[0].Value;
+            if (name.StartsWith("Windows", StringComparison.OrdinalIgnoreCase))
+                platforms = "Windows";
+
+            break;
+        }
+
+        return (runtimes, platforms);
     }
 
     public override Assembly GetAssembly()
@@ -78,6 +93,8 @@ public class LocalPlugin : PluginData
             Tooltip = github.Tooltip;
             Author = github.Author;
             Description = github.Description;
+            Runtimes = github.Runtimes ?? Runtimes;
+            Platforms = github.Platforms ?? Platforms;
             DependencyIds = github.DependencyIds;
 
             this.github = github;

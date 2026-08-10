@@ -24,6 +24,14 @@ public class NuGetPackageId
     [XmlElement]
     public string Version { get; set; }
 
+    [ProtoMember(3)]
+    [XmlAttribute]
+    public string Platforms { get; set; }
+
+    [ProtoMember(4)]
+    [XmlAttribute]
+    public string Runtimes { get; set; }
+
     [ProtoIgnore]
     [XmlAttribute("Version")]
     public string VersionAttribute
@@ -35,7 +43,11 @@ public class NuGetPackageId
     public bool TryGetIdentity(out PackageIdentity id)
     {
         id = null;
-        if (string.IsNullOrWhiteSpace(Name) || string.IsNullOrWhiteSpace(Version))
+        if (
+            !Tools.IsSupportedEnvironment(Runtimes, Platforms)
+            || string.IsNullOrWhiteSpace(Name)
+            || string.IsNullOrWhiteSpace(Version)
+        )
             return false;
 
         if (!NuGetVersion.TryParse(Version, out NuGetVersion version))

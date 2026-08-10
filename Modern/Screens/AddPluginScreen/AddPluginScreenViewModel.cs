@@ -39,7 +39,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Mods = mods;
 
         this.plugins = plugins;
-        Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedRuntime)]);
+        Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedEnvironment)]);
         this.onScreenClose = onScreenClose;
 
         SortPlugins(SortingMethod.Name);
@@ -77,7 +77,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Plugins.AddRange([
             .. plugins.Where(x =>
                 (!x.IsHidden || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
-                && x.IsSupportedRuntime
+                && x.IsSupportedEnvironment
             ),
         ]);
     }

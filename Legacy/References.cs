@@ -5,13 +5,8 @@ namespace Pulsar.Legacy;
 
 internal static class References
 {
-    private static readonly string[] baseEnvironment =
+    private static readonly string[] common =
     [
-        "System.Xaml",
-        "System.Windows.Forms",
-#if NETFRAMEWORK
-        "System.Windows.Forms.DataVisualization",
-#endif
         "Microsoft.CSharp",
         "0Harmony",
         "Newtonsoft.Json",
@@ -19,15 +14,24 @@ internal static class References
         "NLog",
     ];
 
-    private static readonly string[] nativeEnvironment =
+    private static readonly string[] winforms =
     [
+        "System.Windows.Forms",
+#if NETFRAMEWORK
+        "System.Windows.Forms.DataVisualization",
+#endif
+    ];
+
+    private static readonly string[] wpf =
+    [
+        "System.Xaml",
         "System.Windows.Controls.Ribbon",
         "PresentationCore",
         "PresentationFramework",
         "WindowsBase",
     ];
 
-    private static readonly string[] includeGlobs =
+    private static readonly string[] game =
     [
         "SpaceEngineers*.dll",
         "VRage*.dll",
@@ -37,18 +41,21 @@ internal static class References
 
     private static readonly string[] excludeGlobs = ["VRage.Native.dll"];
 
-    public static IEnumerable<string> GetReferences(string exeLocation, bool native = true)
+    public static IEnumerable<string> GetReferences(string bin64)
     {
-        foreach (string name in Tools.GetFiles(exeLocation, includeGlobs, excludeGlobs))
+        foreach (string name in Tools.GetFiles(bin64, game, excludeGlobs))
             yield return name;
 
-        foreach (string name in baseEnvironment)
+        foreach (string name in common)
             yield return name;
 
-        if (native)
-            foreach (string name in nativeEnvironment)
-                yield return name;
-        else
-            LogFile.Warn("Ignoring Windows-only references!");
+        if (!Tools.IsWindows())
+            yield break;
+
+        foreach (string name in winforms)
+            yield return name;
+
+        foreach (string name in wpf)
+            yield return name;
     }
 }
