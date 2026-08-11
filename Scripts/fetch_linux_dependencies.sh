@@ -39,8 +39,8 @@
 #
 # Env-var overrides (defaults shown):
 #   LINUX_DEPENDENCIES_REPO = CometWorks/linux-dependencies
-#   LINUX_DEPENDENCIES_TAG  = ""    (empty = latest release; set to pin a tag,
-#                                    e.g. v1.0.1 — recommended for reproducible CI)
+#   LINUX_DEPENDENCIES_TAG  = v1.0.8  (pinned; set to "" to track the latest
+#                                     release instead)
 #   BUILD_DIR               = <repo>/build
 #   LIBRARIES_DIR           = $BUILD_DIR/Libraries
 #   GH_TOKEN / GITHUB_TOKEN          (optional; used only to raise the GitHub API
@@ -53,7 +53,10 @@ set -euo pipefail
 # ---- top-of-file knobs ------------------------------------------------------
 
 LINUX_DEPENDENCIES_REPO="${LINUX_DEPENDENCIES_REPO:-CometWorks/linux-dependencies}"
-LINUX_DEPENDENCIES_TAG="${LINUX_DEPENDENCIES_TAG:-}"
+# Pinned to v1.0.8 (commit 50fb171): later releases of the dependency repo are
+# not compatible with this branch. Set LINUX_DEPENDENCIES_TAG="" to track the
+# latest release again.
+LINUX_DEPENDENCIES_TAG="${LINUX_DEPENDENCIES_TAG-v1.0.8}"
 ASSET_NAME="linux-dependencies.tar.gz"
 
 # ---- configuration ----------------------------------------------------------
