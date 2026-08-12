@@ -41,7 +41,7 @@ public static class StatsClient
     // This function may be called from another thread.
     public static PluginStats DownloadStats()
     {
-        if (!ConfigManager.Instance.Core.DataHandlingConsent)
+        if (!Steam.IsInitialized || !ConfigManager.Instance.Core.DataHandlingConsent)
         {
             LogFile.WriteLine("Downloading plugin statistics anonymously...");
             votingToken = null;

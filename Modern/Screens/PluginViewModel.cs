@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
@@ -87,7 +88,7 @@ internal class PluginViewModel : AttachedViewModel
             return "You have downvoted this.";
         }
     }
-    public bool CanVote => PluginData.Enabled || PluginStat.Tried;
+    public bool CanVote => Steam.IsInitialized && (PluginData.Enabled || PluginStat.Tried);
     public bool ShowStatElements => !PluginData.IsLocal;
 
     // Setter is used from Avalonia axaml, so those references don't show up.

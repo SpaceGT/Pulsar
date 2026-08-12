@@ -28,6 +28,7 @@ public partial class PluginsScreen : PluginScreenBase
         {
             SourcesButton.IsVisible = Flags.CustomSources;
             RefreshButton.IsVisible = !Flags.CustomSources;
+            ConsentBox.IsEnabled = Steam.IsInitialized;
         }
         else
         {

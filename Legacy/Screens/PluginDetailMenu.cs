@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Pulsar.Legacy.Extensions;
 using Pulsar.Legacy.Loader;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
@@ -144,7 +145,7 @@ public class PluginDetailMenu : PluginScreen
 
     private void CreateVotingPanel(MyGuiControlParent parent)
     {
-        bool canVote = plugin.Enabled || stats.Tried;
+        bool canVote = Steam.IsInitialized && (plugin.Enabled || stats.Tried);
 
         MyLayoutHorizontal layout = new(parent, 0);
 

@@ -89,7 +89,11 @@ public class PluginList : IEnumerable<PluginData>
     /// </summary>
     public void SubscribeToItem(string id)
     {
-        if (Plugins.TryGetValue(id, out PluginData data) && data is ModPlugin steam)
+        if (
+            Steam.IsInitialized
+            && Plugins.TryGetValue(id, out PluginData data)
+            && data is ModPlugin steam
+        )
             Steam.SubscribeToItem(steam.WorkshopId);
     }
 

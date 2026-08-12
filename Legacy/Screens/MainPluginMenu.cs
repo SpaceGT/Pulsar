@@ -324,6 +324,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
             toolTip: "Consent to use your data for usage tracking",
             isChecked: PlayerConsent.ConsentGiven
         );
+        consentBox.Enabled = Steam.IsInitialized;
         consentBox.IsCheckedChanged += OnConsentBoxChanged;
         PlayerConsent.OnConsentChanged += OnConsentChanged;
         layout.Add(consentBox, MyAlignH.Left);

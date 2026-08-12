@@ -135,7 +135,7 @@ public class Loader
 
     private void ReportEnabledPlugins()
     {
-        if (!ConfigManager.Instance.Core.DataHandlingConsent)
+        if (!Steam.IsInitialized || !ConfigManager.Instance.Core.DataHandlingConsent)
             return;
 
         splash?.SetText("Reporting plugin usage...");

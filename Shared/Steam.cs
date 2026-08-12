@@ -17,6 +17,8 @@ public static class Steam
     private const string registryKey = @"SOFTWARE\Valve\Steam";
     private const string registryName = "SteamPath";
 
+    public static bool IsInitialized { get; private set; }
+
     [DllImport("libc", EntryPoint = "setenv")]
     private static extern int SetEnvLinux(string name, string value, int overwrite);
 
@@ -37,6 +39,16 @@ public static class Steam
         Environment.SetEnvironmentVariable("SteamAppId", appId);
         if (!Tools.IsWindows()) // Unmanaged Linux assemblies bypass .NET env cache
             SetEnvLinux("SteamAppId", appId, 1);
+
+        if (Flags.LazySteam)
+        {
+            IsInitialized = SteamAPI.Init();
+
+            if (!IsInitialized)
+                LogFile.Warn("Steam is missing or unavailable!");
+
+            return;
+        }
 
         if (!SteamAPI.IsSteamRunning())
         {
@@ -67,7 +79,10 @@ public static class Steam
         for (int i = 0; i < SteamTimeout; i++)
         {
             if (SteamAPI.IsSteamRunning() && SteamAPI.Init())
+            {
+                IsInitialized = true;
                 return;
+            }
 
             Thread.Sleep(1000);
         }
@@ -113,7 +128,7 @@ public static class Steam
 
     private static void ShowWarning()
     {
-        LogFile.WriteLine("Steam failed to start!");
+        LogFile.Error("Steam failed to start!");
         Tools.ShowMessageBox(
             "Failed to start Steam automatically!\n"
                 + "Space Engineers requires a running Steam instance."

@@ -15,7 +15,7 @@ internal static class SteamMods
     // This may need to be changed depending on if mod loading changes
     public static void Update(IEnumerable<ulong> ids)
     {
-        if (!ids.Any())
+        if (!Steam.IsInitialized || !ids.Any())
             return;
 
         LogFile.WriteLine($"Updating {ids.Count()} workshop items");
