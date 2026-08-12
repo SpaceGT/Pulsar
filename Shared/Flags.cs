@@ -37,6 +37,7 @@ file static class Arguments
     public static readonly string[] SafeMode = ["safe", "mode"];
     public static readonly string[] UseHome = ["use", "home"];
     public static readonly string[] Bare = ["bare"];
+    public static readonly string[] StableLogs = ["stable", "logs"];
 
     public static readonly string[] HelpAliases = ["help", "h", "?"];
 
@@ -58,6 +59,7 @@ file static class Arguments
         (SafeMode, "Start with user plugins disabled."),
         (UseHome, "Store Pulsar data in the User's app-data folder."),
         (Bare, "Disable force-loading core plugins."),
+        (StableLogs, "Overwrite game logs instead of timestamping them."),
     ];
 }
 
@@ -78,6 +80,7 @@ public static class Flags
     public static bool SafeMode { get; private set; }
     public static bool UseHome { get; private set; }
     public static bool Bare { get; private set; }
+    public static bool StableLogs { get; private set; }
 
     static Flags()
     {
@@ -107,6 +110,7 @@ public static class Flags
         SafeMode = HasArg(Arguments.SafeMode);
         UseHome = HasArg(Arguments.UseHome);
         Bare = HasArg(Arguments.Bare);
+        StableLogs = HasArg(Arguments.StableLogs);
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));
@@ -173,6 +177,8 @@ public static class Flags
             changed.Add("UseHome");
         if (Bare)
             changed.Add("Bare");
+        if (StableLogs)
+            changed.Add("StableLogs");
 
         if (changed.Count > 0)
             LogFile.WriteLine($"Enabled flags: {string.Join(" ", changed)}");
