@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 using Pulsar.Compiler;
@@ -16,6 +17,7 @@ namespace Pulsar.Shared.Data;
 public class LocalFolderPlugin : PluginData
 {
     const int GitTimeout = 10000;
+    const string CacheFileName = "cache.sha256";
 
     public override bool IsLocal => true;
     public override bool IsCompiled => true;
@@ -58,52 +60,44 @@ public class LocalFolderPlugin : PluginData
         if (!Directory.Exists(Folder))
             throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
 
-        bool debug = settings.DebugBuild;
-        ICompiler compiler = Tools.Compiler.Create(debug);
-        bool hasFile = false;
+        string[] projectFiles = [.. GetProjectFilesGit(Folder) ?? GetProjectFilesFallback(Folder)];
+        if (projectFiles.Length == 0)
+            throw new IOException("No files were found in the directory specified.");
 
-        string binDir = Path.Combine(
-            ConfigManager.Instance.PulsarDir,
-            "NuGet",
-            "bin",
-            Tools.GetStringHash(Path.GetFullPath(Folder))
-        );
+        bool debug = settings.DebugBuild;
+        string binDir = GetCacheDirectory();
+        string dll = Path.Combine(binDir, NuGetRestore.PluginFileName);
+        string cacheFile = Path.Combine(binDir, CacheFileName);
+        string cacheHash = GetCacheHash(projectFiles, debug);
+
+        if (File.Exists(dll) && File.Exists(cacheFile) && File.ReadAllText(cacheFile) == cacheHash)
+            return LoadAssembly(dll);
+
         if (Directory.Exists(binDir))
             Directory.Delete(binDir, true);
         Directory.CreateDirectory(binDir);
 
+        ICompiler compiler = Tools.Compiler.Create(debug);
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
             InstallDependencies(compiler, binDir);
 
         StringBuilder sb = new();
         sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
 
-        IEnumerable<string> projectFiles = GetProjectFilesGit(Folder);
-        projectFiles ??= GetProjectFilesFallback(Folder);
-
-        foreach (var file in projectFiles)
+        foreach (string file in projectFiles)
         {
             using FileStream fileStream = File.OpenRead(file);
-            hasFile = true;
             string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
             sb.Append(name).Append(", ");
             string relFile = GetRelativePath(file);
             compiler.Load(fileStream, relFile, debug ? file : null);
         }
 
-        if (hasFile)
-        {
-            sb.Length -= 2;
-            LogFile.WriteLine(sb.ToString());
-        }
-        else
-        {
-            throw new IOException("No files were found in the directory specified.");
-        }
+        sb.Length -= 2;
+        LogFile.WriteLine(sb.ToString());
 
         string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
         byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
-        string dll = Path.Combine(binDir, NuGetRestore.PluginFileName);
         File.WriteAllBytes(dll, data);
 
         if (symbols is not null)
@@ -112,6 +106,43 @@ public class LocalFolderPlugin : PluginData
             File.WriteAllBytes(pdbFile, symbols);
         }
 
+        File.WriteAllText(cacheFile, cacheHash);
+        return LoadAssembly(dll);
+    }
+
+    private string GetCacheDirectory()
+    {
+        string folderHash = Tools.GetStringHash(Path.GetFullPath(Folder));
+        string cacheName = $"{Tools.CleanFileName(Id)}-{folderHash.Substring(0, 8)}";
+        return Path.Combine(ConfigManager.Instance.PulsarDir, "DevFolder", cacheName);
+    }
+
+    private string GetCacheHash(IEnumerable<string> projectFiles, bool debug)
+    {
+        string sources = string.Join(
+            "\n",
+            projectFiles
+                .OrderBy(GetRelativePath, StringComparer.Ordinal)
+                .Select(file => GetRelativePath(file) + ":" + Tools.GetFileHash(file))
+        );
+
+        string context = string.Join(
+            "\n",
+            sources,
+            FriendlyName,
+            debug,
+            github?.NuGetReferences?.GetFingerprint(),
+            ConfigManager.Instance.GameVersion,
+            Assembly.GetEntryAssembly().GetName().Version,
+            RuntimeInformation.FrameworkDescription,
+            Tools.RuntimeIdentifier
+        );
+
+        return Tools.GetStringHash(context);
+    }
+
+    private Assembly LoadAssembly(string dll)
+    {
         Assembly a = Assembly.LoadFrom(dll);
         Version = a.GetName().Version;
         return a;
@@ -237,6 +268,20 @@ public class LocalFolderPlugin : PluginData
 
         if (enabled)
             draft.DevFolder.Add(new() { Id = Id });
+    }
+
+    public override void InvalidateCache()
+    {
+        try
+        {
+            string cacheFile = Path.Combine(GetCacheDirectory(), CacheFileName);
+            if (File.Exists(cacheFile))
+                File.Delete(cacheFile);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Failed to invalidate dev folder cache: " + e);
+        }
     }
 
     public void LoadNewDataFile(Action<string> onComplete = null)
