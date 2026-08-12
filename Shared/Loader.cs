@@ -166,14 +166,21 @@ public class Loader
 
     private void LogEnabledPlugins()
     {
-        StringBuilder sb = new("Enabled plugins: ");
-        string[] plugins = [.. GetEnabledPlugins().Select(x => x.Id)];
+        List<string> plugins = [];
+        List<string> mods = [];
 
-        if (plugins.Length > 0)
-            sb.Append(string.Join(", ", plugins));
-        else
-            sb.Append("None");
+        foreach (PluginData p in GetEnabledPlugins())
+        {
+            bool hasName =
+                !string.IsNullOrWhiteSpace(p.FriendlyName)
+                && p.FriendlyName != "Unknown"
+                && p.FriendlyName != p.Id;
 
-        LogFile.WriteLine(sb.ToString());
+            List<string> list = p is ModPlugin ? mods : plugins;
+            list.Add(hasName ? $"{p.FriendlyName} ({p.Id})" : p.Id);
+        }
+
+        LogFile.WriteLine("Enabled Plugins: " + string.Join(", ", plugins.DefaultIfEmpty("None")));
+        LogFile.WriteLine("Enabled Mods: " + string.Join(", ", mods.DefaultIfEmpty("None")));
     }
 }
