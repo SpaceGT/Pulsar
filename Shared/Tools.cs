@@ -252,6 +252,18 @@ public static class Tools
         (IsWindows() ? "win-" : "linux-")
         + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
 
+    public static string Platform =>
+        IsProton() ? "Proton"
+        : IsWindows() ? "Windows"
+        : "Linux";
+
+    public static string Runtime => IsMono() ? "Mono"
+#if NETFRAMEWORK
+            : "CLR";
+#else
+            : "CoreCLR";
+#endif
+
     public static string[] GetCompilationSymbols(bool trusted)
     {
         List<string> symbols = [];
@@ -275,23 +287,10 @@ public static class Tools
         return [.. symbols];
     }
 
-    public static bool IsSupportedEnvironment(string runtimes, string platforms)
-    {
-        string runtime = IsMono() ? "Mono"
-#if NETFRAMEWORK
-            : "CLR";
-#else
-            : "CoreCLR";
-#endif
-        string platform =
-            IsProton() ? "Proton"
-            : IsWindows() ? "Windows"
-            : "Linux";
+    public static bool IsSupportedEnvironment(string runtimes, string platforms) =>
+        IsSupportedValue(runtimes, Runtime) && IsSupportedValue(platforms, Platform);
 
-        return IsSupportedValue(runtimes, runtime) && IsSupportedValue(platforms, platform);
-    }
-
-    public static bool IsSupportedValue(string supportedValues, string value) =>
+    private static bool IsSupportedValue(string supportedValues, string value) =>
         string.IsNullOrWhiteSpace(supportedValues)
         || supportedValues
             .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
