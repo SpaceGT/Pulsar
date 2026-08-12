@@ -258,8 +258,9 @@ public abstract class PluginData : IEquatable<PluginData>
 
         int nameScore = (int)Score(FriendlyName);
         int? authorScore = Score(Author);
+        int? sourceScore = Score(Source);
 
-        return GetFinalScore([nameScore, authorScore]);
+        return GetFinalScore([nameScore, authorScore, sourceScore]);
     }
 
     private int FuzzyRank(string[] terms)
@@ -280,9 +281,10 @@ public abstract class PluginData : IEquatable<PluginData>
 
         int nameScore = (int)Score(FriendlyName, Fuzz.PartialRatio);
         int? authorScore = Score(Author, Fuzz.Ratio);
+        int? sourceScore = Score(Source, Fuzz.Ratio);
         int? tooltipScore = Score(Tooltip, Fuzz.TokenSetRatio);
 
-        return GetFinalScore([nameScore, authorScore, tooltipScore], penalty);
+        return GetFinalScore([nameScore, authorScore, sourceScore, tooltipScore], penalty);
     }
 
     private static int GetFinalScore(int?[] scores, double? penalty = null)
