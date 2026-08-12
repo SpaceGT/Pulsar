@@ -53,7 +53,7 @@ public class Loader
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
         // FIXME: Treat as a plugin dependency in the future.
-        forceEnable ??= [];
+        forceEnable = Flags.Bare ? [] : forceEnable ?? [];
         foreach (string id in forceEnable)
         {
             if (

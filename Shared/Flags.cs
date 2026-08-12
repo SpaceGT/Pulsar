@@ -36,6 +36,7 @@ file static class Arguments
     public static readonly string[] Hardened = ["hardened"];
     public static readonly string[] SafeMode = ["safe", "mode"];
     public static readonly string[] UseHome = ["use", "home"];
+    public static readonly string[] Bare = ["bare"];
 
     public static readonly string[] HelpAliases = ["help", "h", "?"];
 
@@ -56,6 +57,7 @@ file static class Arguments
         (Hardened, "Load only trusted mods."),
         (SafeMode, "Start with user plugins disabled."),
         (UseHome, "Store Pulsar data in the User's app-data folder."),
+        (Bare, "Disable force-loading core plugins."),
     ];
 }
 
@@ -75,6 +77,7 @@ public static class Flags
     public static bool TrustedMods { get; private set; }
     public static bool SafeMode { get; private set; }
     public static bool UseHome { get; private set; }
+    public static bool Bare { get; private set; }
 
     static Flags()
     {
@@ -103,6 +106,7 @@ public static class Flags
         TrustedMods = HasArg(Arguments.Hardened);
         SafeMode = HasArg(Arguments.SafeMode);
         UseHome = HasArg(Arguments.UseHome);
+        Bare = HasArg(Arguments.Bare);
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));
@@ -167,6 +171,8 @@ public static class Flags
             changed.Add("SafeMode");
         if (UseHome)
             changed.Add("UseHome");
+        if (Bare)
+            changed.Add("Bare");
 
         if (changed.Count > 0)
             LogFile.WriteLine($"Enabled flags: {string.Join(" ", changed)}");
