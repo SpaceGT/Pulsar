@@ -38,6 +38,7 @@ file static class Arguments
     public static readonly string[] UseHome = ["use", "home"];
     public static readonly string[] Bare = ["bare"];
     public static readonly string[] StableLogs = ["stable", "logs"];
+    public static readonly string[] NoPrompt = ["no", "prompt"];
 
     public static readonly string[] HelpAliases = ["help", "h", "?"];
 
@@ -60,6 +61,7 @@ file static class Arguments
         (UseHome, "Store Pulsar data in the User's app-data folder."),
         (Bare, "Disable force-loading core plugins."),
         (StableLogs, "Overwrite game logs instead of timestamping them."),
+        (NoPrompt, "Dismiss Pulsar dialogs automatically."),
     ];
 }
 
@@ -81,6 +83,7 @@ public static class Flags
     public static bool UseHome { get; private set; }
     public static bool Bare { get; private set; }
     public static bool StableLogs { get; private set; }
+    public static bool NoPrompt { get; private set; }
 
     static Flags()
     {
@@ -111,6 +114,7 @@ public static class Flags
         UseHome = HasArg(Arguments.UseHome);
         Bare = HasArg(Arguments.Bare);
         StableLogs = HasArg(Arguments.StableLogs);
+        NoPrompt = HasArg(Arguments.NoPrompt);
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));
@@ -179,6 +183,8 @@ public static class Flags
             changed.Add("Bare");
         if (StableLogs)
             changed.Add("StableLogs");
+        if (NoPrompt)
+            changed.Add("NoPrompt");
 
         if (changed.Count > 0)
             LogFile.WriteLine($"Enabled flags: {string.Join(" ", changed)}");

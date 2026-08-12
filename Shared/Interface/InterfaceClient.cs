@@ -78,6 +78,11 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
         float? progress = null
     )
     {
+        // Dialog and input operations follow the splash operations.
+        // NoPrompt skips them without disabling the splash.
+        if (Flags.NoPrompt && operation >= InterfaceOperation.PromptShow)
+            return new();
+
         lock (processLock)
         {
             try
