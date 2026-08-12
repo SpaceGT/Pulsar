@@ -21,7 +21,6 @@ public class LocalFolderPlugin : PluginData
     public override bool IsCompiled => true;
     private string[] sourceDirectories;
     private GitHubPlugin github;
-    private AssemblyResolver resolver;
     private LocalFolderConfig settings;
 
     public string Folder;
@@ -63,8 +62,18 @@ public class LocalFolderPlugin : PluginData
         ICompiler compiler = Tools.Compiler.Create(debug);
         bool hasFile = false;
 
+        string binDir = Path.Combine(
+            ConfigManager.Instance.PulsarDir,
+            "NuGet",
+            "bin",
+            Tools.GetStringHash(Path.GetFullPath(Folder))
+        );
+        if (Directory.Exists(binDir))
+            Directory.Delete(binDir, true);
+        Directory.CreateDirectory(binDir);
+
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
-            InstallDependencies(compiler);
+            InstallDependencies(compiler, binDir);
 
         StringBuilder sb = new();
         sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
@@ -94,70 +103,33 @@ public class LocalFolderPlugin : PluginData
 
         string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
         byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
-        resolver?.AddAllowedAssemblyName(assemblyName);
-        Assembly a = Assembly.Load(data, symbols);
+        string dll = Path.Combine(binDir, NuGetRestore.PluginFileName);
+        File.WriteAllBytes(dll, data);
+
+        if (symbols is not null)
+        {
+            string pdbFile = Path.Combine(binDir, Path.ChangeExtension(assemblyName, "pdb"));
+            File.WriteAllBytes(pdbFile, symbols);
+        }
+
+        Assembly a = Assembly.LoadFrom(dll);
         Version = a.GetName().Version;
         return a;
     }
 
-    private void InstallDependencies(ICompiler compiler)
+    private void InstallDependencies(ICompiler compiler, string binDir)
     {
         NuGetPackageList packageList = github.NuGetReferences;
-        NuGetClient nuget = new();
+        NuGetRestoreResult restore = NuGetRestore.Run(packageList);
 
-        string binDir = Path.Combine(
-            ConfigManager.Instance.PulsarDir,
-            "NuGet",
-            "bin",
-            Tools.GetStringHash(Path.GetFullPath(Folder))
-        );
-        if (Directory.Exists(binDir))
-            Directory.Delete(binDir, true);
-        Directory.CreateDirectory(binDir);
+        foreach (string file in restore.CompileFiles)
+            compiler.TryAddDependency(file);
 
-        if (!string.IsNullOrWhiteSpace(packageList.Config))
+        foreach (NuGetRestoreFile file in restore.RuntimeFiles)
         {
-            string nugetFile = Path.GetFullPath(
-                Path.Combine(Folder, packageList.PackagesConfigNormalized)
-            );
-            if (File.Exists(nugetFile))
-            {
-                NuGetPackage[] packages;
-                using (FileStream fileStream = File.OpenRead(nugetFile))
-                {
-                    packages = nuget.DownloadFromConfig(fileStream);
-                }
-                foreach (NuGetPackage package in packages)
-                    InstallPackage(package, compiler, binDir);
-            }
-        }
-
-        if (packageList.PackageIds is not null)
-        {
-            foreach (NuGetPackage package in nuget.DownloadPackages(packageList.PackageIds))
-                InstallPackage(package, compiler, binDir);
-        }
-
-        resolver = new AssemblyResolver();
-        resolver.AddSourceFolder(binDir);
-    }
-
-    private static void InstallPackage(NuGetPackage package, ICompiler compiler, string binDir)
-    {
-        foreach (NuGetPackage.Item file in package.LibFiles)
-        {
-            string newFile = Path.Combine(binDir, file.FilePath);
+            string newFile = Path.Combine(binDir, file.OutputPath);
             Directory.CreateDirectory(Path.GetDirectoryName(newFile));
-            File.Copy(file.FullPath, newFile);
-            if (Path.GetDirectoryName(newFile) == binDir)
-                compiler.TryAddDependency(newFile);
-        }
-
-        foreach (NuGetPackage.Item file in package.ContentFiles)
-        {
-            string newFile = Path.Combine(binDir, file.FilePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(newFile));
-            File.Copy(file.FullPath, newFile);
+            File.Copy(file.SourcePath, newFile);
         }
     }
 

@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Xml.Serialization;
 using Pulsar.Shared.Config;
+using Pulsar.Shared.Network;
 
 namespace Pulsar.Shared.Data;
 
@@ -14,7 +15,6 @@ public partial class GitHubPlugin
 {
     public class CacheManifest
     {
-        private const string pluginFile = "plugin.dll";
         private const string manifestFile = "manifest.xml";
         private const string commitFile = "commit.sha1";
         private const string assetFolder = "Assets";
@@ -33,6 +33,10 @@ public partial class GitHubPlugin
         public string Commit { get; set; }
 
         public string Runtime { get; set; }
+
+        public string RuntimeIdentifier { get; set; }
+
+        public string Packages { get; set; }
 
         [XmlIgnore]
         public Version PulsarVersion { get; set; }
@@ -71,7 +75,7 @@ public partial class GitHubPlugin
             this.cacheDir = cacheDir;
             assetDir = Path.Combine(cacheDir, assetFolder);
             libDir = Path.Combine(cacheDir, libFolder);
-            DllFile = Path.Combine(cacheDir, pluginFile);
+            DllFile = Path.Combine(libDir, NuGetRestore.PluginFileName);
 
             foreach (AssetFile file in assetFiles.Values)
                 SetBaseDir(file);
@@ -133,7 +137,7 @@ public partial class GitHubPlugin
             string currentCommit,
             Version currentGameVersion,
             bool requiresAssets,
-            bool requiresPackages
+            string packages
         )
         {
             Version currentPulsarVersion = Assembly.GetEntryAssembly().GetName().Version;
@@ -142,6 +146,8 @@ public partial class GitHubPlugin
                 !File.Exists(DllFile)
                 || Commit != currentCommit
                 || Runtime != RuntimeInformation.FrameworkDescription
+                || RuntimeIdentifier != Tools.RuntimeIdentifier
+                || Packages != packages
                 || PulsarVersion != currentPulsarVersion
             )
                 return false;
@@ -153,11 +159,6 @@ public partial class GitHubPlugin
             }
 
             if (requiresAssets && !assetFiles.Values.Any(x => x.Type == AssetFile.AssetType.Asset))
-                return false;
-
-            if (
-                requiresPackages && !assetFiles.Values.Any(x => x.Type != AssetFile.AssetType.Asset)
-            )
                 return false;
 
             foreach (AssetFile file in assetFiles.Values)
@@ -172,6 +173,10 @@ public partial class GitHubPlugin
         public void ClearAssets()
         {
             assetFiles.Clear();
+            if (Directory.Exists(assetDir))
+                Directory.Delete(assetDir, true);
+            if (Directory.Exists(libDir))
+                Directory.Delete(libDir, true);
         }
 
         public AssetFile CreateAsset(
@@ -235,10 +240,17 @@ public partial class GitHubPlugin
             if (!Directory.Exists(assetDir))
                 return;
 
+            StringComparison pathComparison = Tools.IsWindows()
+                ? StringComparison.OrdinalIgnoreCase
+                : StringComparison.Ordinal;
+
             foreach (
                 string file in Directory.EnumerateFiles(assetDir, "*", SearchOption.AllDirectories)
             )
             {
+                if (file.Equals(DllFile, pathComparison))
+                    continue;
+
                 string relativePath = file.Substring(cacheDir.Length)
                     .Replace('\\', '/')
                     .TrimStart('/');

@@ -11,7 +11,6 @@ public partial class GitHubPlugin
         {
             Asset,
             Lib,
-            LibContent,
         }
 
         public string Name { get; set; }

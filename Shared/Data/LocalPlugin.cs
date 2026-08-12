@@ -14,7 +14,6 @@ public class LocalPlugin : PluginData
 
     public string Dll;
     private GitHubPlugin github;
-    private AssemblyResolver resolver;
 
     private LocalPlugin() { }
 
@@ -62,10 +61,7 @@ public class LocalPlugin : PluginData
     {
         if (File.Exists(Dll))
         {
-            resolver = new AssemblyResolver();
-            resolver.AddSourceFolder(Path.GetDirectoryName(Dll));
-            resolver.AddAllowedAssemblyFile(Dll);
-            Assembly a = Assembly.LoadFile(Dll);
+            Assembly a = Assembly.LoadFrom(Dll);
             Version = a.GetName().Version;
             return a;
         }

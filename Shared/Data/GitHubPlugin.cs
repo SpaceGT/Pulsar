@@ -52,8 +52,6 @@ public partial class GitHubPlugin : PluginData
     private GitHubPluginConfig settings;
     private string assemblyName;
     private CacheManifest manifest;
-    private NuGetClient nuget;
-    private AssemblyResolver resolver;
 
     public GitHubPlugin()
     {
@@ -149,10 +147,6 @@ public partial class GitHubPlugin : PluginData
     {
         InitPaths();
 
-        Assembly a;
-
-        resolver = new AssemblyResolver();
-
         Version gameVersion = ConfigManager.Instance.GameVersion;
         GitHubSource selectedVersion = GetSelectedVersion();
         string selectedRepo = selectedVersion?.Repo ?? RepoId;
@@ -163,7 +157,7 @@ public partial class GitHubPlugin : PluginData
                 selectedCommit,
                 gameVersion,
                 !string.IsNullOrWhiteSpace(AssetFolder),
-                NuGetReferences is not null && NuGetReferences.HasPackages
+                NuGetReferences?.GetFingerprint()
             )
         )
         {
@@ -173,30 +167,27 @@ public partial class GitHubPlugin : PluginData
             manifest.GameVersion = gameVersion;
             manifest.Commit = selectedCommit;
             manifest.Runtime = RuntimeInformation.FrameworkDescription;
+            manifest.RuntimeIdentifier = Tools.RuntimeIdentifier;
+            manifest.Packages = NuGetReferences?.GetFingerprint();
             manifest.PulsarVersion = Assembly.GetEntryAssembly().GetName().Version;
             manifest.ClearAssets();
             string name = assemblyName + '_' + Path.GetRandomFileName();
             Action<float> setBarValue = lbl is not null ? lbl.SetBarValue : null;
             byte[] data = CompileFromSource(selectedRepo, selectedCommit, name, setBarValue);
+            Directory.CreateDirectory(manifest.LibDir);
             File.WriteAllBytes(manifest.DllFile, data);
             manifest.DeleteUnknownFiles();
             manifest.Save();
 
             Status = PluginStatus.Updated;
             lbl?.SetText($"Compiled '{FriendlyName}'");
-            resolver.AddSourceFolder(manifest.LibDir);
-            resolver.AddAllowedAssemblyFile(manifest.DllFile);
-            resolver.AddAllowedAssemblyName(name);
-            a = Assembly.Load(data);
         }
         else
         {
             manifest.DeleteUnknownFiles();
-            resolver.AddSourceFolder(manifest.LibDir);
-            resolver.AddAllowedAssemblyFile(manifest.DllFile);
-            a = Assembly.LoadFile(manifest.DllFile);
         }
 
+        Assembly a = Assembly.LoadFrom(manifest.DllFile);
         Version = a.GetName().Version;
         return a;
     }
@@ -229,10 +220,22 @@ public partial class GitHubPlugin : PluginData
                 callback?.Invoke(i / (float)zip.Entries.Count);
             }
         }
-        if (NuGetReferences?.PackageIds is not null)
+        if (NuGetReferences?.HasPackages == true)
         {
-            nuget ??= new NuGetClient();
-            InstallPackages(nuget.DownloadPackages(NuGetReferences.PackageIds), compiler);
+            NuGetRestoreResult restore = NuGetRestore.Run(NuGetReferences);
+
+            foreach (string file in restore.CompileFiles)
+                compiler.TryAddDependency(file);
+
+            foreach (NuGetRestoreFile file in restore.RuntimeFiles)
+            {
+                AssetFile newFile = manifest.CreateAsset(file.OutputPath, AssetFile.AssetType.Lib);
+                if (!manifest.IsAssetValid(newFile))
+                {
+                    using Stream entryStream = File.OpenRead(file.SourcePath);
+                    manifest.SaveAsset(newFile, entryStream);
+                }
+            }
         }
         callback?.Invoke(1);
         return compiler.Compile(assemblyName, out _);
@@ -241,16 +244,6 @@ public partial class GitHubPlugin : PluginData
     private void CompileFromSource(ICompiler compiler, ZipArchiveEntry entry)
     {
         string path = RemoveRoot(entry.FullName);
-        if (NuGetReferences is not null && path == NuGetReferences.PackagesConfigNormalized)
-        {
-            nuget = new NuGetClient();
-            NuGetPackage[] packages;
-            using (Stream entryStream = entry.Open())
-            {
-                packages = nuget.DownloadFromConfig(entryStream);
-            }
-            InstallPackages(packages, compiler);
-        }
         if (AllowedZipPath(path))
         {
             using Stream entryStream = entry.Open();
@@ -263,38 +256,6 @@ public partial class GitHubPlugin : PluginData
             if (!manifest.IsAssetValid(newFile))
             {
                 using Stream entryStream = entry.Open();
-                manifest.SaveAsset(newFile, entryStream);
-            }
-        }
-    }
-
-    private void InstallPackages(IEnumerable<NuGetPackage> packages, ICompiler compiler)
-    {
-        foreach (NuGetPackage package in packages)
-            InstallPackage(package, compiler);
-    }
-
-    private void InstallPackage(NuGetPackage package, ICompiler compiler)
-    {
-        foreach (NuGetPackage.Item file in package.LibFiles)
-        {
-            AssetFile newFile = manifest.CreateAsset(file.FilePath, AssetFile.AssetType.Lib);
-            if (!manifest.IsAssetValid(newFile))
-            {
-                using Stream entryStream = File.OpenRead(file.FullPath);
-                manifest.SaveAsset(newFile, entryStream);
-            }
-
-            if (Path.GetDirectoryName(newFile.FullPath) == newFile.BaseDir)
-                compiler.TryAddDependency(newFile.FullPath);
-        }
-
-        foreach (NuGetPackage.Item file in package.ContentFiles)
-        {
-            AssetFile newFile = manifest.CreateAsset(file.FilePath, AssetFile.AssetType.LibContent);
-            if (!manifest.IsAssetValid(newFile))
-            {
-                using Stream entryStream = File.OpenRead(file.FullPath);
                 manifest.SaveAsset(newFile, entryStream);
             }
         }

@@ -64,7 +64,16 @@
       <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
       <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
-      <DeployLibraryFile Include="$(TargetDir)NuGet.*.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Configuration.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.DependencyResolver.Core.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Frameworks.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.LibraryModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Packaging.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.ProjectModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Versioning.dll" />
     </ItemGroup>
     <ItemGroup>
       <DeployLibraryFile Include="$(Steamworks)/Steamworks.NET.dll" />

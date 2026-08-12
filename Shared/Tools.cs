@@ -248,6 +248,10 @@ public static class Tools
 
     public static bool IsMono() => Type.GetType("Mono.Runtime") is not null;
 
+    public static string RuntimeIdentifier =>
+        (IsWindows() ? "win-" : "linux-")
+        + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+
     public static string[] GetCompilationSymbols(bool trusted)
     {
         List<string> symbols = [];
