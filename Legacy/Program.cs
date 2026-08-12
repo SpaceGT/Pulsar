@@ -97,6 +97,7 @@ static class Program
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
+        LogFile.WriteLine($"Flavour: {asmName.Name}");
         LogFile.WriteLine($"Platform: {Tools.Platform}");
         LogFile.WriteLine($"Runtime: {Tools.Runtime}");
 
