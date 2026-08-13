@@ -9,11 +9,12 @@ namespace Pulsar.Shared;
 
 public class Launcher(string sePath)
 {
-    public static Mutex Mutex { get; private set; }
+    private static Mutex mutex;
+    private static bool ownsMutex;
 
     public bool CanStart()
     {
-        if (IsSpaceEngineersRunning())
+        if (!Flags.MultiInstance && IsSpaceEngineersRunning())
         {
             Tools.ShowMessageBox("Error: Space Engineers is already running!");
             return false;
@@ -42,10 +43,43 @@ public class Launcher(string sePath)
 
     public static bool IsOtherPulsarRunning()
     {
+        if (Flags.MultiInstance)
+            return false;
+
         string callerName = Assembly.GetEntryAssembly().GetName().Name;
         string mutexName = callerName == "Modern" ? "Modern" : "Legacy";
-        Mutex = new Mutex(true, $"Pulsar.{mutexName}", out bool isOwner);
-        return !isOwner;
+
+#if NETFRAMEWORK
+        mutex = new Mutex(false, $"Pulsar.{mutexName}");
+#else
+        NamedWaitHandleOptions options = new()
+        {
+            CurrentUserOnly = true,
+            CurrentSessionOnly = false,
+        };
+        mutex = new Mutex(false, $"Pulsar.{mutexName}", options);
+#endif
+
+        try
+        {
+            ownsMutex = mutex.WaitOne(0);
+        }
+        catch (AbandonedMutexException)
+        {
+            ownsMutex = true;
+        }
+
+        return !ownsMutex;
+    }
+
+    public static void ReleaseInstanceLock()
+    {
+        if (ownsMutex)
+            mutex.ReleaseMutex();
+
+        mutex?.Dispose();
+        mutex = null;
+        ownsMutex = false;
     }
 
     public bool VerifyConfig()

@@ -67,5 +67,14 @@ internal static class Game
         return new Version(version.FileVersion);
     }
 
-    public static void StartSpaceEngineers2(string[] args) => Keen.Game2.Program.Main(args);
+    public static void StartSpaceEngineers2(string[] args)
+    {
+        // Prefer native SE2 arguments for Flag implementation
+        if (Flags.ContinueGame)
+            args = [.. args, "-startLast"];
+        if (Flags.MultiInstance)
+            args = [.. args, "-allowMultiple"];
+
+        Keen.Game2.Program.Main(args);
+    }
 }

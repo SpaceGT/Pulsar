@@ -17,9 +17,7 @@ namespace Pulsar.Modern.Loader;
 
 internal static class LoaderTools
 {
-    // This is changed to -startLast from -continue.
-    // SE2 already has a system to load the last world you were in at startup.
-    private const string ContinueArg = "-startLast";
+    private const string ContinueArg = "-continue";
     private const string DebugArg = "-debug";
 
     public static void AskToRestart()
@@ -74,7 +72,7 @@ internal static class LoaderTools
 
     public static void Restart(bool autoRejoin = false, bool? debugger = null)
     {
-        Shared.Launcher.Mutex.Close();
+        Shared.Launcher.ReleaseInstanceLock();
         Start(autoRejoin, debugger ?? Debugger.IsAttached);
         Process.GetCurrentProcess().Kill();
     }

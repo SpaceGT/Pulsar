@@ -40,6 +40,7 @@ file static class Arguments
     public static readonly string[] StableLogs = ["stable", "logs"];
     public static readonly string[] NoPrompt = ["no", "prompt"];
     public static readonly string[] LazySteam = ["lazy", "steam"];
+    public static readonly string[] MultiInstance = ["multi", "instance"];
 
     public static readonly string[] HelpAliases = ["help", "h", "?"];
 
@@ -64,6 +65,7 @@ file static class Arguments
         (StableLogs, "Overwrite game logs instead of timestamping them."),
         (NoPrompt, "Dismiss Pulsar dialogs automatically."),
         (LazySteam, "Attempt to start even if Steam is offline."),
+        (MultiInstance, "Allow multiple Pulsar instances."),
     ];
 }
 
@@ -87,6 +89,7 @@ public static class Flags
     public static bool StableLogs { get; private set; }
     public static bool NoPrompt { get; private set; }
     public static bool LazySteam { get; private set; }
+    public static bool MultiInstance { get; private set; }
 
     static Flags()
     {
@@ -119,6 +122,7 @@ public static class Flags
         StableLogs = HasArg(Arguments.StableLogs);
         NoPrompt = HasArg(Arguments.NoPrompt);
         LazySteam = HasArg(Arguments.LazySteam);
+        MultiInstance = HasArg(Arguments.MultiInstance);
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));
@@ -191,6 +195,8 @@ public static class Flags
             changed.Add("NoPrompt");
         if (LazySteam)
             changed.Add("LazySteam");
+        if (MultiInstance)
+            changed.Add("MultiInstance");
 
         if (changed.Count > 0)
             LogFile.WriteLine($"Enabled flags: {string.Join(" ", changed)}");
