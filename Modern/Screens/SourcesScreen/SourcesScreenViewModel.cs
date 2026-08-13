@@ -268,14 +268,19 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddDevFolder()
     {
-        Tools.OpenFolderDialog("Open a development folder", PromptDevFolderFile);
+        Tools.OpenFileDialog(
+            "Open a plugin data file",
+            null,
+            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
+            AddDevFolder
+        );
     }
 
-    private void PromptDevFolderFile(string folder)
+    private void AddDevFolder(string file)
     {
-        DirectoryInfo directory = new(folder);
-        folder = directory.FullName;
-        string id = directory.Name;
+        file = Path.GetFullPath(file);
+        string folder = Path.GetDirectoryName(file);
+        string id = Path.GetFileName(folder);
 
         if (
             PluginSources.Any(source =>
@@ -293,40 +298,11 @@ internal class SourcesScreenViewModel : ScreenViewModel
             return;
         }
 
-        var filePrompt = ScreenTools.GetDefaultYesNoDialog();
-        filePrompt.Title = ScreenTools.GetKeyFromString("Pulsar");
-        filePrompt.Content = ScreenTools.GetKeyFromString("Select a plugin data file?");
-
-        ScreenTools
-            .GetSharedUIComponent()
-            .ShowDialog(
-                new TwoOptionsDialogViewModel(filePrompt)
-                {
-                    ConfirmAction = () => OpenDevFolderFile(folder),
-                    CancelAction = () => AddDevFolder(folder),
-                }
-            );
-    }
-
-    private void OpenDevFolderFile(string folder)
-    {
-        Tools.OpenFileDialog(
-            "Open a plugin data file",
-            folder,
-            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
-            (file) => AddDevFolder(folder, file)
-        );
-    }
-
-    private void AddDevFolder(string folder, string file = null)
-    {
-        file = Tools.GetRelativePath(folder, file) ?? file;
-
         LocalPluginConfig plugin = new()
         {
-            Name = Path.GetFileName(folder),
+            Name = id,
             Folder = folder,
-            File = file,
+            File = Path.GetFileName(file),
             Enabled = true,
         };
 

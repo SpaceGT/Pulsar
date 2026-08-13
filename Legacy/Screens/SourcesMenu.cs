@@ -561,14 +561,19 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     private void AddDevelopmentFolder(MyGuiControlButton btn)
     {
         MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
-        Tools.OpenFolderDialog("Open a development folder", PromptDevelopmentFolderFile);
+        Tools.OpenFileDialog(
+            "Open a plugin data file",
+            null,
+            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
+            AddDevelopmentFolder
+        );
     }
 
-    private void PromptDevelopmentFolderFile(string folder)
+    private void AddDevelopmentFolder(string file)
     {
-        DirectoryInfo directory = new(folder);
-        folder = directory.FullName;
-        string id = directory.Name;
+        file = Path.GetFullPath(file);
+        string folder = Path.GetDirectoryName(file);
+        string id = Path.GetFileName(folder);
 
         if (LocalPluginSources.Any(source => source.Name == id))
         {
@@ -582,41 +587,11 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
             return;
         }
 
-        MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
-            styleEnum: MyMessageBoxStyleEnum.Info,
-            buttonType: MyMessageBoxButtonsType.YES_NO,
-            messageCaption: new StringBuilder("Pulsar"),
-            messageText: new StringBuilder("Select a plugin data file?"),
-            callback: result =>
-            {
-                if (result == MyGuiScreenMessageBox.ResultEnum.YES)
-                    OpenDevelopmentFolderFile(folder);
-                else
-                    AddDevelopmentFolder(folder);
-            }
-        );
-        MyGuiSandbox.AddScreen(dialog);
-    }
-
-    private void OpenDevelopmentFolderFile(string folder)
-    {
-        Tools.OpenFileDialog(
-            "Open a plugin data file",
-            folder,
-            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
-            (file) => AddDevelopmentFolder(folder, file)
-        );
-    }
-
-    private void AddDevelopmentFolder(string folder, string file = null)
-    {
-        file = Tools.GetRelativePath(folder, file) ?? file;
-
         LocalPluginConfig plugin = new()
         {
-            Name = Path.GetFileName(folder),
+            Name = id,
             Folder = folder,
-            File = file,
+            File = Path.GetFileName(file),
             Enabled = true,
         };
 
