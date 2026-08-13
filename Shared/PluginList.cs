@@ -450,22 +450,16 @@ public class PluginList : IEnumerable<PluginData>
             else
                 localPlugins.Remove(new DirectoryInfo(source.Folder).Name);
 
-        foreach (
-            string dll in Directory
-                .EnumerateFiles(LocalPluginDir, "*", SearchOption.AllDirectories)
-                .Where(x => Path.GetExtension(x).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-        )
+        string[] localDlls = [.. EnumerateLocalPlugins()];
+        foreach (string dll in localDlls)
         {
-            if (IsNativeAssembly(dll))
-                continue;
-
-            LocalPlugin local = new(dll) { Source = "Local" };
+            LocalPlugin local = new(dll, LocalPluginDir) { Source = "Local" };
             localPlugins[local.Id] = local;
         }
 
         foreach (PluginData source in new List<PluginData>(localPlugins.Values))
         {
-            if (source is LocalPlugin local && File.Exists(local.Dll))
+            if (source is LocalPlugin local && localDlls.Contains(local.Dll))
                 continue;
 
             if (
@@ -488,6 +482,33 @@ public class PluginList : IEnumerable<PluginData>
         catch (BadImageFormatException)
         {
             return true;
+        }
+    }
+
+    private IEnumerable<string> EnumerateLocalPlugins()
+    {
+        IEnumerable<string> files = Directory
+            .EnumerateFiles(LocalPluginDir, "*", SearchOption.TopDirectoryOnly)
+            .Where(x => Path.GetExtension(x).Equals(".dll", StringComparison.OrdinalIgnoreCase))
+            .Where(x => !IsNativeAssembly(x));
+
+        foreach (string dll in files)
+            yield return dll;
+
+        IEnumerable<string> directories = Directory.EnumerateDirectories(
+            LocalPluginDir,
+            "*",
+            SearchOption.AllDirectories
+        );
+
+        foreach (string directory in directories)
+        {
+            string plugin = Path.Combine(directory, NuGetRestore.PluginFileName);
+            string namedPlugin = Path.Combine(directory, Path.GetFileName(directory) + ".dll");
+
+            string dll = File.Exists(plugin) ? plugin : namedPlugin;
+            if (File.Exists(dll) && !IsNativeAssembly(dll))
+                yield return dll;
         }
     }
 
@@ -749,18 +770,9 @@ public class PluginList : IEnumerable<PluginData>
 
     private void FindLocalPlugins()
     {
-        foreach (
-            string dll in Directory.EnumerateFiles(
-                LocalPluginDir,
-                "*.dll",
-                SearchOption.AllDirectories
-            )
-        )
+        foreach (string dll in EnumerateLocalPlugins())
         {
-            if (IsNativeAssembly(dll))
-                continue;
-
-            LocalPlugin local = new(dll) { Source = "Local" };
+            LocalPlugin local = new(dll, LocalPluginDir) { Source = "Local" };
             localPlugins[local.Id] = local;
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using Mono.Cecil;
+using Pulsar.Shared.Network;
 
 namespace Pulsar.Shared.Data;
 
@@ -17,15 +18,29 @@ public class LocalPlugin : PluginData
 
     private LocalPlugin() { }
 
-    public LocalPlugin(string dll)
+    public LocalPlugin(string dll, string localRoot)
     {
         Dll = dll;
-        Id = Path.GetFileName(dll);
-        FriendlyName = Path.GetFileNameWithoutExtension(dll);
+
+        string directory = Path.GetDirectoryName(dll);
+        if (Path.GetFileName(dll) == NuGetRestore.PluginFileName && directory != localRoot)
+        {
+            FriendlyName = Path.GetFileName(directory);
+            Id = FriendlyName + ".dll";
+        }
+        else
+        {
+            FriendlyName = Path.GetFileNameWithoutExtension(dll);
+            Id = Path.GetFileName(dll);
+        }
+
         Status = PluginStatus.None;
         (Runtimes, Platforms) = GetEnvironment(dll);
 
-        TryLoadDataFile(Dll + ".xml");
+        string dataFile = Path.ChangeExtension(Dll, ".xml");
+        // FIXME: Fallback for legacy naming convention
+        dataFile = File.Exists(dataFile) ? dataFile : Dll + ".xml";
+        TryLoadDataFile(dataFile);
     }
 
     private static (string runtimes, string platforms) GetEnvironment(string dll)
