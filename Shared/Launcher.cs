@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Pulsar.Protocol.Interface;
 
 namespace Pulsar.Shared;
 
@@ -16,16 +17,17 @@ public class Launcher(string sePath)
     {
         if (!Flags.MultiInstance && IsSpaceEngineersRunning())
         {
-            Tools.ShowMessageBox("Error: Space Engineers is already running!");
+            string message = "Space Engineers is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return false;
         }
 
         if (Environment.GetCommandLineArgs().Contains("-plugin"))
         {
-            Tools.ShowMessageBox(
-                "ERROR: \"-plugin\" support has been dropped!\n"
-                    + "Use \"-sources\" add plugins there instead."
-            );
+            string message =
+                "\"-plugin\" support has been dropped!\n"
+                + "Use \"-sources\" add plugins there instead.";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return false;
         }
 

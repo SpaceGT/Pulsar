@@ -157,8 +157,8 @@ public static class Tools
 
     public static PromptResult ShowMessageBox(
         string message,
-        PromptButtons buttons = PromptButtons.Ok,
-        PromptIcon icon = PromptIcon.None
+        PromptButtons buttons,
+        PromptIcon icon
     )
     {
         try

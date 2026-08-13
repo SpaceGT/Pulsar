@@ -6,6 +6,7 @@ using System.Runtime.ExceptionServices;
 using System.Text;
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -97,7 +98,8 @@ public class PluginLoader : IHandleInputPlugin
 
         if (Flags.CheckAllPlugins)
         {
-            Tools.ShowMessageBox("All plugins compiled, log file will now open");
+            string message = "All plugins compiled, log file will now open";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }

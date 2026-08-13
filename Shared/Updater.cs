@@ -49,7 +49,7 @@ public class Updater(string repoName)
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel);
+        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel, PromptIcon.Question);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -69,7 +69,7 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo);
+        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Warning);
 
         if (result != PromptResult.Yes)
             Environment.Exit(0);
@@ -93,7 +93,7 @@ public class Updater(string repoName)
             buttons = PromptButtons.YesNo;
         }
 
-        PromptResult result = Tools.ShowMessageBox(message, buttons);
+        PromptResult result = Tools.ShowMessageBox(message, buttons, PromptIcon.Error);
 
         if (result == PromptResult.Yes)
             Update();
@@ -107,7 +107,7 @@ public class Updater(string repoName)
             $"An error occurred while updating {PulsarName}!\n"
             + "Please check the log for more information!";
 
-        Tools.ShowMessageBox(prompt, PromptButtons.Ok);
+        Tools.ShowMessageBox(prompt, PromptButtons.Ok, PromptIcon.Error);
     }
 
     private void Update()

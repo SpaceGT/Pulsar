@@ -5,6 +5,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Win32;
+using Pulsar.Protocol.Interface;
 using Steamworks;
 
 namespace Pulsar.Shared;
@@ -129,9 +130,9 @@ public static class Steam
     private static void ShowWarning()
     {
         LogFile.Error("Steam failed to start!");
-        Tools.ShowMessageBox(
+        string message =
             "Failed to start Steam automatically!\n"
-                + "Space Engineers requires a running Steam instance."
-        );
+            + "Space Engineers requires a running Steam instance.";
+        Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
     }
 }

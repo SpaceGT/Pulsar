@@ -7,6 +7,7 @@ using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
@@ -118,7 +119,8 @@ internal class PluginLoader : IPlugin, IDisposable
 
         if (Flags.CheckAllPlugins)
         {
-            Tools.ShowMessageBox("All plugins compiled, log file will now open");
+            string message = "All plugins compiled, log file will now open";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }

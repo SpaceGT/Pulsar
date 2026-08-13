@@ -14,6 +14,7 @@ using Pulsar.Compiler;
 using Pulsar.Interface;
 using Pulsar.Modern.Launcher;
 using Pulsar.Modern.Loader;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
@@ -69,7 +70,8 @@ static class Program
 
         if (SharedLauncher.IsOtherPulsarRunning())
         {
-            Tools.ShowMessageBox("Error: Pulsar is already running!");
+            string message = "Pulsar is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return;
         }
 
@@ -140,10 +142,9 @@ static class Program
         string game2Dir = Folder.GetGame2();
         if (game2Dir is null)
         {
-            Tools.ShowMessageBox(
-                $"Error: {OldLauncher} not found!\n"
-                    + "You can specify a custom location with \"-game2\""
-            );
+            string message =
+                $"{OldLauncher} not found!\nYou can specify a custom location with \"-game2\"";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             Environment.Exit(1);
         }
 

@@ -11,6 +11,7 @@ using Pulsar.Interface;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Patch;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
@@ -67,7 +68,8 @@ static class Program
 
         if (SharedLauncher.IsOtherPulsarRunning())
         {
-            Tools.ShowMessageBox("Error: Pulsar is already running!");
+            string message = "Pulsar is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return;
         }
 
@@ -141,10 +143,9 @@ static class Program
         string bin64Dir = Folder.GetBin64();
         if (bin64Dir is null)
         {
-            Tools.ShowMessageBox(
-                $"Error: {OldLauncher} not found!\n"
-                    + "You can specify a custom location with \"-bin64\""
-            );
+            string message =
+                $"{OldLauncher} not found!\nYou can specify a custom location with \"-bin64\"";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             Environment.Exit(1);
         }
 
