@@ -283,7 +283,7 @@ public class PluginList : IEnumerable<PluginData>
         if (!Directory.Exists(source.Folder))
             return;
 
-        LocalFolderPlugin local = new(source.Folder) { Source = "DevFolder" };
+        LocalFolderPlugin local = new(source.Folder, source.Name) { Source = "DevFolder" };
         local.TryLoadDataFile(source.File);
         LoadPluginData(local);
         localPlugins[local.Id] = local;
@@ -449,7 +449,7 @@ public class PluginList : IEnumerable<PluginData>
             if (source.Enabled)
                 AddLocalPlugin(source);
             else
-                localPlugins.Remove(new DirectoryInfo(source.Folder).Name);
+                localPlugins.Remove(source.Name ?? new DirectoryInfo(source.Folder).Name);
 
         string[] localDlls = [.. EnumerateLocalPlugins()];
         foreach (string dll in localDlls)

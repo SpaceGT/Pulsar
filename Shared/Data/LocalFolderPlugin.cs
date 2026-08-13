@@ -26,9 +26,9 @@ public class LocalFolderPlugin : PluginData
 
     public string Folder;
 
-    public LocalFolderPlugin(string folder)
+    public LocalFolderPlugin(string folder, string name = null)
     {
-        Id = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
+        Id = name ?? Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
         Folder = folder;
         Status = PluginStatus.None;
         FriendlyName = Id;

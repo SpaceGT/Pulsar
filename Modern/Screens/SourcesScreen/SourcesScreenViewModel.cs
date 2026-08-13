@@ -279,8 +279,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
         if (
             PluginSources.Any(source =>
-                source.Config is LocalPluginConfig local
-                && new DirectoryInfo(local.Folder).Name == id
+                source.Config is LocalPluginConfig local && local.Name == id
             )
         )
         {

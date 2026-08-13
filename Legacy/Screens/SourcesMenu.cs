@@ -570,7 +570,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
         folder = directory.FullName;
         string id = directory.Name;
 
-        if (LocalPluginSources.Any(source => new DirectoryInfo(source.Folder).Name == id))
+        if (LocalPluginSources.Any(source => source.Name == id))
         {
             MyGuiSandbox.AddScreen(
                 MyGuiSandbox.CreateMessageBox(
