@@ -294,7 +294,7 @@ public static class Tools
 #if NETFRAMEWORK
             : "CLR";
 #else
-            : "CoreCLR";
+            : "NETCoreApp";
 #endif
 
     public static string[] GetCompilationSymbols(bool trusted)
