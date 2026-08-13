@@ -1,6 +1,4 @@
-﻿using System.IO;
-using System.Text;
-using Pulsar.Legacy.Screens;
+﻿using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -19,43 +17,6 @@ internal static class LocalFolderPluginExtensions
     {
         var draftConfig = (LocalFolderConfig)screen.draft.GetData(localFolderPlugin.Id);
 
-        MyGuiControlButton btnRemove = new(
-            text: new StringBuilder("Remove File"),
-            onButtonClick: (btn) =>
-            {
-                localFolderPlugin.DeserializeFile(null);
-                draftConfig.DataFile = null;
-                screen.RecreateControls(false);
-            }
-        )
-        {
-            Enabled = draftConfig?.DataFile is not null,
-        };
-
-        screen.PositionAbove(bottomControl, btnRemove);
-        screen.Controls.Add(btnRemove);
-
-        MyGuiControlButton btnLoadFile = new(
-            text: new StringBuilder("Load File"),
-            onButtonClick: (btn) =>
-                localFolderPlugin.LoadNewDataFile(
-                    (file) =>
-                    {
-                        draftConfig.DataFile = file;
-                        btnRemove.Enabled = true;
-                        screen.RecreateControls(false);
-                    }
-                )
-        );
-        screen.PositionToRight(btnRemove, btnLoadFile);
-        btnLoadFile.Enabled =
-            draftConfig is not null
-            && (
-                string.IsNullOrEmpty(draftConfig.DataFile)
-                || !File.Exists(Path.Combine(localFolderPlugin.Folder, draftConfig.DataFile))
-            );
-        screen.Controls.Add(btnLoadFile);
-
         MyGuiControlCombobox releaseDropdown = new();
         releaseDropdown.AddItem(0, "Release");
         releaseDropdown.AddItem(1, "Debug");
@@ -66,7 +27,9 @@ internal static class LocalFolderPluginExtensions
             bool isDebug = releaseDropdown.GetSelectedKey() == 1;
             draftConfig.DebugBuild = isDebug;
         };
-        screen.PositionAbove(btnRemove, releaseDropdown, MyAlignH.Left);
+        screen.PositionAbove(bottomControl, releaseDropdown);
+        releaseDropdown.Position = new(0, releaseDropdown.Position.Y);
+
         screen.Controls.Add(releaseDropdown);
         topControl = releaseDropdown;
     }

@@ -1,10 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
-using Pulsar.Legacy.Loader;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Sandbox;
@@ -561,43 +560,67 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     private void AddDevelopmentFolder(MyGuiControlButton btn)
     {
         MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
-        PromptFolder(
-            (folder) =>
+        Tools.OpenFolderDialog(PromptDevelopmentFolderFile);
+    }
+
+    private void PromptDevelopmentFolderFile(string folder)
+    {
+        DirectoryInfo directory = new(folder);
+        folder = directory.FullName;
+        string id = directory.Name;
+
+        if (LocalPluginSources.Any(source => new DirectoryInfo(source.Folder).Name == id))
+        {
+            MyGuiSandbox.AddScreen(
+                MyGuiSandbox.CreateMessageBox(
+                    MyMessageBoxStyleEnum.Error,
+                    messageText: new StringBuilder("That development folder already exists!"),
+                    messageCaption: new StringBuilder("Pulsar")
+                )
+            );
+            return;
+        }
+
+        MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
+            styleEnum: MyMessageBoxStyleEnum.Info,
+            buttonType: MyMessageBoxButtonsType.YES_NO,
+            messageCaption: new StringBuilder("Pulsar"),
+            messageText: new StringBuilder("Select a plugin data file?"),
+            callback: result =>
             {
-                LocalPluginConfig plugin = new()
-                {
-                    Name = Path.GetFileName(folder),
-                    Folder = folder,
-                    Enabled = true,
-                };
-                LocalPluginSources.Add(plugin);
-                RefreshSourcesLists();
+                if (result == MyGuiScreenMessageBox.ResultEnum.YES)
+                    OpenDevelopmentFolderFile(folder);
+                else
+                    AddDevelopmentFolder(folder);
             }
+        );
+        MyGuiSandbox.AddScreen(dialog);
+    }
+
+    private void OpenDevelopmentFolderFile(string folder)
+    {
+        Tools.OpenFileDialog(
+            "Open a plugin data file",
+            folder,
+            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
+            (file) => AddDevelopmentFolder(folder, file)
         );
     }
 
-    public static void PromptFolder(Action<string> onComplete)
+    private void AddDevelopmentFolder(string folder, string file = null)
     {
-        Tools.OpenFolderDialog(
-            (folder) =>
-            {
-                if (ConfigManager.Instance.List.Contains(folder))
-                {
-                    MyGuiSandbox.AddScreen(
-                        MyGuiSandbox.CreateMessageBox(
-                            MyMessageBoxStyleEnum.Error,
-                            messageText: new StringBuilder(
-                                "That development folder already exists!"
-                            ),
-                            messageCaption: new StringBuilder("Pulsar")
-                        )
-                    );
-                    return;
-                }
+        file = Tools.GetRelativePath(folder, file) ?? file;
 
-                onComplete(folder);
-            }
-        );
+        LocalPluginConfig plugin = new()
+        {
+            Name = Path.GetFileName(folder),
+            Folder = folder,
+            File = file,
+            Enabled = true,
+        };
+
+        LocalPluginSources.Add(plugin);
+        RefreshSourcesLists();
     }
 
     private void AddLocalFile(MyGuiControlButton btn)

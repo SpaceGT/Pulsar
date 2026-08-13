@@ -80,7 +80,10 @@ internal class SourceInfoScreenViewModel : ScreenViewModel
             pluginInfoText += $"Last Check: {DateToString(remoteCfg.LastCheck)}\n";
         }
         else if (pluginVm.Config is LocalPluginConfig localCfg)
+        {
             pluginInfoText += $"Folder: {localCfg.Folder}\n";
+            pluginInfoText += $"File: {localCfg.File ?? "None"}\n";
+        }
 
         pluginInfoText += $"Enabled: {pluginVm.IsEnabled}\n";
 

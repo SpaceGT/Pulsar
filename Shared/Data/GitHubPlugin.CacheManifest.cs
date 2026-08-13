@@ -251,9 +251,7 @@ public partial class GitHubPlugin
                 if (file.Equals(DllFile, pathComparison))
                     continue;
 
-                string relativePath = file.Substring(cacheDir.Length)
-                    .Replace('\\', '/')
-                    .TrimStart('/');
+                string relativePath = Tools.GetRelativePath(cacheDir, file).Replace('\\', '/');
                 if (!assetFiles.ContainsKey(relativePath))
                     File.Delete(file);
             }

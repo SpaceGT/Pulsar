@@ -493,7 +493,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void ReplaceDraft(Profile profile)
     {
-        SyncDevFolders(profile, draft);
         profile.Name = draft.Name;
         draft = profile;
     }
@@ -501,22 +500,16 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     private void SetEnabled(PluginData plugin, bool enabled)
     {
         plugin.UpdateProfile(draft, enabled);
-
-        if (!enabled && plugin is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
-
         RefreshPluginLists();
     }
 
     private void OnCancelClick(MyGuiControlButton btn)
     {
-        SyncDevFolders(profiles.Current, draft);
         CloseScreen();
     }
 
     protected override void Canceling()
     {
-        SyncDevFolders(profiles.Current, draft);
         base.Canceling();
     }
 
@@ -578,9 +571,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
                 diff |= cGitHub.SelectedVersion != dGitHub.SelectedVersion;
 
             if (cConfig is LocalFolderConfig cFolder && dConfig is LocalFolderConfig dFolder)
-                diff |=
-                    cFolder.DataFile != dFolder.DataFile
-                    || cFolder.DebugBuild != dFolder.DebugBuild;
+                diff |= cFolder.DebugBuild != dFolder.DebugBuild;
 
             if (diff && pluginList.TryGetPlugin(id, out PluginData plugin))
                 plugin.LoadData(dConfig);
@@ -589,25 +580,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         }
 
         return hasDiff;
-    }
-
-    private void SyncDevFolders(Profile target, Profile previous)
-    {
-        IEnumerable<string> folderIDs = target
-            .DevFolder.Concat(previous.DevFolder)
-            .Select(c => c.Id);
-
-        foreach (string configID in folderIDs)
-        {
-            var tFolder = (LocalFolderConfig)target.GetData(configID);
-            var pFolder = (LocalFolderConfig)previous.GetData(configID);
-
-            if (
-                tFolder?.DataFile != pFolder?.DataFile
-                && pluginList.TryGetPlugin(configID, out PluginData plugin)
-            )
-                plugin.LoadData(tFolder);
-        }
     }
 
     #endregion

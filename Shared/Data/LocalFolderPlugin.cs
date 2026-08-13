@@ -8,7 +8,6 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 using Pulsar.Compiler;
-using Pulsar.Protocol.Interface;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
 
@@ -43,16 +42,7 @@ public class LocalFolderPlugin : PluginData
         if (config is not LocalFolderConfig folderConfig)
             return;
 
-        string file;
-        if (folderConfig.DataFile is null)
-            file = null;
-        else if (!Path.IsPathRooted(folderConfig.DataFile))
-            file = Path.Combine(Folder, folderConfig.DataFile);
-        else
-            file = folderConfig.DataFile;
-
         settings = Tools.DeepCopy(folderConfig);
-        DeserializeFile(file);
     }
 
     public override Assembly GetAssembly()
@@ -87,9 +77,8 @@ public class LocalFolderPlugin : PluginData
         foreach (string file in projectFiles)
         {
             using FileStream fileStream = File.OpenRead(file);
-            string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
-            sb.Append(name).Append(", ");
             string relFile = GetRelativePath(file);
+            sb.Append(relFile).Append(", ");
             compiler.Load(fileStream, relFile, debug ? file : null);
         }
 
@@ -284,38 +273,13 @@ public class LocalFolderPlugin : PluginData
         }
     }
 
-    public void LoadNewDataFile(Action<string> onComplete = null)
-    {
-        Tools.OpenFileDialog(
-            "Open an xml data file",
-            Folder,
-            [
-                new FilePickerFilter { Name = "Xml files (*.xml)", Patterns = ["*.xml"] },
-                new FilePickerFilter { Name = "All files (*.*)", Patterns = ["*.*"] },
-            ],
-            (file) =>
-            {
-                DeserializeFile(file);
-                onComplete?.Invoke(settings.DataFile);
-            }
-        );
-    }
-
-    public void DeserializeFile(string file)
+    internal void TryLoadDataFile(string file)
     {
         if (file is null)
-        {
-            github = null;
-            FriendlyName = Id;
-            settings.DataFile = null;
-            Tooltip = null;
-            Author = null;
-            Description = null;
-            Runtimes = null;
-            Platforms = null;
-            DependencyIds = null;
             return;
-        }
+
+        if (!Path.IsPathRooted(file))
+            file = Path.Combine(Folder, file);
 
         if (!File.Exists(file))
             return;
@@ -345,11 +309,6 @@ public class LocalFolderPlugin : PluginData
                 .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
                 .ToArray();
 
-            if (file.Contains(Folder))
-                settings.DataFile = GetRelativePath(file);
-            else
-                settings.DataFile = file;
-
             this.github = github;
         }
         catch (Exception e)
@@ -366,6 +325,5 @@ public class LocalFolderPlugin : PluginData
         return Path.GetFullPath(Path.Combine(Folder, github.AssetFolder));
     }
 
-    private string GetRelativePath(string file) =>
-        file.Replace(Folder, "").TrimStart(Path.DirectorySeparatorChar);
+    private string GetRelativePath(string file) => Tools.GetRelativePath(Folder, file) ?? file;
 }

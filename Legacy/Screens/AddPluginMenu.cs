@@ -365,10 +365,6 @@ public class AddPluginMenu : PluginScreen
             return;
 
         plugin.UpdateProfile(draft, checkbox.IsChecked);
-
-        if (!checkbox.IsChecked && plugin is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
-
         RefreshPluginList();
     }
 

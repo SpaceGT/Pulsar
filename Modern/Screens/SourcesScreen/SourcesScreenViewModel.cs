@@ -2,13 +2,14 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
+using Keen.Game2.Client.UI.Library.Dialogs.TwoOptionsDialog;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Screens.SourcesScreen.AddRemoteSourceScreen;
 using Pulsar.Modern.Screens.SourcesScreen.SourceInfoScreen;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 
@@ -266,32 +267,70 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddDevFolder()
     {
-        Tools.OpenFolderDialog(
-            (folder) =>
-            {
-                if (ConfigManager.Instance.List.Contains(folder))
-                {
-                    var definition = ScreenTools.GetDefaultOkDialog();
-                    definition.Title = ScreenTools.GetKeyFromString("Pulsar");
-                    definition.Content = ScreenTools.GetKeyFromString(
-                        $"That development folder already exists!"
-                    );
+        Tools.OpenFolderDialog(PromptDevFolderFile);
+    }
 
-                    ScreenTools
-                        .GetSharedUIComponent()
-                        .ShowDialog(new OneOptionDialogViewModel(definition));
-                    return;
+    private void PromptDevFolderFile(string folder)
+    {
+        DirectoryInfo directory = new(folder);
+        folder = directory.FullName;
+        string id = directory.Name;
+
+        if (
+            PluginSources.Any(source =>
+                source.Config is LocalPluginConfig local
+                && new DirectoryInfo(local.Folder).Name == id
+            )
+        )
+        {
+            var definition = ScreenTools.GetDefaultOkDialog();
+            definition.Title = ScreenTools.GetKeyFromString("Pulsar");
+            definition.Content = ScreenTools.GetKeyFromString(
+                $"That development folder already exists!"
+            );
+
+            ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
+            return;
+        }
+
+        var filePrompt = ScreenTools.GetDefaultYesNoDialog();
+        filePrompt.Title = ScreenTools.GetKeyFromString("Pulsar");
+        filePrompt.Content = ScreenTools.GetKeyFromString("Select a plugin data file?");
+
+        ScreenTools
+            .GetSharedUIComponent()
+            .ShowDialog(
+                new TwoOptionsDialogViewModel(filePrompt)
+                {
+                    ConfirmAction = () => OpenDevFolderFile(folder),
+                    CancelAction = () => AddDevFolder(folder),
                 }
+            );
+    }
 
-                LocalPluginConfig plugin = new()
-                {
-                    Name = Path.GetFileName(folder),
-                    Folder = folder,
-                    Enabled = true,
-                };
-                ModifySource(new(plugin), true, false);
-            }
+    private void OpenDevFolderFile(string folder)
+    {
+        Tools.OpenFileDialog(
+            "Open a plugin data file",
+            folder,
+            [new FilePickerFilter { Name = "XML files (*.xml)", Patterns = ["*.xml"] }],
+            (file) => AddDevFolder(folder, file)
         );
+    }
+
+    private void AddDevFolder(string folder, string file = null)
+    {
+        file = Tools.GetRelativePath(folder, file) ?? file;
+
+        LocalPluginConfig plugin = new()
+        {
+            Name = Path.GetFileName(folder),
+            Folder = folder,
+            File = file,
+            Enabled = true,
+        };
+
+        ModifySource(new(plugin), true, false);
     }
 
     public void AddCompiledPlugin()

@@ -136,10 +136,6 @@ public class PluginDetailMenu : PluginScreen
     private void OnEnabledChanged(MyGuiControlCheckbox checkbox)
     {
         plugin.UpdateProfile(draft, checkbox.IsChecked);
-
-        if (!checkbox.IsChecked && plugin is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
-
         RecreateControls(false);
     }
 

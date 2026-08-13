@@ -86,7 +86,6 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public void ReplaceDraft(Profile profile)
     {
-        SyncDevFolders(profile, Draft);
         profile.Name = Draft.Name;
         Draft = profile;
 
@@ -145,9 +144,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
                 diff |= cGitHub.SelectedVersion != dGitHub.SelectedVersion;
 
             if (cConfig is LocalFolderConfig cFolder && dConfig is LocalFolderConfig dFolder)
-                diff |=
-                    cFolder.DataFile != dFolder.DataFile
-                    || cFolder.DebugBuild != dFolder.DebugBuild;
+                diff |= cFolder.DebugBuild != dFolder.DebugBuild;
 
             if (diff && pluginlist.TryGetPlugin(id, out PluginData plugin))
                 plugin.LoadData(dConfig);
@@ -156,24 +153,5 @@ internal class PluginsScreenViewModel : ScreenViewModel
         }
 
         return hasDiff;
-    }
-
-    private void SyncDevFolders(Profile target, Profile previous)
-    {
-        IEnumerable<string> folderIDs = target
-            .DevFolder.Concat(previous.DevFolder)
-            .Select(c => c.Id);
-
-        foreach (string configID in folderIDs)
-        {
-            var tFolder = (LocalFolderConfig)target.GetData(configID);
-            var pFolder = (LocalFolderConfig)previous.GetData(configID);
-
-            if (
-                tFolder?.DataFile != pFolder?.DataFile
-                && pluginlist.TryGetPlugin(configID, out PluginData plugin)
-            )
-                plugin.LoadData(tFolder);
-        }
     }
 }

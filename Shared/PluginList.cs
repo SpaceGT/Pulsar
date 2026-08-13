@@ -284,6 +284,7 @@ public class PluginList : IEnumerable<PluginData>
             return;
 
         LocalFolderPlugin local = new(source.Folder) { Source = "DevFolder" };
+        local.TryLoadDataFile(source.File);
         LoadPluginData(local);
         localPlugins[local.Id] = local;
     }

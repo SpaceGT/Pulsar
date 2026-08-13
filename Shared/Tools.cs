@@ -207,6 +207,39 @@ public static class Tools
         return newName.ToString();
     }
 
+    public static string GetRelativePath(string folder, string path)
+    {
+        if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(path))
+            return null;
+
+#if NETFRAMEWORK
+        string fullFolder = Path.GetFullPath(folder).TrimEnd('\\', '/');
+        string fullPath = Path.GetFullPath(path);
+        if (fullPath.Equals(fullFolder, StringComparison.OrdinalIgnoreCase))
+            return string.Empty;
+
+        fullFolder += '\\';
+        if (!fullPath.StartsWith(fullFolder, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return fullPath.Substring(fullFolder.Length);
+#else
+        string relativePath = Path.GetRelativePath(folder, path);
+        if (relativePath == ".")
+            return string.Empty;
+
+        string parent = ".." + Path.DirectorySeparatorChar;
+        if (
+            Path.IsPathRooted(relativePath)
+            || relativePath == ".."
+            || relativePath.StartsWith(parent)
+        )
+            return null;
+
+        return relativePath;
+#endif
+    }
+
     public static void ShowInFileManager(string path)
     {
         path = Path.GetFullPath(path);
