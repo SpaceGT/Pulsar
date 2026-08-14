@@ -92,6 +92,7 @@ public static class Flags
     public static bool LazySteam { get; private set; }
     public static bool MultiInstance { get; private set; }
     public static string Profile { get; private set; }
+    public static bool ProfileIsSpecified { get; private set; }
 
     static Flags()
     {
@@ -126,6 +127,7 @@ public static class Flags
         LazySteam = HasArg(Arguments.LazySteam);
         MultiInstance = HasArg(Arguments.MultiInstance);
         Profile = GetArgValue(Arguments.Profile) ?? "Current";
+        ProfileIsSpecified = GetArgValue(Arguments.Profile) != null;
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));

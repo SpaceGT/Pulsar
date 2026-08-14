@@ -17,6 +17,15 @@ public class ProfilesConfig(string folderPath)
     public Profile Current { get; set; }
     public IEnumerable<Profile> Profiles => profiles.Values;
 
+    private static bool ReadOnly(string operation)
+    {
+        if (!Flags.ProfileIsSpecified)
+            return false;
+
+        LogFile.WriteLine($"Skipped {operation}: -profile prevents changing profiles on disk");
+        return true;
+    }
+
     public void Save(string key = null)
     {
         Profile profile;
@@ -24,6 +33,9 @@ public class ProfilesConfig(string folderPath)
             profile = Current;
         else
             profile = profiles[key];
+
+        if (ReadOnly($"saving profile {profile.Name}"))
+            return;
 
         try
         {
@@ -57,6 +69,10 @@ public class ProfilesConfig(string folderPath)
     public void Remove(string key)
     {
         profiles.Remove(key);
+
+        if (ReadOnly($"deleting profile {key}"))
+            return;
+
         string path = Path.Combine(folderPath, key + ".xml");
         File.Delete(path);
     }
@@ -66,10 +82,13 @@ public class ProfilesConfig(string folderPath)
         Profile profile = profiles[key];
         profiles.Remove(key);
 
-        File.Delete(Path.Combine(folderPath, key + ".xml"));
-
         profile.Name = newName;
         profiles[profile.Key] = profile;
+
+        if (ReadOnly($"renaming profile {key} to {profile.Key}"))
+            return;
+
+        File.Delete(Path.Combine(folderPath, key + ".xml"));
 
         Save(profile.Key);
     }
@@ -132,6 +151,10 @@ public class ProfilesConfig(string folderPath)
                 if (File.Exists(file))
                 {
                     LogFile.Error($"An error occurred while loading the {profileKey} profile");
+
+                    if (ReadOnly($"backing up broken profile {profileKey}"))
+                        return config;
+
                     int backupCount = Directory
                         .EnumerateFiles(folderPath)
                         .Where(file => Path.GetExtension(file).Contains(".bak"))
