@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Pulsar.Protocol.Interface;
@@ -6,9 +7,16 @@ namespace Pulsar.Interface;
 
 internal partial class PromptWindow : Window
 {
+    private readonly TaskCompletionSource<PromptResult> completion = new(
+        TaskCreationOptions.RunContinuationsAsynchronously
+    );
+
+    public Task<PromptResult> Completion => completion.Task;
+
     public PromptWindow(PromptRequest request)
     {
         InitializeComponent();
+        Closed += (_, _) => completion.TrySetResult(PromptResult.Cancel);
 
         Title = request.Caption;
         MessageText.Text = request.Message;
@@ -65,7 +73,11 @@ internal partial class PromptWindow : Window
             MinWidth = 90,
             IsDefault = isDefault,
         };
-        button.Click += (_, _) => Close(result);
+        button.Click += (_, _) =>
+        {
+            completion.TrySetResult(result);
+            Close();
+        };
         ButtonsPanel.Children.Add(button);
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -17,7 +16,6 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
     private readonly SemaphoreSlim dialogLock = new(1, 1);
     private bool escapePressed;
     private SplashWindow splash;
-    private Window owner;
 
     public void ShowSplash()
     {
@@ -65,7 +63,9 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
         try
         {
             PromptWindow prompt = new(request);
-            return await prompt.ShowDialog<PromptResult>(GetHiddenOwner());
+            prompt.Show();
+            prompt.Activate();
+            return await prompt.Completion;
         }
         finally
         {
@@ -78,6 +78,7 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
         await dialogLock.WaitAsync();
         try
         {
+            using FallbackOwner owner = new();
             FilePickerOpenOptions options = new()
             {
                 Title = request.Title,
@@ -91,11 +92,10 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
             };
 
             if (Directory.Exists(request.Directory))
-                options.SuggestedStartLocation = await GetInteractiveOwner()
-                    .StorageProvider.TryGetFolderFromPathAsync(request.Directory);
+                options.SuggestedStartLocation =
+                    await owner.StorageProvider.TryGetFolderFromPathAsync(request.Directory);
 
-            IReadOnlyList<IStorageFile> files = await GetInteractiveOwner()
-                .StorageProvider.OpenFilePickerAsync(options);
+            var files = await owner.StorageProvider.OpenFilePickerAsync(options);
             return files.FirstOrDefault()?.TryGetLocalPath();
         }
         finally
@@ -109,10 +109,9 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
         await dialogLock.WaitAsync();
         try
         {
-            IReadOnlyList<IStorageFolder> folders = await GetInteractiveOwner()
-                .StorageProvider.OpenFolderPickerAsync(
-                    new FolderPickerOpenOptions { AllowMultiple = false }
-                );
+            using FallbackOwner owner = new();
+            FolderPickerOpenOptions options = new() { AllowMultiple = false };
+            var folders = await owner.StorageProvider.OpenFolderPickerAsync(options);
             return folders.FirstOrDefault()?.TryGetLocalPath();
         }
         finally
@@ -123,7 +122,8 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
 
     public async Task<string> GetClipboard()
     {
-        return await GetInteractiveOwner().Clipboard.GetTextAsync() ?? string.Empty;
+        using FallbackOwner owner = new(dialog: false);
+        return await owner.Clipboard.GetTextAsync() ?? string.Empty;
     }
 
     public void Shutdown()
@@ -133,29 +133,21 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
         desktop.Shutdown();
     }
 
-    private Window GetInteractiveOwner()
+    private sealed class FallbackOwner : Window, IDisposable
     {
-        if (splash is not null)
-            return splash;
-        return GetHiddenOwner();
-    }
-
-    private Window GetHiddenOwner()
-    {
-        if (owner is not null)
-            return owner;
-
-        owner = new Window
+        public FallbackOwner(bool dialog = true)
         {
-            Width = 1,
-            Height = 1,
-            Opacity = 0,
-            ShowInTaskbar = false,
-            ShowActivated = false,
-            SystemDecorations = SystemDecorations.None,
-            WindowStartupLocation = WindowStartupLocation.CenterScreen,
-        };
-        owner.Show();
-        return owner;
+            Title = "Pulsar";
+            Width = 1;
+            Height = 1;
+            Opacity = 0;
+            ShowInTaskbar = dialog;
+            ShowActivated = dialog;
+            SystemDecorations = SystemDecorations.None;
+            WindowStartupLocation = WindowStartupLocation.CenterScreen;
+            Show();
+        }
+
+        public void Dispose() => Close();
     }
 }

@@ -6,7 +6,7 @@
         SizeToContent="Height"
         CanResize="False"
         ShowInTaskbar="True"
-        WindowStartupLocation="CenterOwner"
+        WindowStartupLocation="CenterScreen"
         SystemDecorations="Full"
         RequestedThemeVariant="Light"
         Background="#FFFFFF"
