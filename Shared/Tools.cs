@@ -138,13 +138,13 @@ public static class Tools
         });
     }
 
-    public static void OpenFolderDialog(Action<string> onOk)
+    public static void OpenFolderDialog(string title, Action<string> onOk)
     {
         Task.Run(() =>
         {
             try
             {
-                string folder = Interface.OpenFolder();
+                string folder = Interface.OpenFolder(title);
                 if (!string.IsNullOrWhiteSpace(folder))
                     External.OnMainThread(() => onOk(folder));
             }

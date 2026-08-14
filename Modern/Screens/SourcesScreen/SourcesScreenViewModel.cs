@@ -233,6 +233,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
     public void AddLocalHub()
     {
         Tools.OpenFolderDialog(
+            "Open a local plugin hub folder",
             (folder) =>
             {
                 bool exists = HubSources.Any(p =>
@@ -267,7 +268,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     public void AddDevFolder()
     {
-        Tools.OpenFolderDialog(PromptDevFolderFile);
+        Tools.OpenFolderDialog("Open a development folder", PromptDevFolderFile);
     }
 
     private void PromptDevFolderFile(string folder)

@@ -104,13 +104,17 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
         }
     }
 
-    public async Task<string> OpenFolder()
+    public async Task<string> OpenFolder(FolderPickerRequest request)
     {
         await dialogLock.WaitAsync();
         try
         {
             using FallbackOwner owner = new();
-            FolderPickerOpenOptions options = new() { AllowMultiple = false };
+            FolderPickerOpenOptions options = new()
+            {
+                Title = request.Title,
+                AllowMultiple = false,
+            };
             var folders = await owner.StorageProvider.OpenFolderPickerAsync(options);
             return folders.FirstOrDefault()?.TryGetLocalPath();
         }

@@ -23,6 +23,8 @@ public class InterfaceRequest
 
     public FilePickerRequest FilePicker { get; set; }
 
+    public FolderPickerRequest FolderPicker { get; set; }
+
     public string Text { get; set; }
 
     public float? Progress { get; set; }
@@ -81,6 +83,11 @@ public class FilePickerRequest
     public string Directory { get; set; }
 
     public FilePickerFilter[] Filters { get; set; }
+}
+
+public class FolderPickerRequest
+{
+    public string Title { get; set; }
 }
 
 public class FilePickerFilter

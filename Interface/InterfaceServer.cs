@@ -109,7 +109,7 @@ internal sealed class InterfaceServer(WindowManager windows)
                 response.Text = await windows.OpenFile(request.FilePicker);
                 return;
             case InterfaceOperation.FolderOpen:
-                response.Text = await windows.OpenFolder();
+                response.Text = await windows.OpenFolder(request.FolderPicker);
                 return;
             case InterfaceOperation.ClipboardGet:
                 response.Text = await windows.GetClipboard();

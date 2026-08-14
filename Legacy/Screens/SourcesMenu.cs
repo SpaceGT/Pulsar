@@ -528,6 +528,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     {
         MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
         Tools.OpenFolderDialog(
+            "Open a local plugin hub folder",
             (folder) =>
             {
                 bool exists = LocalHubSources.Any(p =>
@@ -560,7 +561,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
     private void AddDevelopmentFolder(MyGuiControlButton btn)
     {
         MyGuiSoundManager.PlaySound(GuiSounds.MouseClick);
-        Tools.OpenFolderDialog(PromptDevelopmentFolderFile);
+        Tools.OpenFolderDialog("Open a development folder", PromptDevelopmentFolderFile);
     }
 
     private void PromptDevelopmentFolderFile(string folder)

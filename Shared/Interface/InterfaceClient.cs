@@ -58,7 +58,11 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
         return Send(InterfaceOperation.FileOpen, filePicker: request).Text;
     }
 
-    public string OpenFolder() => Send(InterfaceOperation.FolderOpen).Text;
+    public string OpenFolder(string title)
+    {
+        FolderPickerRequest request = new() { Title = title };
+        return Send(InterfaceOperation.FolderOpen, folderPicker: request).Text;
+    }
 
     public string GetClipboard() => Send(InterfaceOperation.ClipboardGet).Text ?? string.Empty;
 
@@ -74,6 +78,7 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
         InterfaceOperation operation,
         PromptRequest prompt = null,
         FilePickerRequest filePicker = null,
+        FolderPickerRequest folderPicker = null,
         string text = null,
         float? progress = null
     )
@@ -94,6 +99,7 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
                         Operation = operation,
                         Prompt = prompt,
                         FilePicker = filePicker,
+                        FolderPicker = folderPicker,
                         Text = text,
                         Progress = progress,
                     }
