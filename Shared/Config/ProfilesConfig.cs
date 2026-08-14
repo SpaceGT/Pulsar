@@ -108,10 +108,10 @@ public class ProfilesConfig(string folderPath)
         }
 
         {
-            Profile current = null;
-            string file = Path.Combine(folderPath, currentKey + ".xml");
+            string profileKey = Tools.CleanFileName(Flags.Profile);
+            string file = Path.Combine(folderPath, profileKey + ".xml");
 
-            if (File.Exists(file))
+            if (!config.profiles.TryGetValue(profileKey, out Profile current) && File.Exists(file))
             {
                 using FileStream fs = File.OpenRead(file);
 
@@ -127,11 +127,11 @@ public class ProfilesConfig(string folderPath)
                 config.Current = current;
             else
             {
-                config.Current = new Profile(currentKey);
+                config.Current = new Profile(Flags.Profile);
 
                 if (File.Exists(file))
                 {
-                    LogFile.Error($"An error occurred while loading the {currentKey} profile");
+                    LogFile.Error($"An error occurred while loading the {profileKey} profile");
                     int backupCount = Directory
                         .EnumerateFiles(folderPath)
                         .Where(file => Path.GetExtension(file).Contains(".bak"))
@@ -143,9 +143,9 @@ public class ProfilesConfig(string folderPath)
 
                     File.Move(file, file + suffix);
 
-                    string path = Path.Combine("Profiles", currentKey + ".xml" + suffix);
+                    string path = Path.Combine("Profiles", profileKey + ".xml" + suffix);
                     string message =
-                        "The current profile could not be loaded!\n"
+                        $"The {profileKey} profile could not be loaded!\n"
                         + "The list of enabled plugins has been reset.\n\n"
                         + $"The original profile has been saved to {path}";
                     Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Warning);

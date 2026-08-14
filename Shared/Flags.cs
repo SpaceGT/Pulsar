@@ -41,6 +41,7 @@ file static class Arguments
     public static readonly string[] NoPrompt = ["no", "prompt"];
     public static readonly string[] LazySteam = ["lazy", "steam"];
     public static readonly string[] MultiInstance = ["multi", "instance"];
+    public static readonly string[] Profile = ["profile"];
 
     public static readonly string[] HelpAliases = ["help", "h", "?"];
 
@@ -90,6 +91,7 @@ public static class Flags
     public static bool NoPrompt { get; private set; }
     public static bool LazySteam { get; private set; }
     public static bool MultiInstance { get; private set; }
+    public static string Profile { get; private set; }
 
     static Flags()
     {
@@ -123,6 +125,7 @@ public static class Flags
         NoPrompt = HasArg(Arguments.NoPrompt);
         LazySteam = HasArg(Arguments.LazySteam);
         MultiInstance = HasArg(Arguments.MultiInstance);
+        Profile = GetArgValue(Arguments.Profile) ?? "Current";
     }
 
     public static bool HelpRequested => Arguments.HelpAliases.Any(alias => HasArg([alias]));
@@ -146,6 +149,7 @@ public static class Flags
 
             Options:
             {options}
+              {"-profile <name>", -18}Load the named profile instead of Current.
 
             Options are case-insensitive. Linux form --no-splash and Windows form
             /NoSplash are also accepted. Help aliases include --help, -h, and /?.
@@ -197,6 +201,8 @@ public static class Flags
             changed.Add("LazySteam");
         if (MultiInstance)
             changed.Add("MultiInstance");
+        if (Profile != "Current")
+            changed.Add($"Profile={Profile}");
 
         if (changed.Count > 0)
             LogFile.WriteLine($"Enabled flags: {string.Join(" ", changed)}");
@@ -215,6 +221,26 @@ public static class Flags
                 || arg.Equals(windows, StringComparison.OrdinalIgnoreCase)
                 || arg.Equals(spaceEngineers, StringComparison.OrdinalIgnoreCase)
             );
+    }
+
+    private static string GetArgValue(string[] words)
+    {
+        string linux = ToLinuxArg(words);
+        string windows = ToWindowsArg(words);
+        string spaceEngineers = ToSpaceEngineersArg(words);
+
+        string[] args = Environment.GetCommandLineArgs();
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (
+                args[i].Equals(linux, StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals(windows, StringComparison.OrdinalIgnoreCase)
+                || args[i].Equals(spaceEngineers, StringComparison.OrdinalIgnoreCase)
+            )
+                return args[i + 1];
+        }
+
+        return null;
     }
 
     private static string ToLinuxArg(string[] words) => $"--{string.Join("-", words)}";
