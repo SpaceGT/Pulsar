@@ -16,13 +16,13 @@ using NuGet.Protocol.Core.Types;
 using NuGet.RuntimeModel;
 using NuGet.Versioning;
 using Pulsar.Shared.Config;
+using Pulsar.Shared.Data;
 
 namespace Pulsar.Shared.Network;
 
 internal static class NuGetRestore
 {
     private const string Source = "https://api.nuget.org/v3/index.json";
-    internal const string PluginFileName = "plugin.dll";
 
 #if NETFRAMEWORK
     private static readonly NuGetFramework framework = NuGetFramework.Parse("net48");
@@ -299,8 +299,9 @@ internal static class NuGetRestore
             Path.DirectorySeparatorChar
         );
 
-        if (outputPath.Equals(PluginFileName, StringComparison.OrdinalIgnoreCase))
-            throw new InvalidDataException($"Package output path {PluginFileName} is reserved.");
+        const string pluginFile = PluginCache.PluginFile;
+        if (outputPath.Equals(pluginFile, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException($"Package output path {pluginFile} is reserved.");
 
         runtimeFiles.Add(new NuGetRestoreFile { OutputPath = outputPath, SourcePath = sourcePath });
     }

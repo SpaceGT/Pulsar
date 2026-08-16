@@ -7,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using Mono.Cecil;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
 using Pulsar.Interface;
@@ -37,6 +38,23 @@ public static class Tools
     {
         External = external;
         Compiler = compiler;
+    }
+
+    public static bool IsManagedDll(string file)
+    {
+        bool isDll = Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase);
+        if (!File.Exists(file) || !isDll)
+            return false;
+
+        try
+        {
+            using var _ = AssemblyDefinition.ReadAssembly(file);
+            return true;
+        }
+        catch (BadImageFormatException)
+        {
+            return false;
+        }
     }
 
     public static string GetFileHash(string file)

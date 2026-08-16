@@ -1,4 +1,8 @@
-using System.Collections.Generic;
+using System;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
 using Pulsar.Shared.Stats.Model;
@@ -35,7 +39,7 @@ public static class StatsClient
 
         var consentRequest = new ConsentRequest() { PlayerHash = PlayerHash, Consent = consent };
 
-        return SimpleHttpClient.Post(ConsentUri, consentRequest);
+        return Post(ConsentUri, consentRequest) is not null;
     }
 
     // This function may be called from another thread.
@@ -45,16 +49,15 @@ public static class StatsClient
         {
             LogFile.WriteLine("Downloading plugin statistics anonymously...");
             votingToken = null;
-            return SimpleHttpClient.Get<PluginStats>(StatsUri);
+            return GetStats(StatsUri);
         }
 
         LogFile.WriteLine("Downloading plugin statistics, ratings and votes for " + PlayerHash);
 
-        var parameters = new Dictionary<string, string> { ["playerHash"] = PlayerHash };
-        var pluginStats = SimpleHttpClient.Get<PluginStats>(StatsUri, parameters);
+        string url = $"{StatsUri}?playerHash={Uri.EscapeDataString(PlayerHash)}";
+        var pluginStats = GetStats(url);
 
         votingToken = pluginStats?.VotingToken;
-
         return pluginStats;
     }
 
@@ -66,7 +69,7 @@ public static class StatsClient
             EnabledPluginIds = pluginIds,
         };
 
-        return SimpleHttpClient.Post(TrackUri, trackRequest);
+        return Post(TrackUri, trackRequest) is not null;
     }
 
     public static PluginStat Vote(string pluginId, int vote)
@@ -86,7 +89,45 @@ public static class StatsClient
             Vote = vote,
         };
 
-        var stat = SimpleHttpClient.Post<PluginStat, VoteRequest>(VoteUri, voteRequest);
-        return stat;
+        string response = Post(VoteUri, voteRequest);
+        return response is null ? null : JsonConvert.DeserializeObject<PluginStat>(response);
+    }
+
+    private static PluginStats GetStats(string url)
+    {
+        try
+        {
+            string response = NetworkClient
+                .GetStringAsync(new Uri(url, UriKind.Absolute))
+                .GetAwaiter()
+                .GetResult();
+            return JsonConvert.DeserializeObject<PluginStats>(response);
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+        {
+            LogFile.Error($"REST API request failed: GET {url} [{e.Message}]");
+            return null;
+        }
+    }
+
+    private static string Post(string url, object body)
+    {
+        try
+        {
+            using StringContent content = new(
+                JsonConvert.SerializeObject(body),
+                Encoding.UTF8,
+                "application/json"
+            );
+            return NetworkClient
+                .PostStringAsync(new Uri(url, UriKind.Absolute), content)
+                .GetAwaiter()
+                .GetResult();
+        }
+        catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
+        {
+            LogFile.Error($"REST API request failed: POST {url} [{e.Message}]");
+            return null;
+        }
     }
 }

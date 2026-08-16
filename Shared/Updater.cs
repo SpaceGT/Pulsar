@@ -215,9 +215,9 @@ public class Updater(string repoName)
     private static void DownloadUpdater(string remotePath, string localPath)
     {
         Uri uri = new(remotePath, UriKind.Absolute);
-        using var stream = GitHub.GetStream(uri);
-        using var file = File.Create(localPath);
-        stream.CopyTo(file);
+        using Stream input = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
+        using FileStream output = File.Create(localPath);
+        input.CopyTo(output);
     }
 
     private static void StartUpdater(string updaterPath, string remotePath, string localPath)

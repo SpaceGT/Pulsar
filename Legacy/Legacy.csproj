@@ -67,6 +67,7 @@
       <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
       <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
       <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
+      <DeployLibraryFile Include="$(TargetDir)SharpCompress.dll" />
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />
@@ -86,8 +87,12 @@
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" />
       <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Buffers.dll" />
       <DeployLibraryFile Include="$(TargetDir)System.Memory.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
       <DeployLibraryFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Threading.Tasks.Extensions.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
       <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />

@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Xml.Serialization;
 using ProtoBuf;
 using Pulsar.Compiler;
+using Pulsar.Shared.Assets;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
 using Pulsar.Shared.Splash;
@@ -16,7 +14,7 @@ using Pulsar.Shared.Splash;
 namespace Pulsar.Shared.Data;
 
 [ProtoContract]
-public partial class GitHubPlugin : PluginData
+public class GitHubPlugin : PluginData
 {
     public override bool IsLocal => false;
     public override bool IsCompiled => true;
@@ -34,9 +32,6 @@ public partial class GitHubPlugin : PluginData
     [XmlArrayItem("Version")]
     public GitHubSource[] AlternateVersions { get; set; }
 
-    [ProtoMember(4)]
-    public string AssetFolder { get; set; }
-
     [ProtoMember(5)]
     public NuGetPackageList NuGetReferences { get; set; }
 
@@ -49,9 +44,13 @@ public partial class GitHubPlugin : PluginData
         set => _repoId = value;
     }
 
+    [ProtoMember(7)]
+    [XmlElement("Asset")]
+    public PluginAsset[] Assets { get; set; }
+
     private GitHubPluginConfig settings;
-    private string assemblyName;
-    private CacheManifest manifest;
+    private string cacheName;
+    private PluginCache cache;
 
     public GitHubPlugin()
     {
@@ -94,100 +93,46 @@ public partial class GitHubPlugin : PluginData
 
     public void InitPaths()
     {
-        string[] nameArgs = RepoId.Split(['/', '\\'], StringSplitOptions.RemoveEmptyEntries);
-        if (nameArgs.Length < 2)
-            throw new Exception("Invalid GitHub name: " + RepoId);
-
-        CleanPaths(SourceDirectories);
-
-        if (!string.IsNullOrWhiteSpace(AssetFolder))
-        {
-            AssetFolder = AssetFolder.Replace('\\', '/').TrimStart('/');
-            if (AssetFolder.Length > 0 && AssetFolder[AssetFolder.Length - 1] != '/')
-                AssetFolder += '/';
-        }
-
-        assemblyName = MakeSafeString(nameArgs[1]);
-        manifest = CacheManifest.Load(nameArgs[0], nameArgs[1]);
-    }
-
-    private void CleanPaths(string[] paths)
-    {
-        if (paths is not null)
-        {
-            for (int i = paths.Length - 1; i >= 0; i--)
-            {
-                string path = paths[i].Replace('\\', '/').TrimStart('/');
-
-                if (path.Length == 0)
-                    continue;
-
-                if (path[path.Length - 1] != '/')
-                    path += '/';
-
-                paths[i] = path;
-            }
-        }
-    }
-
-    private string MakeSafeString(string s)
-    {
-        StringBuilder sb = new();
-        foreach (char ch in s)
-        {
-            if (char.IsLetterOrDigit(ch))
-                sb.Append(ch);
-            else
-                sb.Append('_');
-        }
-        return sb.ToString();
+        string friendlyName = Tools.CleanFileName(FriendlyName);
+        cacheName = $"{friendlyName}-{Tools.GetStringHash(Id).Substring(0, 8)}";
+        string cacheDirectory = Path.Combine(ConfigManager.Instance.PulsarDir, "GitHub", cacheName);
+        cache = PluginCache.Load(cacheDirectory);
     }
 
     public override Assembly GetAssembly()
     {
         InitPaths();
+        PluginAsset[] assets = Assets ?? [];
 
         Version gameVersion = ConfigManager.Instance.GameVersion;
         GitHubSource selectedVersion = GetSelectedVersion();
         string selectedRepo = selectedVersion?.Repo ?? RepoId;
         string selectedCommit = selectedVersion?.Commit ?? Commit;
+        string fingerprint = GetFingerprint(selectedRepo, selectedCommit, assets);
 
-        if (
-            !manifest.IsCacheValid(
-                selectedCommit,
-                gameVersion,
-                !string.IsNullOrWhiteSpace(AssetFolder),
-                NuGetReferences?.GetFingerprint()
-            )
-        )
+        if (!cache.IsValid(fingerprint, gameVersion))
         {
             var lbl = SplashManager.Instance;
             lbl?.SetText($"Downloading '{FriendlyName}'");
 
-            manifest.GameVersion = gameVersion;
-            manifest.Commit = selectedCommit;
-            manifest.Runtime = RuntimeInformation.FrameworkDescription;
-            manifest.RuntimeIdentifier = Tools.RuntimeIdentifier;
-            manifest.Packages = NuGetReferences?.GetFingerprint();
-            manifest.PulsarVersion = Assembly.GetEntryAssembly().GetName().Version;
-            manifest.ClearAssets();
-            string name = assemblyName + '_' + Path.GetRandomFileName();
+            cache.Clear();
+            string name = cacheName + '_' + Path.GetRandomFileName();
             Action<float> setBarValue = lbl is not null ? lbl.SetBarValue : null;
-            byte[] data = CompileFromSource(selectedRepo, selectedCommit, name, setBarValue);
-            Directory.CreateDirectory(manifest.LibDir);
-            File.WriteAllBytes(manifest.DllFile, data);
-            manifest.DeleteUnknownFiles();
-            manifest.Save();
+            AssetResolution resolution = CompileFromSource(
+                selectedRepo,
+                selectedCommit,
+                name,
+                assets,
+                setBarValue
+            );
+            cache.SetAssets(resolution.Assets);
+            cache.Save(fingerprint, gameVersion);
 
             Status = PluginStatus.Updated;
             lbl?.SetText($"Compiled '{FriendlyName}'");
         }
-        else
-        {
-            manifest.DeleteUnknownFiles();
-        }
-
-        Assembly a = Assembly.LoadFrom(manifest.DllFile);
+        namedAssets = cache.GetAssets();
+        Assembly a = Assembly.LoadFrom(cache.DllFile);
         Version = a.GetName().Version;
         return a;
     }
@@ -201,14 +146,16 @@ public partial class GitHubPlugin : PluginData
         );
     }
 
-    private byte[] CompileFromSource(
+    private AssetResolution CompileFromSource(
         string repo,
         string commit,
         string assemblyName,
+        PluginAsset[] assets,
         Action<float> callback = null
     )
     {
         ICompiler compiler = Tools.Compiler.Create();
+        AssetResolution resolution;
         using (Stream s = GitHub.GetRepoArchive(repo, commit))
         using (ZipArchive zip = new(s))
         {
@@ -219,64 +166,43 @@ public partial class GitHubPlugin : PluginData
                 CompileFromSource(compiler, entry);
                 callback?.Invoke(i / (float)zip.Entries.Count);
             }
-        }
-        if (NuGetReferences?.HasPackages == true)
-        {
-            NuGetRestoreResult restore = NuGetRestore.Run(NuGetReferences);
 
-            foreach (string file in restore.CompileFiles)
-                compiler.TryAddDependency(file);
-
-            foreach (NuGetRestoreFile file in restore.RuntimeFiles)
+            if (NuGetReferences?.HasPackages == true)
             {
-                AssetFile newFile = manifest.CreateAsset(file.OutputPath, AssetFile.AssetType.Lib);
-                if (!manifest.IsAssetValid(newFile))
+                NuGetRestoreResult restore = NuGetRestore.Run(NuGetReferences);
+
+                foreach (string file in restore.CompileFiles)
+                    compiler.TryAddDependency(file);
+
+                foreach (NuGetRestoreFile file in restore.RuntimeFiles)
                 {
-                    using Stream entryStream = File.OpenRead(file.SourcePath);
-                    manifest.SaveAsset(newFile, entryStream);
+                    string newFile = Path.Combine(cache.BinDirectory, file.OutputPath);
+                    Directory.CreateDirectory(Path.GetDirectoryName(newFile));
+                    File.Copy(file.SourcePath, newFile);
                 }
             }
+
+            AssetResolver resolver = new(cache);
+            resolution = resolver.Resolve(assets, archive: zip);
         }
+
+        foreach (string reference in resolution.References)
+            compiler.TryAddDependency(reference);
         callback?.Invoke(1);
-        return compiler.Compile(assemblyName, out _);
+        byte[] data = compiler.Compile(assemblyName, out _);
+        Directory.CreateDirectory(cache.BinDirectory);
+        File.WriteAllBytes(cache.DllFile, data);
+        return resolution;
     }
 
     private void CompileFromSource(ICompiler compiler, ZipArchiveEntry entry)
     {
-        string path = RemoveRoot(entry.FullName);
+        string path = AssetResolver.RemoveArchiveRoot(entry.FullName);
         if (AllowedZipPath(path))
         {
             using Stream entryStream = entry.Open();
-            string relFile = string.Join("/", entry.FullName.Split('/').Skip(1));
-            compiler.Load(entryStream, relFile, embedFile: null);
+            compiler.Load(entryStream, path, embedFile: null);
         }
-        if (IsAssetZipPath(path, out string assetFilePath))
-        {
-            AssetFile newFile = manifest.CreateAsset(assetFilePath);
-            if (!manifest.IsAssetValid(newFile))
-            {
-                using Stream entryStream = entry.Open();
-                manifest.SaveAsset(newFile, entryStream);
-            }
-        }
-    }
-
-    private bool IsAssetZipPath(string path, out string assetFilePath)
-    {
-        assetFilePath = null;
-
-        if (path.EndsWith("/") || string.IsNullOrEmpty(AssetFolder))
-            return false;
-
-        if (
-            path.StartsWith(AssetFolder, StringComparison.Ordinal)
-            && path.Length > (AssetFolder.Length + 1)
-        )
-        {
-            assetFilePath = path.Substring(AssetFolder.Length).TrimStart('/');
-            return true;
-        }
-        return false;
     }
 
     private bool AllowedZipPath(string path)
@@ -295,13 +221,18 @@ public partial class GitHubPlugin : PluginData
         return false;
     }
 
-    private string RemoveRoot(string path)
+    private string GetFingerprint(string repo, string commit, PluginAsset[] assets)
     {
-        path = path.Replace('\\', '/').TrimStart('/');
-        int index = path.IndexOf('/');
-        if (index >= 0 && (index + 1) < path.Length)
-            return path.Substring(index + 1);
-        return path;
+        string context = string.Join(
+            "\n",
+            Id,
+            repo,
+            commit,
+            string.Join(";", SourceDirectories ?? []),
+            AssetResolver.GetDefinitionFingerprint(assets),
+            NuGetReferences?.GetFingerprint()
+        );
+        return Tools.GetStringHash(context);
     }
 
     public override void UpdateProfile(Profile draft, bool enabled)
@@ -316,7 +247,9 @@ public partial class GitHubPlugin : PluginData
     {
         try
         {
-            manifest.Invalidate();
+            if (cache is null)
+                InitPaths();
+            cache.Invalidate();
             LogFile.WriteLine(
                 $"Cache for GitHub plugin {RepoId} was invalidated, it will need to be compiled again at next game start"
             );
@@ -325,13 +258,6 @@ public partial class GitHubPlugin : PluginData
         {
             LogFile.Error("Failed to invalidate github cache: " + e);
         }
-    }
-
-    public override string GetAssetPath()
-    {
-        if (string.IsNullOrEmpty(AssetFolder))
-            return null;
-        return Path.GetFullPath(manifest.AssetFolder);
     }
 
     [ProtoContract]

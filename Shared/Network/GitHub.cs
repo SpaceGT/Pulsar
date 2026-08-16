@@ -1,8 +1,6 @@
 ﻿using System;
 using System.IO;
-using System.Net;
 using Newtonsoft.Json.Linq;
-using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Network;
 
@@ -13,57 +11,11 @@ public static class GitHub
     private const string FetchRepo = "https://github.com/{0}/archive/{1}.zip";
     private const string FetchFile = "https://raw.githubusercontent.com/{0}/{1}/";
 
-    public static void Init()
-    {
-        // Fix tls 1.2 not supported on Windows 7 - github.com is tls 1.2 only
-        try
-        {
-            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
-        }
-        catch (NotSupportedException e)
-        {
-            LogFile.Error(
-                "An error occurred while setting up networking, web requests will probably fail: "
-                    + e
-            );
-        }
-    }
-
-    public static Stream GetStream(Uri uri)
-    {
-        HttpWebRequest request = WebRequest.CreateHttp(uri);
-        request.UserAgent = "Pulsar";
-        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-        CoreConfig config = ConfigManager.Instance.Core;
-        request.Timeout = config.NetworkTimeout;
-        if (!config.AllowIPv6)
-            request.ServicePoint.BindIPEndPointDelegate = BlockIPv6;
-
-        HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-        MemoryStream output = new();
-        using (Stream responseStream = response.GetResponseStream())
-            responseStream.CopyTo(output);
-        output.Position = 0;
-        return output;
-    }
-
-    private static IPEndPoint BlockIPv6(
-        ServicePoint servicePoint,
-        IPEndPoint remoteEndPoint,
-        int retryCount
-    )
-    {
-        if (remoteEndPoint.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
-            return new IPEndPoint(IPAddress.Any, 0);
-
-        throw new InvalidOperationException("No IPv4 address");
-    }
-
     public static Stream GetRepoArchive(string repo, string reference)
     {
         Uri uri = new(string.Format(FetchRepo, repo, reference), UriKind.Absolute);
         LogFile.WriteLine("Downloading " + uri);
-        return GetStream(uri);
+        return NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
     }
 
     public static Stream GetRepoFile(string repo, string reference, string file)
@@ -73,7 +25,7 @@ public static class GitHub
             UriKind.Absolute
         );
         LogFile.WriteLine("Downloading " + uri);
-        return GetStream(uri);
+        return NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
     }
 
     public static bool GetRepoHash(string repo, string reference, out string hash)
@@ -133,8 +85,6 @@ public static class GitHub
     private static string GetText(string url)
     {
         Uri uri = new(url, UriKind.Absolute);
-        using Stream stream = GetStream(uri);
-        using StreamReader reader = new(stream);
-        return reader.ReadToEnd();
+        return NetworkClient.GetStringAsync(uri).GetAwaiter().GetResult();
     }
 }

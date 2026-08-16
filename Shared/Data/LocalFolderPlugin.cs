@@ -4,10 +4,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Xml.Serialization;
 using Pulsar.Compiler;
+using Pulsar.Shared.Assets;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
 
@@ -16,7 +16,6 @@ namespace Pulsar.Shared.Data;
 public class LocalFolderPlugin : PluginData
 {
     const int GitTimeout = 10000;
-    const string CacheFileName = "cache.sha256";
 
     public override bool IsLocal => true;
     public override bool IsCompiled => true;
@@ -50,26 +49,34 @@ public class LocalFolderPlugin : PluginData
         if (!Directory.Exists(Folder))
             throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
 
+        PluginAsset[] assets = github?.Assets ?? [];
         string[] projectFiles = [.. GetProjectFilesGit(Folder) ?? GetProjectFilesFallback(Folder)];
         if (projectFiles.Length == 0)
             throw new IOException("No files were found in the directory specified.");
 
         bool debug = settings.DebugBuild;
-        string binDir = GetCacheDirectory();
-        string dll = Path.Combine(binDir, NuGetRestore.PluginFileName);
-        string cacheFile = Path.Combine(binDir, CacheFileName);
-        string cacheHash = GetCacheHash(projectFiles, debug);
+        PluginCache cache = PluginCache.Load(GetCacheDirectory());
+        string binDir = cache.BinDirectory;
+        string dll = cache.DllFile;
+        string cacheHash = GetCacheHash(projectFiles, debug, assets);
 
-        if (File.Exists(dll) && File.Exists(cacheFile) && File.ReadAllText(cacheFile) == cacheHash)
+        if (cache.IsValid(cacheHash, ConfigManager.Instance.GameVersion))
+        {
+            namedAssets = cache.GetAssets();
             return LoadAssembly(dll);
+        }
 
-        if (Directory.Exists(binDir))
-            Directory.Delete(binDir, true);
+        cache.Clear();
         Directory.CreateDirectory(binDir);
 
         ICompiler compiler = Tools.Compiler.Create(debug);
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
             InstallDependencies(compiler, binDir);
+
+        AssetResolver rebuildResolver = new(cache);
+        AssetResolution resolution = rebuildResolver.Resolve(assets, anchor: Folder);
+        foreach (string reference in resolution.References)
+            compiler.TryAddDependency(reference);
 
         StringBuilder sb = new();
         sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
@@ -95,7 +102,9 @@ public class LocalFolderPlugin : PluginData
             File.WriteAllBytes(pdbFile, symbols);
         }
 
-        File.WriteAllText(cacheFile, cacheHash);
+        cache.SetAssets(resolution.Assets);
+        cache.Save(cacheHash, ConfigManager.Instance.GameVersion);
+        namedAssets = resolution.Assets;
         return LoadAssembly(dll);
     }
 
@@ -106,7 +115,7 @@ public class LocalFolderPlugin : PluginData
         return Path.Combine(ConfigManager.Instance.PulsarDir, "DevFolder", cacheName);
     }
 
-    private string GetCacheHash(IEnumerable<string> projectFiles, bool debug)
+    private string GetCacheHash(IEnumerable<string> projectFiles, bool debug, PluginAsset[] assets)
     {
         string sources = string.Join(
             "\n",
@@ -121,10 +130,7 @@ public class LocalFolderPlugin : PluginData
             FriendlyName,
             debug,
             github?.NuGetReferences?.GetFingerprint(),
-            ConfigManager.Instance.GameVersion,
-            Assembly.GetEntryAssembly().GetName().Version,
-            RuntimeInformation.FrameworkDescription,
-            Tools.RuntimeIdentifier
+            AssetResolver.GetDevfolderFingerprint(assets, Folder)
         );
 
         return Tools.GetStringHash(context);
@@ -263,9 +269,9 @@ public class LocalFolderPlugin : PluginData
     {
         try
         {
-            string cacheFile = Path.Combine(GetCacheDirectory(), CacheFileName);
-            if (File.Exists(cacheFile))
-                File.Delete(cacheFile);
+            string cacheDirectory = GetCacheDirectory();
+            if (Directory.Exists(cacheDirectory))
+                PluginCache.Load(cacheDirectory).Invalidate();
         }
         catch (Exception e)
         {
@@ -296,7 +302,6 @@ public class LocalFolderPlugin : PluginData
             }
 
             GitHubPlugin github = (GitHubPlugin)resultObj;
-            github.InitPaths();
             FriendlyName = github.FriendlyName;
             Tooltip = github.Tooltip;
             Author = github.Author;
@@ -304,9 +309,10 @@ public class LocalFolderPlugin : PluginData
             Runtimes = github.Runtimes;
             Platforms = github.Platforms;
             DependencyIds = github.DependencyIds;
-
             sourceDirectories = github
-                .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
+                .SourceDirectories?.Select(path =>
+                    Path.Combine(Folder, path).Replace('\\', '/').TrimEnd('/') + "/"
+                )
                 .ToArray();
 
             this.github = github;
@@ -315,14 +321,6 @@ public class LocalFolderPlugin : PluginData
         {
             LogFile.Error($"Error while reading the xml file {file} for {Folder}: " + e);
         }
-    }
-
-    public override string GetAssetPath()
-    {
-        if (string.IsNullOrEmpty(github?.AssetFolder))
-            return null;
-
-        return Path.GetFullPath(Path.Combine(Folder, github.AssetFolder));
     }
 
     private string GetRelativePath(string file) => Tools.GetRelativePath(Folder, file) ?? file;

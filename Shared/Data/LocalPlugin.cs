@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using Mono.Cecil;
-using Pulsar.Shared.Network;
+using Pulsar.Shared.Assets;
 
 namespace Pulsar.Shared.Data;
 
@@ -23,7 +23,7 @@ public class LocalPlugin : PluginData
         Dll = dll;
 
         string directory = Path.GetDirectoryName(dll);
-        if (Path.GetFileName(dll) == NuGetRestore.PluginFileName && directory != localRoot)
+        if (Path.GetFileName(dll) == PluginCache.PluginFile && directory != localRoot)
         {
             FriendlyName = Path.GetFileName(directory);
             Id = FriendlyName + ".dll";
@@ -74,6 +74,9 @@ public class LocalPlugin : PluginData
 
     public override Assembly GetAssembly()
     {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(Dll));
+        namedAssets = AssetResolver.ResolveLocal(github?.Assets, directory);
+
         if (File.Exists(Dll))
         {
             Assembly a = Assembly.LoadFrom(Dll);
@@ -122,14 +125,6 @@ public class LocalPlugin : PluginData
 
         if (enabled)
             draft.Local.Add(Id);
-    }
-
-    public override string GetAssetPath()
-    {
-        if (string.IsNullOrEmpty(github?.AssetFolder) || !Path.IsPathRooted(github.AssetFolder))
-            return null;
-
-        return Path.GetFullPath(github.AssetFolder);
     }
 
     public override string ToString() => Id;

@@ -5,7 +5,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Xml.Serialization;
-using Mono.Cecil;
 using ProtoBuf;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
@@ -473,25 +472,11 @@ public class PluginList : IEnumerable<PluginData>
         }
     }
 
-    private static bool IsNativeAssembly(string dll)
-    {
-        try
-        {
-            using var _ = AssemblyDefinition.ReadAssembly(dll);
-            return false;
-        }
-        catch (BadImageFormatException)
-        {
-            return true;
-        }
-    }
-
     private IEnumerable<string> EnumerateLocalPlugins()
     {
         IEnumerable<string> files = Directory
             .EnumerateFiles(LocalPluginDir, "*", SearchOption.TopDirectoryOnly)
-            .Where(x => Path.GetExtension(x).Equals(".dll", StringComparison.OrdinalIgnoreCase))
-            .Where(x => !IsNativeAssembly(x));
+            .Where(Tools.IsManagedDll);
 
         foreach (string dll in files)
             yield return dll;
@@ -504,11 +489,11 @@ public class PluginList : IEnumerable<PluginData>
 
         foreach (string directory in directories)
         {
-            string plugin = Path.Combine(directory, NuGetRestore.PluginFileName);
+            string plugin = Path.Combine(directory, PluginCache.PluginFile);
             string namedPlugin = Path.Combine(directory, Path.GetFileName(directory) + ".dll");
 
             string dll = File.Exists(plugin) ? plugin : namedPlugin;
-            if (File.Exists(dll) && !IsNativeAssembly(dll))
+            if (Tools.IsManagedDll(dll))
                 yield return dll;
         }
     }

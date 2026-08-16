@@ -8,7 +8,6 @@ using HarmonyLib;
 using Pulsar.Protocol.Interface;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
-using Pulsar.Shared.Network;
 using Pulsar.Shared.Splash;
 using Pulsar.Shared.Stats;
 
@@ -31,7 +30,6 @@ public class Loader
 
         splash = SplashManager.Instance;
 
-        GitHub.Init();
         LogEnabledPlugins();
 
         StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;

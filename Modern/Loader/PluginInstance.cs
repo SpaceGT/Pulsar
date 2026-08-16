@@ -1,5 +1,5 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -7,6 +7,7 @@ using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using NLog;
 using Pulsar.Shared;
+using Pulsar.Shared.Assets;
 using Pulsar.Shared.Data;
 using Tools = Pulsar.Shared.Tools;
 
@@ -117,17 +118,19 @@ internal class PluginInstance
 
     private void LoadAssets()
     {
-        string assetFolder = data.GetAssetPath();
-        if (string.IsNullOrEmpty(assetFolder) || !Directory.Exists(assetFolder))
+        IReadOnlyDictionary<string, string> assets = data.GetNamedAssets();
+        if (assets.Count == 0)
             return;
 
         LogFile.WriteLine($"Loading assets for {data}");
-        MethodInfo loadAssets = AccessTools.DeclaredMethod(
-            mainType,
-            "LoadAssets",
-            [typeof(string)]
-        );
-        loadAssets?.Invoke(plugin, [assetFolder]);
+        if (assets.TryGetValue(PluginAsset.ReservedAssetFolder, out string assetFolder))
+            AccessTools
+                .DeclaredMethod(mainType, "LoadAssets", [typeof(string)])
+                ?.Invoke(plugin, [assetFolder]);
+
+        AccessTools
+            .DeclaredMethod(mainType, "LoadAssets", [typeof(IReadOnlyDictionary<string, string>)])
+            ?.Invoke(plugin, [assets]);
     }
 
     public void OpenConfig()

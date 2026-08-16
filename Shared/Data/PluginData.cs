@@ -20,6 +20,8 @@ namespace Pulsar.Shared.Data;
 [ProtoInclude(104, typeof(ModPlugin))]
 public abstract class PluginData : IEquatable<PluginData>
 {
+    protected IReadOnlyDictionary<string, string> namedAssets = new Dictionary<string, string>();
+
     public string Source;
     public abstract bool IsLocal { get; }
     public abstract bool IsCompiled { get; }
@@ -316,10 +318,7 @@ public abstract class PluginData : IEquatable<PluginData>
     /// </summary>
     public virtual void InvalidateCache() { }
 
-    public virtual string GetAssetPath()
-    {
-        return null;
-    }
+    public IReadOnlyDictionary<string, string> GetNamedAssets() => namedAssets;
 
     public string GetConfigPath(string name, string extension = null)
     {
