@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
@@ -124,23 +125,35 @@ public class Updater(string repoName)
             return;
         }
 
-        if (
-            !TryGetUpdaterInfo(json, out Version rUpdaterVer, out string rUpdaterPath)
-            || !TryGetPulsarPath(json, out string rPulsarPath)
-        )
+        if (!TryGetPulsarPath(json, out string rPulsarPath))
         {
             ShowUpdateError();
             return;
         }
 
         string lPulsarPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+        GitHubPlugin.ClearGitHubCache();
+
+        if (!Tools.IsWindows())
+        {
+            LinuxUpdater.Update(rPulsarPath, lPulsarPath);
+            return;
+        }
+
+        if (!TryGetUpdaterInfo(json, out Version rUpdaterVer, out string rUpdaterPath))
+        {
+            ShowUpdateError();
+            return;
+        }
+
         string lUpdaterPath = Path.Combine(lPulsarPath, UpdaterName + ".exe");
         Version lUpdaterVer = GetLocalUpdaterVersion(lUpdaterPath);
 
         if (lUpdaterVer is null || lUpdaterVer < rUpdaterVer)
             DownloadUpdater(rUpdaterPath, lUpdaterPath);
 
-        GitHubPlugin.ClearGitHubCache();
+        Tools.Interface.Dispose();
         StartUpdater(lUpdaterPath, rPulsarPath, lPulsarPath);
     }
 
@@ -222,10 +235,11 @@ public class Updater(string repoName)
 
     private static void StartUpdater(string updaterPath, string remotePath, string localPath)
     {
-        string caller = Assembly.GetEntryAssembly().Location;
+        string caller = Process.GetCurrentProcess().MainModule.FileName;
+        List<string> originalArgs = Tools.GetRestartArgs(caller);
 
         List<string> args = ["-caller", caller, "-remote", remotePath, "-local", localPath];
-        args.AddRange(Environment.GetCommandLineArgs().Skip(1));
+        args.AddRange(originalArgs);
 
         args.Remove(DebugArg);
         if (Debugger.IsAttached)
@@ -242,5 +256,99 @@ public class Updater(string repoName)
 
         Process.Start(startInfo);
         Environment.Exit(0);
+    }
+}
+
+file static class LinuxUpdater
+{
+    private const string Pulsar = "Pulsar";
+    private const string DebugArg = "-debug";
+    private const int MaxFiles = 15;
+
+    private static readonly HashSet<string> Preserve = ["Legacy", "Interim", "Modern", "NuGet"];
+    private static readonly HashSet<string> Check = ["Interim.bin", "Modern.bin", "LICENSE"];
+
+    public static void Update(string remote, string destination)
+    {
+        Uri uri = new(remote, UriKind.Absolute);
+        using Stream stream = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
+        using ZipArchive source = new(stream, ZipArchiveMode.Read);
+        string caller = Process.GetCurrentProcess().MainModule.FileName;
+
+        if (!Validate(destination))
+            Environment.Exit(1);
+
+        Tools.Interface.Dispose();
+        CleanFolder(destination, Preserve);
+        source.ExtractToDirectory(destination);
+
+        Launcher.ReleaseInstanceLock();
+        Start(caller);
+        Environment.Exit(0);
+    }
+
+    private static void CleanFolder(string folder, HashSet<string> exclude)
+    {
+        foreach (string file in Directory.EnumerateFiles(folder))
+            if (!exclude.Contains(Path.GetFileName(file)))
+                File.Delete(file);
+
+        foreach (string dir in Directory.EnumerateDirectories(folder))
+            if (!exclude.Contains(Path.GetFileName(dir)))
+                Directory.Delete(dir, recursive: true);
+    }
+
+    private static bool Validate(string folder)
+    {
+        if (!Directory.Exists(folder))
+            return false;
+
+        folder = Path.GetFullPath(folder);
+
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string defaultPath = Path.Combine(appData, Pulsar);
+
+        if (folder == defaultPath)
+            return true;
+
+        bool isPulsarInstall = Check.All(name => File.Exists(Path.Combine(folder, name)));
+        bool hasOtherFiles = Directory.GetFiles(folder).Length > MaxFiles;
+        if (isPulsarInstall && !hasOtherFiles)
+            return true;
+
+        return ContinuePrompt(folder);
+    }
+
+    private static bool ContinuePrompt(string folder)
+    {
+        string message =
+            "The installation folder could not be validated!\n"
+            + "Is this your Pulsar install folder?\n"
+            + "It WILL BE CLEANED if you update!\n\n"
+            + folder;
+
+        return Tools.ShowMessageBox(message, PromptButtons.YesNo, PromptIcon.Warning)
+            == PromptResult.Yes;
+    }
+
+    private static void Start(string exe)
+    {
+        List<string> originalArgs = Tools.GetRestartArgs(exe);
+
+        originalArgs.Remove(DebugArg);
+        if (Debugger.IsAttached)
+            originalArgs.Add(DebugArg);
+
+        string cmdArgs = string.Join(" ", originalArgs.Select(a => $"\"{a}\""));
+
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = exe,
+            Arguments = cmdArgs,
+            UseShellExecute = false,
+        };
+
+        if (File.Exists(exe))
+            Process.Start(startInfo);
     }
 }
