@@ -6,6 +6,7 @@ using System.Text;
 using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using NLog;
+using Pulsar.Modern.Patch;
 using Pulsar.Shared;
 using Pulsar.Shared.Assets;
 using Pulsar.Shared.Data;
@@ -75,6 +76,9 @@ internal class PluginInstance
     private void DependencyInject()
     {
         // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
+
+        if (AccessTools.DeclaredMethod(mainType, "Rewrite") is MethodInfo rewriteFunc)
+            Patch_Rewriter.Methods.TryAdd(this, rewriteFunc);
 
         try
         {
@@ -150,6 +154,8 @@ internal class PluginInstance
 
     public void Dispose()
     {
+        Patch_Rewriter.Methods.TryRemove(this, out _);
+
         if (plugin is null)
             return;
 
@@ -168,7 +174,7 @@ internal class PluginInstance
         }
     }
 
-    private void ThrowError(string error)
+    internal void ThrowError(string error)
     {
         LogFile.Error(error);
         data.Error();

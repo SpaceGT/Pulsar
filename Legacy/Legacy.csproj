@@ -123,6 +123,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)/Microsoft.CodeAnalysis.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(Bin64)/Microsoft.CodeAnalysis.CSharp.dll" Private="False" />
     <Reference Include="Sandbox.Game" HintPath="$(Bin64)/Sandbox.Game.dll" Private="False" />
     <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)/Sandbox.Graphics.dll" Private="False" />
     <Reference Include="SpaceEngineers" HintPath="$(Bin64)/SpaceEngineers.exe" Private="False" />
