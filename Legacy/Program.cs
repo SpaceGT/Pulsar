@@ -279,7 +279,7 @@ static class Program
         if (!Tools.GetFiles(bin64Dir, ["*.config"], []).Any())
             return [];
 
-        return Tools.IsWindows() ? ["se-dotnet-compat"] : ["se-dotnet-compat", "se-linux-compat"];
+        return Tools.IsWindows() ? ["dotnet-compat"] : ["dotnet-compat", "linux-compat"];
 #endif
     }
 

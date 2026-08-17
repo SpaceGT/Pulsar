@@ -11,7 +11,7 @@ An windows-only [installer](https://github.com/StarCpt/Pulsar-Installer) exists 
 ## Executables
 `Legacy` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)<br>
 `Interim` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-(via [se-dotnet-compat](https://github.com/viktor-ferenczi/se-dotnet-compat))<br>
+(via [dotnet-compat](https://github.com/CometWorks/dotnet-compat))<br>
 `Modern` runs [Space Engineers 2](https://steampowered.com/app/1133870) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)<br>
 
 ## Steam
