@@ -79,19 +79,8 @@ internal static class LoaderTools
 
     private static void Start(bool autoRejoin, bool debugger)
     {
-        List<string> args = [.. Environment.GetCommandLineArgs()];
         string fileName = Process.GetCurrentProcess().MainModule.FileName;
-
-        // First "argument" is the invoked executable
-        // Preserve if invoked via `dotnet` or drop if invoking directly.
-        if (
-            string.Equals(
-                Path.GetFileNameWithoutExtension(args[0]),
-                Path.GetFileNameWithoutExtension(fileName),
-                StringComparison.OrdinalIgnoreCase
-            )
-        )
-            args.RemoveAt(0);
+        List<string> args = Shared.Tools.GetRestartArgs(fileName);
 
         args.Remove(ContinueArg);
         if (autoRejoin)

@@ -49,7 +49,7 @@ public sealed class Flags
         : SplashType.Pulsar;
 
     public UpdateType UpdateType =>
-        NoUpdate || !Tools.IsWindows() ? UpdateType.None
+        NoUpdate ? UpdateType.None
         : PreRelease ? UpdateType.Tester
         : UpdateType.Standard;
 

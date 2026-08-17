@@ -11,7 +11,7 @@ namespace Pulsar.Updater;
 internal static class Writer
 {
     private const string Pulsar = "Pulsar";
-    private const int MaxFiles = 15;
+    private const int MaxEntries = 20;
 
     private static readonly HashSet<string> Preserve = ["Legacy", "Interim", "Modern", "NuGet"];
     private static readonly HashSet<string> Check =
@@ -66,7 +66,7 @@ internal static class Writer
             return true;
 
         bool isPulsarInstall = Check.All(name => File.Exists(Path.Combine(folder, name)));
-        bool hasOtherFiles = Directory.GetFiles(folder).Length > MaxFiles;
+        bool hasOtherFiles = Directory.GetFileSystemEntries(folder).Length > MaxEntries;
         if (isPulsarInstall && !hasOtherFiles)
             return true;
 

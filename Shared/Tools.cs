@@ -307,6 +307,20 @@ public static class Tools
         return text;
     }
 
+    public static List<string> GetRestartArgs(string executable)
+    {
+        List<string> args = [.. Environment.GetCommandLineArgs()];
+        string originalName = Path.GetFileNameWithoutExtension(args[0]);
+        string executableName = Path.GetFileNameWithoutExtension(executable);
+
+        // First "argument" is the invoked executable
+        // Preserve if invoked via `dotnet` or drop if invoking directly.
+        if (originalName.Equals(executableName, StringComparison.OrdinalIgnoreCase))
+            args.RemoveAt(0);
+
+        return args;
+    }
+
 #if NETCOREAPP
     [SupportedOSPlatformGuard("windows")]
 #endif
