@@ -15,20 +15,28 @@ namespace Pulsar.Shared;
 
 public class PluginList : IEnumerable<PluginData>
 {
+    private static readonly StringComparer PathComparer = Tools.IsWindows()
+        ? StringComparer.OrdinalIgnoreCase
+        : StringComparer.Ordinal;
+
     private Dictionary<string, Dictionary<string, PluginData>> remoteHubPlugins = [];
-    private Dictionary<string, Dictionary<string, PluginData>> localHubPlugins = [];
+    private Dictionary<string, Dictionary<string, PluginData>> localHubPlugins = new(PathComparer);
     private readonly Dictionary<string, PluginData> modPlugins = [];
     private readonly Dictionary<string, PluginData> purePlugins = [];
-    private readonly Dictionary<string, PluginData> localPlugins = [];
+    private readonly Dictionary<string, PluginData> localPlugins = new(PathComparer);
+    private readonly Dictionary<string, PluginData> devFolderPlugins = new(PathComparer);
 
     private Dictionary<string, PluginData> Plugins =>
-        purePlugins
-            .Concat(modPlugins)
-            .Concat(localPlugins)
-            .Concat(localHubPlugins.Values.SelectMany(h => h))
-            .Concat(remoteHubPlugins.Values.SelectMany(h => h))
-            .GroupBy(kv => kv.Key)
-            .ToDictionary(g => g.Key, g => g.First().Value);
+        Enumerable
+            .Empty<PluginData>()
+            .Concat(purePlugins.Values)
+            .Concat(modPlugins.Values)
+            .Concat(devFolderPlugins.Values)
+            .Concat(localPlugins.Values)
+            .Concat(localHubPlugins.Values.SelectMany(hub => hub.Values))
+            .Concat(remoteHubPlugins.Values.SelectMany(hub => hub.Values))
+            .GroupBy(plugin => plugin.Id)
+            .ToDictionary(group => group.Key, group => group.First());
 
     public int Count => Plugins.Count;
 
@@ -274,7 +282,7 @@ public class PluginList : IEnumerable<PluginData>
 
         LoadPluginData(pluginData);
         pluginData.Source = "GitHub";
-        purePlugins[pluginData.Id] = pluginData;
+        purePlugins[source.Repo] = pluginData;
     }
 
     private void AddLocalPlugin(LocalPluginConfig source)
@@ -282,10 +290,10 @@ public class PluginList : IEnumerable<PluginData>
         if (!Directory.Exists(source.Folder))
             return;
 
-        LocalFolderPlugin local = new(source.Folder) { Source = "DevFolder" };
-        local.TryLoadDataFile(source.File);
+        string folder = Path.GetFullPath(source.Folder);
+        LocalFolderPlugin local = new(folder, source.File) { Source = "DevFolder" };
         LoadPluginData(local);
-        localPlugins[local.Id] = local;
+        devFolderPlugins[folder] = local;
     }
 
     private void UpdateRemoteHub(RemoteHubConfig source)
@@ -324,7 +332,7 @@ public class PluginList : IEnumerable<PluginData>
 
         LoadPluginData(pluginData);
         pluginData.Source = "GitHub";
-        purePlugins[pluginData.Id] = pluginData;
+        purePlugins[source.Repo] = pluginData;
     }
 
     private void AddMod(ModConfig source)
@@ -427,49 +435,37 @@ public class PluginList : IEnumerable<PluginData>
     public void UpdateLocalList()
     {
         foreach (LocalHubConfig source in new List<LocalHubConfig>(SourcesConfig.LocalHubSources))
-            if (source.Enabled && Directory.Exists(source.Folder))
-                UpdateLocalHub(source);
+        {
+            if (!Directory.Exists(source.Folder))
+                continue;
+
+            string folder = Path.GetFullPath(source.Folder);
+            if (source.Enabled)
+                AddLocalHub(source);
             else
-                localHubPlugins.Remove(source.Folder);
+                localHubPlugins.Remove(folder);
+        }
 
         foreach (string source in new List<string>(localHubPlugins.Keys))
         {
-            if (SourcesConfig.LocalHubSources.Any(x => x.Folder == source))
+            if (SourcesConfig.LocalHubSources.Any(x => Tools.PathsEqual(x.Folder, source)))
                 continue;
 
             localHubPlugins.Remove(source);
         }
 
-        foreach (
-            LocalPluginConfig source in new List<LocalPluginConfig>(
-                SourcesConfig.LocalPluginSources
-            )
-        )
+        localPlugins.Clear();
+        foreach (string dll in EnumerateLocalPlugins())
+        {
+            string file = Path.GetFullPath(dll);
+            LocalPlugin local = new(file, LocalPluginDir) { Source = "Local" };
+            localPlugins[file] = local;
+        }
+
+        devFolderPlugins.Clear();
+        foreach (LocalPluginConfig source in SourcesConfig.LocalPluginSources)
             if (source.Enabled)
                 AddLocalPlugin(source);
-            else
-                localPlugins.Remove(new DirectoryInfo(source.Folder).Name);
-
-        string[] localDlls = [.. EnumerateLocalPlugins()];
-        foreach (string dll in localDlls)
-        {
-            LocalPlugin local = new(dll, LocalPluginDir) { Source = "Local" };
-            localPlugins[local.Id] = local;
-        }
-
-        foreach (PluginData source in new List<PluginData>(localPlugins.Values))
-        {
-            if (source is LocalPlugin local && localDlls.Contains(local.Dll))
-                continue;
-
-            if (
-                source is LocalFolderPlugin folder
-                && SourcesConfig.LocalPluginSources.Any(x => x.Folder == folder.Folder)
-            )
-                continue;
-
-            localPlugins.Remove(source.Id);
-        }
     }
 
     private IEnumerable<string> EnumerateLocalPlugins()
@@ -496,61 +492,6 @@ public class PluginList : IEnumerable<PluginData>
             if (Tools.IsManagedDll(dll))
                 yield return dll;
         }
-    }
-
-    private void UpdateLocalHub(LocalHubConfig source)
-    {
-        string hash = Tools.GetFolderHash(source.Folder, "*.xml");
-
-        if (
-            source.Hash is not null
-            && source.Hash == hash
-            && localHubPlugins.ContainsKey(source.Folder)
-        )
-            return;
-
-        source.Hash = hash;
-
-        PluginData[] list = null;
-        Dictionary<string, PluginData> newPlugins = [];
-
-        try
-        {
-            XmlSerializer xml = new(typeof(PluginData));
-            foreach (
-                string filePath in Directory.EnumerateFiles(
-                    source.Folder,
-                    "*.xml",
-                    SearchOption.AllDirectories
-                )
-            )
-            {
-                using FileStream fs = File.OpenRead(filePath);
-                using StreamReader entryReader = new(fs);
-                try
-                {
-                    PluginData data = (PluginData)xml.Deserialize(entryReader);
-                    newPlugins[data.Id] = data;
-                }
-                catch (InvalidOperationException e)
-                {
-                    LogFile.Error(
-                        "An error occurred while reading "
-                            + filePath
-                            + ": "
-                            + (e.InnerException ?? e)
-                    );
-                }
-            }
-
-            list = [.. newPlugins.Values];
-        }
-        catch (Exception e)
-        {
-            LogFile.Error("Error while parsing whitelist: " + e);
-        }
-
-        AddHubPluginData(ref localHubPlugins, list, source.Folder, source.Name);
     }
 
     private static bool TryReadHubFile(string file, out PluginData[] list)
@@ -758,8 +699,9 @@ public class PluginList : IEnumerable<PluginData>
     {
         foreach (string dll in EnumerateLocalPlugins())
         {
-            LocalPlugin local = new(dll, LocalPluginDir) { Source = "Local" };
-            localPlugins[local.Id] = local;
+            string file = Path.GetFullPath(dll);
+            LocalPlugin local = new(file, LocalPluginDir) { Source = "Local" };
+            localPlugins[file] = local;
         }
 
         foreach (LocalPluginConfig source in SourcesConfig.LocalPluginSources)
@@ -773,23 +715,17 @@ public class PluginList : IEnumerable<PluginData>
 
     private void AddLocalHub(LocalHubConfig source)
     {
-        if (Directory.Exists(source.Folder))
-        {
-            string hash = Tools.GetFolderHash(source.Folder, "*.xml");
+        if (!Directory.Exists(source.Folder))
+            return;
 
-            if (
-                source.Hash is not null
-                && source.Hash == hash
-                && localHubPlugins.ContainsKey(source.Folder)
-            )
-                return;
+        string folder = Path.GetFullPath(source.Folder);
+        string hash = Tools.GetFolderHash(folder, "*.xml");
+        if (source.Hash is not null && source.Hash == hash && localHubPlugins.ContainsKey(folder))
+            return;
 
-            source.Hash = hash;
-
-            TryLoadLocalHub(source.Folder, out PluginData[] list);
-
-            AddHubPluginData(ref localHubPlugins, list, source.Folder, source.Name);
-        }
+        source.Hash = hash;
+        TryLoadLocalHub(folder, out PluginData[] list);
+        AddHubPluginData(ref localHubPlugins, list, folder, source.Name);
     }
 
     private static bool TryLoadLocalHub(string folder, out PluginData[] list)

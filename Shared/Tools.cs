@@ -258,6 +258,14 @@ public static class Tools
 #endif
     }
 
+    public static bool PathsEqual(string first, string second)
+    {
+        StringComparer comparer = IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        return comparer.Equals(Path.GetFullPath(first), Path.GetFullPath(second));
+    }
+
     public static void ShowInFileManager(string path)
     {
         path = Path.GetFullPath(path);

@@ -531,9 +531,8 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
             "Open a local plugin hub folder",
             (folder) =>
             {
-                bool exists = LocalHubSources.Any(p =>
-                    string.Equals(p.Folder, folder, StringComparison.OrdinalIgnoreCase)
-                );
+                folder = Path.GetFullPath(folder);
+                bool exists = LocalHubSources.Any(p => Tools.PathsEqual(p.Folder, folder));
                 if (exists)
                 {
                     MyGuiSandbox.AddScreen(
@@ -566,11 +565,9 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
 
     private void PromptDevelopmentFolderFile(string folder)
     {
-        DirectoryInfo directory = new(folder);
-        folder = directory.FullName;
-        string id = directory.Name;
+        folder = Path.GetFullPath(folder);
 
-        if (LocalPluginSources.Any(source => new DirectoryInfo(source.Folder).Name == id))
+        if (LocalPluginSources.Any(source => Tools.PathsEqual(source.Folder, folder)))
         {
             MyGuiSandbox.AddScreen(
                 MyGuiSandbox.CreateMessageBox(

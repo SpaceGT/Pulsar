@@ -23,7 +23,10 @@ public class LocalPlugin : PluginData
         Dll = dll;
 
         string directory = Path.GetDirectoryName(dll);
-        if (Path.GetFileName(dll) == PluginCache.PluginFile && directory != localRoot)
+        if (
+            Path.GetFileName(dll) == PluginCache.PluginFile
+            && !Tools.PathsEqual(directory, localRoot)
+        )
         {
             FriendlyName = Path.GetFileName(directory);
             Id = FriendlyName + ".dll";
@@ -86,7 +89,7 @@ public class LocalPlugin : PluginData
         return null;
     }
 
-    public void TryLoadDataFile(string file)
+    private void TryLoadDataFile(string file)
     {
         if (!File.Exists(file))
             return;
@@ -103,6 +106,7 @@ public class LocalPlugin : PluginData
             }
 
             GitHubPlugin github = (GitHubPlugin)resultObj;
+            Id = github.Id ?? Id;
             FriendlyName = github.FriendlyName;
             Tooltip = github.Tooltip;
             Author = github.Author;

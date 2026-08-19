@@ -236,9 +236,9 @@ internal class SourcesScreenViewModel : ScreenViewModel
             "Open a local plugin hub folder",
             (folder) =>
             {
+                folder = Path.GetFullPath(folder);
                 bool exists = HubSources.Any(p =>
-                    p.Config is LocalHubConfig localHub
-                    && string.Equals(localHub.Folder, folder, StringComparison.OrdinalIgnoreCase)
+                    p.Config is LocalHubConfig localHub && Tools.PathsEqual(localHub.Folder, folder)
                 );
                 if (exists)
                 {
@@ -273,14 +273,11 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
     private void PromptDevFolderFile(string folder)
     {
-        DirectoryInfo directory = new(folder);
-        folder = directory.FullName;
-        string id = directory.Name;
+        folder = Path.GetFullPath(folder);
 
         if (
             PluginSources.Any(source =>
-                source.Config is LocalPluginConfig local
-                && new DirectoryInfo(local.Folder).Name == id
+                source.Config is LocalPluginConfig local && Tools.PathsEqual(local.Folder, folder)
             )
         )
         {

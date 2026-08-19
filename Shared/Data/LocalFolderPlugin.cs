@@ -25,12 +25,14 @@ public class LocalFolderPlugin : PluginData
 
     public string Folder;
 
-    public LocalFolderPlugin(string folder)
+    public LocalFolderPlugin(string folder, string file)
     {
         Id = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
         Folder = folder;
         Status = PluginStatus.None;
         FriendlyName = Id;
+
+        TryLoadDataFile(file);
         settings = new() { Id = Id };
     }
 
@@ -279,7 +281,7 @@ public class LocalFolderPlugin : PluginData
         }
     }
 
-    internal void TryLoadDataFile(string file)
+    private void TryLoadDataFile(string file)
     {
         if (file is null)
             return;
@@ -302,6 +304,7 @@ public class LocalFolderPlugin : PluginData
             }
 
             GitHubPlugin github = (GitHubPlugin)resultObj;
+            Id = github.Id ?? Id;
             FriendlyName = github.FriendlyName;
             Tooltip = github.Tooltip;
             Author = github.Author;
