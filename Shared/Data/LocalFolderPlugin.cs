@@ -10,6 +10,7 @@ using Pulsar.Compiler;
 using Pulsar.Shared.Assets;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
+using Pulsar.Shared.Splash;
 
 namespace Pulsar.Shared.Data;
 
@@ -68,10 +69,30 @@ public class LocalFolderPlugin : PluginData
             return LoadAssembly(dll);
         }
 
+        var lbl = SplashManager.Instance;
+        lbl?.SetText($"Compiling '{FriendlyName}'");
+        lbl?.SetBarValue(0);
+
         cache.Clear();
         Directory.CreateDirectory(binDir);
 
         ICompiler compiler = Tools.Compiler.Create(debug);
+        StringBuilder sb = new();
+        sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
+
+        int filesLoaded = 0;
+        foreach (string file in projectFiles)
+        {
+            using FileStream fileStream = File.OpenRead(file);
+            string relFile = GetRelativePath(file);
+            sb.Append(relFile).Append(", ");
+            compiler.Load(fileStream, relFile, debug ? file : null);
+            lbl?.SetBarValue(filesLoaded++ / (float)projectFiles.Length);
+        }
+
+        sb.Length -= 2;
+        LogFile.WriteLine(sb.ToString());
+
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
             InstallDependencies(compiler, binDir);
 
@@ -80,20 +101,7 @@ public class LocalFolderPlugin : PluginData
         foreach (string reference in resolution.References)
             compiler.TryAddDependency(reference);
 
-        StringBuilder sb = new();
-        sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
-
-        foreach (string file in projectFiles)
-        {
-            using FileStream fileStream = File.OpenRead(file);
-            string relFile = GetRelativePath(file);
-            sb.Append(relFile).Append(", ");
-            compiler.Load(fileStream, relFile, debug ? file : null);
-        }
-
-        sb.Length -= 2;
-        LogFile.WriteLine(sb.ToString());
-
+        lbl?.SetBarValue(1);
         string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
         byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
         File.WriteAllBytes(dll, data);
@@ -106,6 +114,7 @@ public class LocalFolderPlugin : PluginData
 
         cache.SetAssets(resolution.Assets);
         cache.Save(cacheHash, ConfigManager.Instance.GameVersion);
+        lbl?.SetText($"Compiled '{FriendlyName}'");
         namedAssets = resolution.Assets;
         return LoadAssembly(dll);
     }
