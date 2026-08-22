@@ -51,12 +51,15 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public static void OpenMenu()
     {
+        if (Steam.IsInitialized && !PlayerConsent.ConsentRequested)
+        {
+            PlayerConsent.ShowDialog(OpenMenu);
+            return;
+        }
+
         var configManager = ConfigManager.Instance;
         PluginsScreenViewModel menu = new(configManager);
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginsScreen>(menu, true);
-
-        if (!PlayerConsent.ConsentRequested)
-            menu.ShowConsentScreen();
     }
 
     public void RefreshPluginLists()

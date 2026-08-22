@@ -26,12 +26,15 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     public static void Open()
     {
+        if (Steam.IsInitialized && !PlayerConsent.ConsentRequested)
+        {
+            PlayerConsent.ShowDialog(Open);
+            return;
+        }
+
         var configManager = ConfigManager.Instance;
         MainPluginMenu menu = new(configManager);
         MyGuiSandbox.AddScreen(menu);
-
-        if (!PlayerConsent.ConsentRequested)
-            PlayerConsent.ShowDialog();
     }
 
     public override string GetFriendlyName()
