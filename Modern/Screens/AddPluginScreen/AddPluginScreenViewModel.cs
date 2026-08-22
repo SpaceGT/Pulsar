@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DynamicData;
 using Keen.VRage.UI.Screens;
+using Pulsar.Shared;
 
 namespace Pulsar.Modern.Screens.AddPluginScreen;
 
@@ -12,7 +13,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
     public ObservableCollection<PluginViewModel> Plugins { get; private set; }
     public readonly bool Mods;
     public string Filter;
-    public SortingMethod SortMethod = SortingMethod.Name;
+    public SortingMethod SortMethod = SortingMethod.Random;
 
     private readonly List<PluginViewModel> plugins;
     private event Action onScreenClose;
@@ -23,6 +24,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Search,
         Usage,
         Rating,
+        Random,
     }
 
     public AddPluginScreenViewModel(
@@ -42,7 +44,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedEnvironment)]);
         this.onScreenClose = onScreenClose;
 
-        SortPlugins(SortingMethod.Name);
+        SortPlugins(SortingMethod.Random);
     }
 
     public override void OnDispose()
@@ -55,6 +57,9 @@ internal class AddPluginScreenViewModel : ScreenViewModel
     {
         switch (sort)
         {
+            case SortingMethod.Random:
+                Tools.Shuffle(plugins);
+                break;
             case SortingMethod.Name:
                 plugins.Sort(ComparePluginsByName);
                 break;

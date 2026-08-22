@@ -293,6 +293,13 @@ public static class Tools
         return JsonConvert.DeserializeObject<T>(json);
     }
 
+    public static void Shuffle<T>(IList<T> items)
+    {
+        T[] shuffled = [.. items.OrderBy(_ => Guid.NewGuid())];
+        for (int i = 0; i < items.Count; i++)
+            items[i] = shuffled[i];
+    }
+
     public static string RemoveAll(string text, IEnumerable<string> tokens)
     {
         foreach (string t in tokens)

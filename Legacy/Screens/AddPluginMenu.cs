@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pulsar.Legacy.Screens.GuiControls;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats.Model;
@@ -41,6 +42,7 @@ public class AddPluginMenu : PluginScreen
         Search,
         Usage,
         Rating,
+        Random,
     }
 
     public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
@@ -53,7 +55,7 @@ public class AddPluginMenu : PluginScreen
         stats = ConfigManager.Instance.Stats ?? new PluginStats();
         this.mods = mods;
         this.draft = draft;
-        SortPlugins(SortingMethod.Name);
+        SortPlugins(SortingMethod.Random);
     }
 
     public override string GetFriendlyName()
@@ -168,6 +170,9 @@ public class AddPluginMenu : PluginScreen
     {
         switch (sort)
         {
+            case SortingMethod.Random:
+                Tools.Shuffle(plugins);
+                break;
             case SortingMethod.Name:
                 plugins.Sort(ComparePluginsByName);
                 break;
