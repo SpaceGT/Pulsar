@@ -1,12 +1,27 @@
 <Project>
   <!-- Override Project Settings -->
   <PropertyGroup>
-    <TargetPlatform></TargetPlatform>   <!-- Target platform for Pulsar build -->
-    <Pulsar></Pulsar>                   <!-- Folder where Pulsar will be deployed -->
-    <Bin64></Bin64>                     <!-- Folder containing SpaceEngineers.exe -->
-    <Game2></Game2>                     <!-- Folder containing SpaceEngineers2.exe -->
-    <Steamworks></Steamworks>           <!-- Folder containing Linux Steamworks.NET and steam_api -->
+    <!-- Target platform for Pulsar build -->
+    <TargetPlatform></TargetPlatform>
+
+    <!-- Folder where Pulsar will be deployed -->
+    <Pulsar></Pulsar>
+
+    <!-- Folder containing SpaceEngineers.exe -->
+    <Bin64></Bin64>
+
+    <!-- Folder containing SpaceEngineers2.exe -->
+    <Game2></Game2>
+
+    <!-- Folder containing Linux Steamworks.NET and steam_api -->
+    <Steamworks></Steamworks>
   </PropertyGroup>
+
+  <!-- Local developer overrides for the settings above; ignored by Git (*.user).
+       Copy the first PropertyGroup of this file into Directory.Build.props.user
+       and fill in your local paths there. -->
+  <Import Project="$(MSBuildThisFileDirectory)Directory.Build.props.user"
+          Condition="Exists('$(MSBuildThisFileDirectory)Directory.Build.props.user')" />
 
   <!-- Default Project Settings -->
   <PropertyGroup>
