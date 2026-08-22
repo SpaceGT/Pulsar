@@ -29,6 +29,9 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         var configManager = ConfigManager.Instance;
         MainPluginMenu menu = new(configManager);
         MyGuiSandbox.AddScreen(menu);
+
+        if (!PlayerConsent.ConsentRequested)
+            PlayerConsent.ShowDialog();
     }
 
     public override string GetFriendlyName()

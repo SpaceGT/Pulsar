@@ -54,6 +54,9 @@ internal class PluginsScreenViewModel : ScreenViewModel
         var configManager = ConfigManager.Instance;
         PluginsScreenViewModel menu = new(configManager);
         ScreenTools.GetSharedUIComponent().CreateScreen<PluginsScreen>(menu, true);
+
+        if (!PlayerConsent.ConsentRequested)
+            menu.ShowConsentScreen();
     }
 
     public void RefreshPluginLists()
