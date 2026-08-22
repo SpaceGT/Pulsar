@@ -26,10 +26,18 @@ Pulsar officially endorses the [PluginHub](https://github.com/StarCpt/PluginHub)
 Further sources may be added in-game but make sure you fully understand the risks.<br>
 
 ## Development
-Local build paths (`TargetPlatform`, `Pulsar`, `Bin64`, `Game2`, `Steamworks`) are empty in `Directory.Build.props`.<br>
-To override them, copy its first `PropertyGroup` into `Directory.Build.props.user` (git-ignored) in the repo root,
-wrapped in a top-level `<Project>` element, and fill in your paths.<br>
-Anything left empty there falls back to the defaults in `Directory.Build.props`.<br>
+Local build paths are empty in `Directory.Build.props`:
+- `TargetPlatform`
+- `Pulsar`
+- `Bin64`
+- `Game2`
+- `Steamworks`
+
+To override them, copy its first `PropertyGroup` into `Directory.Build.props.user` 
+(git-ignored) in the repo root, wrapped in a top-level `<Project>` element, 
+and fill in your paths.
+
+Anything left empty there falls back to the defaults in `Directory.Build.props`.
 
 ## Contact
 We have an active [Discord](https://discord.gg/z8ZczP2YZY) for updates and developer information.<br>
