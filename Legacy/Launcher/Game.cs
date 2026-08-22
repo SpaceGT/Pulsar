@@ -115,8 +115,14 @@ internal static class Game
 
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
 
-    public static void AddCompilationSymbols(params string[] symbols) =>
-        MyScriptCompiler.Static.AddConditionalCompilationSymbols(symbols);
+    public static void ConfigureCompiler(IEnumerable<string> symbols, bool debug)
+    {
+        if (debug)
+            symbols = symbols.Append("DEBUG");
+
+        MyScriptCompiler.Static.EnableDebugInformation = debug;
+        MyScriptCompiler.Static.AddConditionalCompilationSymbols([.. symbols]);
+    }
 
     public static void ShowIntroVideo(bool enabled) =>
         MyPlatformGameSettings.ENABLE_LOGOS = enabled;

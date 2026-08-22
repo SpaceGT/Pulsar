@@ -31,6 +31,7 @@ file static class Arguments
     public static readonly string[] Sources = ["sources"];
     public static readonly string[] Continue = ["continue"];
     public static readonly string[] DebugCompileAll = ["debug", "compile", "all"];
+    public static readonly string[] DebugMods = ["debug", "mods"];
     public static readonly string[] KeepIntro = ["keep", "intro"];
     public static readonly string[] MakeCheck = ["mk", "check"];
     public static readonly string[] Hardened = ["hardened"];
@@ -56,6 +57,7 @@ file static class Arguments
         (Sources, "Enable custom plugin sources."),
         (Continue, "Continue the last game automatically."),
         (DebugCompileAll, "Compile and check all plugins."),
+        (DebugMods, "Build game mods in debug mode."),
         (KeepIntro, "Keep the game intro video."),
         (MakeCheck, "Create a library checksum file."),
         (Hardened, "Load only trusted mods."),
@@ -80,6 +82,7 @@ public static class Flags
     public static bool CustomSources { get; private set; }
     public static bool ContinueGame { get; private set; }
     public static bool CheckAllPlugins { get; private set; }
+    public static bool DebugMods { get; private set; }
     public static bool GameIntroVideo { get; private set; }
     public static bool MakeCheckFile { get; private set; }
     public static bool TrustedMods { get; private set; }
@@ -113,6 +116,7 @@ public static class Flags
         CustomSources = HasArg(Arguments.Sources);
         ContinueGame = HasArg(Arguments.Continue);
         CheckAllPlugins = HasArg(Arguments.DebugCompileAll);
+        DebugMods = HasArg(Arguments.DebugMods);
         GameIntroVideo = HasArg(Arguments.KeepIntro);
         MakeCheckFile = HasArg(Arguments.MakeCheck);
         TrustedMods = HasArg(Arguments.Hardened);
@@ -177,6 +181,8 @@ public static class Flags
             changed.Add("ContinueGame");
         if (CheckAllPlugins)
             changed.Add("CheckAllPlugins");
+        if (DebugMods)
+            changed.Add("DebugMods");
         if (GameIntroVideo)
             changed.Add("GameIntroVideo");
         if (MakeCheckFile)

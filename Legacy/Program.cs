@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -245,7 +246,7 @@ static class Program
                 references,
                 probeDirs,
                 LogFile.FilePath,
-                Tools.GetCompilationSymbols(trusted: true)
+                [.. Tools.GetCompilationSymbols(trusted: true)]
             )
         )
         {
@@ -328,8 +329,8 @@ static class Program
         Game.ShowIntroVideo(Flags.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
-        string[] symbols = Tools.GetCompilationSymbols(trusted: false);
-        Game.AddCompilationSymbols(symbols);
+        IEnumerable<string> symbols = Tools.GetCompilationSymbols(trusted: false);
+        Game.ConfigureCompiler(symbols, Flags.DebugMods);
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
         SplashManager.Instance?.SetBarValue(0);

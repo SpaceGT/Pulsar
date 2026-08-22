@@ -323,27 +323,23 @@ public static class Tools
             : "CoreCLR";
 #endif
 
-    public static string[] GetCompilationSymbols(bool trusted)
+    public static IEnumerable<string> GetCompilationSymbols(bool trusted)
     {
-        List<string> symbols = [];
-
 #if NETCOREAPP
-        symbols.Add("NETCOREAPP");
+        yield return "NETCOREAPP";
 #endif
 
         if (!IsWindows())
-            symbols.Add("LINUX");
+            yield return "LINUX";
 
         if (!trusted)
-            return [.. symbols];
+            yield break;
 
 #if NETFRAMEWORK
-        symbols.Add("NETFRAMEWORK");
+        yield return "NETFRAMEWORK";
 #endif
 
-        symbols.Add("PULSAR");
-
-        return [.. symbols];
+        yield return "PULSAR";
     }
 
     public static bool IsSupportedEnvironment(string runtimes, string platforms) =>

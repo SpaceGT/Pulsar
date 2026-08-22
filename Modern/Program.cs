@@ -230,7 +230,7 @@ static class Program
                 [.. References.GetReferences(game2Dir)],
                 [.. runtimeDirs, game2Dir, dependencyDir],
                 LogFile.FilePath,
-                Tools.GetCompilationSymbols(trusted: true)
+                [.. Tools.GetCompilationSymbols(trusted: true)]
             )
         )
         {
