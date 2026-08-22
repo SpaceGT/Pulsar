@@ -76,6 +76,7 @@ public class Updater(string repoName)
             Environment.Exit(0);
 
         GitHubPlugin.ClearGitHubCache();
+        LocalFolderPlugin.ClearDevFolderCache();
     }
 
     public void ShowBitrotPrompt()
@@ -134,6 +135,7 @@ public class Updater(string repoName)
         string lPulsarPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
 
         GitHubPlugin.ClearGitHubCache();
+        LocalFolderPlugin.ClearDevFolderCache();
 
         if (!Tools.IsWindows())
         {

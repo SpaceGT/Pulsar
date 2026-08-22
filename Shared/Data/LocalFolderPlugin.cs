@@ -37,6 +37,23 @@ public class LocalFolderPlugin : PluginData
         settings = new() { Id = Id };
     }
 
+    public static void ClearDevFolderCache()
+    {
+        string pluginCache = Path.Combine(ConfigManager.Instance.PulsarDir, "DevFolder");
+        if (!Directory.Exists(pluginCache))
+            return;
+
+        try
+        {
+            LogFile.WriteLine("Deleting dev folder cache because of an update");
+            Directory.Delete(pluginCache, true);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Failed to delete dev folder cache: " + e);
+        }
+    }
+
     public override string ToString() => Id;
 
     public override void LoadData(PluginDataConfig config)
