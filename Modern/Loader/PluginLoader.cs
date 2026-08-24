@@ -9,6 +9,7 @@ using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
 using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
 
@@ -88,7 +89,7 @@ internal class PluginLoader : IPlugin, IDisposable
     {
         StringBuilder debugCompileResults = new();
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
         foreach (var plugin in SharedLoader.Instance.Plugins)
@@ -105,7 +106,7 @@ internal class PluginLoader : IPlugin, IDisposable
             if (!p.Instantiate(host))
                 plugins.RemoveAtFast(i);
 
-            if (Flags.CheckAllPlugins)
+            if (Flags.Current.CheckAllPlugins)
                 debugCompileResults
                     .Append(p.FriendlyName ?? "(null)")
                     .Append(" - ")
@@ -117,7 +118,7 @@ internal class PluginLoader : IPlugin, IDisposable
 
         LogFile.WriteLine($"Initialized {plugins.Count} of {totalPlugins} plugins");
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
         {
             string message = "All plugins compiled, log file will now open";
             Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);

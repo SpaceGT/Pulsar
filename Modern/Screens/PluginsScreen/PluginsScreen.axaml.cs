@@ -10,6 +10,7 @@ using Pulsar.Modern.Screens.ProfilesScreen;
 using Pulsar.Modern.Screens.SourcesScreen;
 using Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -26,8 +27,8 @@ public partial class PluginsScreen : PluginScreenBase
 
         if (!Design.IsDesignMode)
         {
-            SourcesButton.IsVisible = Flags.CustomSources;
-            RefreshButton.IsVisible = !Flags.CustomSources;
+            SourcesButton.IsVisible = Flags.Current.CustomSources;
+            RefreshButton.IsVisible = !Flags.Current.CustomSources;
             ConsentBox.IsEnabled = Steam.IsInitialized;
         }
         else
@@ -42,7 +43,7 @@ public partial class PluginsScreen : PluginScreenBase
             PluginsList.ItemsSource = dummyPlugins;
             ModsList.ItemsSource = dummyPlugins;
 
-            SourcesButton.IsVisible = Flags.CustomSources;
+            SourcesButton.IsVisible = Flags.Current.CustomSources;
         }
     }
 

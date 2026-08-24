@@ -2,6 +2,7 @@
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.GUI;
 using VRage.Game;
@@ -67,7 +68,7 @@ public static class Patch_CreateMainMenu
             ___m_continueButton is not null
             && ___m_continueButton.Visible
             && !usedAutoRejoin
-            && Flags.ContinueGame
+            && Flags.Current.ContinueGame
         )
         {
             ___m_continueButton.PressButton();

@@ -68,6 +68,7 @@
       <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
       <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
       <DeployLibraryFile Include="$(TargetDir)SharpCompress.dll" />
+      <DeployLibraryFile Include="$(TargetDir)McMaster.Extensions.CommandLineUtils.dll" />
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />

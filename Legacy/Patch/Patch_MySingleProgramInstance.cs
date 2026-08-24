@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using VRage.Platform.Windows.Sys;
 
 namespace Pulsar.Legacy.Patch;
@@ -12,5 +13,5 @@ namespace Pulsar.Legacy.Patch;
 )]
 internal static class Patch_MySingleProgramInstance
 {
-    private static void Postfix(ref bool __result) => __result |= Flags.MultiInstance;
+    private static void Postfix(ref bool __result) => __result |= Flags.Current.MultiInstance;
 }

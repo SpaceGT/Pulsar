@@ -8,6 +8,7 @@ using System.Xml.Serialization;
 using FuzzySharp;
 using ProtoBuf;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
@@ -208,7 +209,7 @@ public abstract class PluginData : IEquatable<PluginData>
     public void Error(string msg = null)
     {
         Status = PluginStatus.Error;
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             return;
         msg ??=
             $"The plugin '{this}' caused an error. "

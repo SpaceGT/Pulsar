@@ -8,6 +8,7 @@ using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
@@ -74,7 +75,7 @@ public class PluginLoader : IHandleInputPlugin
         LogFile.WriteLine($"Initializing {plugins.Count} plugins");
         SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
         for (int i = plugins.Count - 1; i >= 0; i--)
@@ -83,7 +84,7 @@ public class PluginLoader : IHandleInputPlugin
             if (!p.Init(gameInstance))
             {
                 plugins.RemoveAtFast(i);
-                if (Flags.CheckAllPlugins)
+                if (Flags.Current.CheckAllPlugins)
                     debugCompileResults
                         .Append(p.FriendlyName ?? "(null)")
                         .Append(" - ")
@@ -96,7 +97,7 @@ public class PluginLoader : IHandleInputPlugin
 
         init = true;
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
         {
             string message = "All plugins compiled, log file will now open";
             Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);

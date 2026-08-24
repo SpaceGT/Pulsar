@@ -41,6 +41,7 @@
     <PackageReference Include="NuGet.Commands" Version="6.7.1" />
     <PackageReference Include="protobuf-net" Version="2.4.9" />
     <PackageReference Include="SharpCompress" Version="0.50.4" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
     <PackageReference Include="System.Buffers" Version="4.6.1" />

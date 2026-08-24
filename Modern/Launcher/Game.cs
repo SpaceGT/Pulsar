@@ -8,6 +8,7 @@ using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -70,9 +71,9 @@ internal static class Game
     public static void StartSpaceEngineers2(string[] args)
     {
         // Prefer native SE2 arguments for Flag implementation
-        if (Flags.ContinueGame)
+        if (Flags.Current.ContinueGame)
             args = [.. args, "-startLast"];
-        if (Flags.MultiInstance)
+        if (Flags.Current.MultiInstance)
             args = [.. args, "-allowMultiple"];
 
         Keen.Game2.Program.Main(args);

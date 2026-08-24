@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Stats;
 using Pulsar.Shared.Stats.Model;
 
@@ -29,7 +30,7 @@ public class ConfigManager
     {
         Instance = new()
         {
-            SafeMode = Flags.SafeMode,
+            SafeMode = Flags.Current.SafeMode,
             PulsarDir = pulsarDir,
             Core = CoreConfig.Load(pulsarDir),
         };

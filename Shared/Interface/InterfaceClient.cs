@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Pulsar.Protocol;
 using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Interface;
 
@@ -85,7 +86,7 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
     {
         // Dialog and input operations follow the splash operations.
         // NoPrompt skips them without disabling the splash.
-        if (Flags.NoPrompt && operation >= InterfaceOperation.PromptShow)
+        if (Flags.Current.NoPrompt && operation >= InterfaceOperation.PromptShow)
             return new();
 
         lock (processLock)

@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Keen.VRage.Platform.Windows;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -10,6 +11,6 @@ internal class Patch_TryCreateSplashScreen
 {
     private static bool Prefix()
     {
-        return Flags.SplashType == SplashType.Native;
+        return Flags.Current.SplashType == SplashType.Native;
     }
 }

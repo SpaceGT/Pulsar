@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Reflection.Emit;
 using HarmonyLib;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using VRage.Scripting;
 
 namespace Pulsar.Legacy.Patch;
@@ -14,7 +15,7 @@ internal static class Patch_AllowDebugger
 {
     private static void Postfix(MyScriptWhitelist __instance)
     {
-        if (!Flags.DebugMods)
+        if (!Flags.Current.DebugMods)
             return;
 
         using IMyWhitelistBatch batch = __instance.OpenBatch();
@@ -26,7 +27,7 @@ internal static class Patch_AllowDebugger
 [HarmonyPatch]
 internal static class Patch_LoadPdbs
 {
-    private static bool Prepare() => Flags.DebugMods;
+    private static bool Prepare() => Flags.Current.DebugMods;
 
     private static MethodBase TargetMethod()
     {

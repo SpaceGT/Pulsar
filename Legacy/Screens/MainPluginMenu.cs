@@ -5,6 +5,7 @@ using System.Text;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Screens.Controls;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Sandbox.Graphics.GUI;
@@ -303,7 +304,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
         MyGuiControlButton sourceButton = null;
 
-        if (Flags.CustomSources)
+        if (Flags.Current.CustomSources)
             sourceButton = new MyGuiControlButton(
                 text: new StringBuilder("Sources"),
                 toolTip: "Add or remove plugin sources",

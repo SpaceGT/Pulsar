@@ -14,6 +14,7 @@ using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Patch;
 using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLauncher = Pulsar.Shared.Launcher;
@@ -50,12 +51,7 @@ static class Program
 #endif
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         string baseDir = Path.GetDirectoryName(currentAssembly.Location);
-
-        if (Flags.HelpRequested)
-        {
-            Flags.LogHelp();
-            return;
-        }
+        Parser.Initialize(args, true);
 
         string guiPath = Path.Combine(
             baseDir,
@@ -74,7 +70,7 @@ static class Program
             return;
         }
 
-        if (Flags.ExternalDebug)
+        if (Flags.Current.ExternalDebug)
             Debugger.Launch();
 
         SetupCoreData(baseDir);
@@ -92,7 +88,7 @@ static class Program
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string dataDir = Flags.UseHome ? Path.Combine(appData, "Pulsar") : baseDir;
+        string dataDir = Flags.Current.UseHome ? Path.Combine(appData, "Pulsar") : baseDir;
         string pulsarDir = Path.Combine(dataDir, asmName.Name);
 
         if (!Directory.Exists(pulsarDir))
@@ -104,9 +100,9 @@ static class Program
         LogFile.WriteLine($"Platform: {Tools.Platform}");
         LogFile.WriteLine($"Runtime: {Tools.Runtime}");
 
-        Flags.LogFlags();
+        Parser.LogChanged();
 
-        if (Flags.SplashType == SplashType.Pulsar)
+        if (Flags.Current.SplashType == SplashType.Pulsar)
             SplashManager.Instance = new SplashManager();
 
         SplashManager.Instance?.SetTitle("Pulsar");
@@ -124,7 +120,7 @@ static class Program
         string checkFile = Path.Combine(baseDir, "checksum.txt");
         string libraryDir = Path.Combine(baseDir, "Libraries");
 
-        if (Flags.MakeCheckFile)
+        if (Flags.Current.MakeCheckFile)
         {
             UTF8Encoding encoding = new();
             checkSum = Tools.GetFolderHash(libraryDir);
@@ -326,11 +322,11 @@ static class Program
         Progress.Start(assemblyName + ".Progress");
 
         Game.SetupMyFakes();
-        Game.ShowIntroVideo(Flags.GameIntroVideo);
+        Game.ShowIntroVideo(Flags.Current.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
         IEnumerable<string> symbols = Tools.GetCompilationSymbols(trusted: false);
-        Game.ConfigureCompiler(symbols, Flags.DebugMods);
+        Game.ConfigureCompiler(symbols, Flags.Current.DebugMods);
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
         SplashManager.Instance?.SetBarValue(0);

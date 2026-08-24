@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Shared;
 
@@ -15,7 +16,7 @@ public class Launcher(string sePath)
 
     public bool CanStart()
     {
-        if (!Flags.MultiInstance && IsSpaceEngineersRunning())
+        if (!Flags.Current.MultiInstance && IsSpaceEngineersRunning())
         {
             string message = "Space Engineers is already running!";
             Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
@@ -45,7 +46,7 @@ public class Launcher(string sePath)
 
     public static bool IsOtherPulsarRunning()
     {
-        if (Flags.MultiInstance)
+        if (Flags.Current.MultiInstance)
             return false;
 
         string callerName = Assembly.GetEntryAssembly().GetName().Name;

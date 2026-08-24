@@ -3,6 +3,7 @@ using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Filesystem;
 using Keen.VRage.Library.Filesystem.StorageManagers;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -16,7 +17,7 @@ internal class Patch_StableLogs
         ref FileHandleWritable __result
     )
     {
-        if (!Flags.StableLogs)
+        if (!Flags.Current.StableLogs)
             return true;
 
         string fileName = ____filenamePrefix.TrimEnd('_') + filenameSuffix + ".log";

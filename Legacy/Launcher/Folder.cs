@@ -7,6 +7,7 @@ using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Legacy.Launcher;
 
@@ -79,16 +80,9 @@ internal class Folder
 
     private static string FromOverride()
     {
-        string[] args = Environment.GetCommandLineArgs();
-        int index = Array.FindIndex(
-            args,
-            arg => arg.Equals("-bin64", StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (index < 0 || index >= args.Length - 1)
+        if (Flags.Current.Bin64 is not string path)
             return null;
 
-        string path = args[index + 1];
         if (!Path.IsPathRooted(path))
         {
             string currentPath = Assembly.GetExecutingAssembly().Location;

@@ -1,6 +1,7 @@
 using System.Text;
 using HarmonyLib;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using VRage.Utils;
 
 namespace Pulsar.Legacy.Patch;
@@ -11,7 +12,7 @@ internal class Patch_StableLogs
 {
     private static bool Prefix(string appName, ref StringBuilder __result)
     {
-        if (!Flags.StableLogs)
+        if (!Flags.Current.StableLogs)
             return true;
 
         __result = new StringBuilder(appName).Append(".log");

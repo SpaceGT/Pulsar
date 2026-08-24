@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using Microsoft.Win32;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Steamworks;
 
 namespace Pulsar.Shared;
@@ -41,7 +42,7 @@ public static class Steam
         if (!Tools.IsWindows()) // Unmanaged Linux assemblies bypass .NET env cache
             SetEnvLinux("SteamAppId", appId, 1);
 
-        if (Flags.LazySteam)
+        if (Flags.Current.LazySteam)
         {
             IsInitialized = SteamAPI.Init();
 

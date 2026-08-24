@@ -8,6 +8,7 @@ using Keen.VRage.Library.Utils;
 using Keen.VRage.Render.EngineComponents;
 using Keen.VRage.UI.AvaloniaInterface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -18,7 +19,7 @@ internal static class Patch_AfterEngineInit
 {
     public static void Prefix()
     {
-        if (Flags.DebugMenu)
+        if (Flags.Current.DebugMenu)
         {
             AvaloniaApp.Instance.MainWindow?.AttachDevTools(
                 new KeyGesture(Key.F12, KeyModifiers.Shift)

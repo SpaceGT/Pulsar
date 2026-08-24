@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using Newtonsoft.Json.Linq;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
 
@@ -24,10 +25,10 @@ public class Updater(string repoName)
         Assembly entryAssembly = Assembly.GetEntryAssembly();
         Version localPulsarVer = entryAssembly.GetName().Version;
 
-        bool preRelease = Flags.UpdateType == UpdateType.Tester;
+        bool preRelease = Flags.Current.UpdateType == UpdateType.Tester;
 
         if (
-            Flags.UpdateType != UpdateType.None
+            Flags.Current.UpdateType != UpdateType.None
             && GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
             && localPulsarVer < remotePulsarVer
         )
@@ -82,7 +83,7 @@ public class Updater(string repoName)
         PromptButtons buttons;
         string message = "You have a broken Pulsar insallation!\n";
 
-        if (Flags.UpdateType == UpdateType.None)
+        if (Flags.Current.UpdateType == UpdateType.None)
         {
             message += "Please rebuild or manually redownload.";
             buttons = PromptButtons.Ok;

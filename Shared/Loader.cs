@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using HarmonyLib;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
@@ -47,11 +48,11 @@ public class Loader
         LogFile.WriteLine("Instantiating plugins");
 
         StringBuilder debugCompileResults = new();
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
         // FIXME: Treat as a plugin dependency in the future.
-        forceEnable = Flags.Bare ? [] : forceEnable ?? [];
+        forceEnable = Flags.Current.Bare ? [] : forceEnable ?? [];
         foreach (string id in forceEnable)
         {
             if (
@@ -88,7 +89,7 @@ public class Loader
                     ConfigManager.Instance.HasLocal = true;
             }
             else if (
-                Flags.CheckAllPlugins
+                Flags.Current.CheckAllPlugins
                 && data is not ModPlugin
                 && data.IsSupportedEnvironment()
             )
@@ -106,7 +107,7 @@ public class Loader
         if (VerifySafeMode())
             Plugins.RemoveAll(plugin => !forceEnable.Contains(plugin.Key.Id));
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             LogFile.WriteLine(debugCompileResults.ToString());
 
         Task.Run(ReportEnabledPlugins);
@@ -157,7 +158,7 @@ public class Loader
             string id = plugin.Id;
             bool enabled = profiles.Current.Contains(id);
 
-            if (enabled || (Flags.CheckAllPlugins && !plugin.IsLocal && plugin.IsCompiled))
+            if (enabled || (Flags.Current.CheckAllPlugins && !plugin.IsLocal && plugin.IsCompiled))
                 yield return plugin;
         }
     }

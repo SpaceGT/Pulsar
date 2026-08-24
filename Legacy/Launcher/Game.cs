@@ -7,6 +7,7 @@ using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Sandbox;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
@@ -105,12 +106,12 @@ internal static class Game
     public static void SetupMyFakes()
     {
         typeof(MyFakes).TypeInitializer.Invoke(null, null);
-        MyFakes.ENABLE_F12_MENU = Flags.DebugMenu;
+        MyFakes.ENABLE_F12_MENU = Flags.Current.DebugMenu;
         MyFakes.ENABLE_HIDDEN_GAME_FORM = true;
 
         // Note SpaceEngineers internally prioritises -nosplash over ENABLE_SPLASHSCREEN
         // (therefore SplashType.Native and SplashType.None are mutually exclusive)
-        MyFakes.ENABLE_SPLASHSCREEN = Flags.SplashType == SplashType.Native;
+        MyFakes.ENABLE_SPLASHSCREEN = Flags.Current.SplashType == SplashType.Native;
     }
 
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);

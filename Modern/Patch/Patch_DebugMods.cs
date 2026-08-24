@@ -6,6 +6,7 @@ using Keen.VRage.Scripting;
 using Keen.VRage.Scripting.Compilation;
 using Microsoft.CodeAnalysis.CSharp;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -16,7 +17,7 @@ internal static class Patch_DebugMods
     private static void Prefix(ICompilationDescriptor descriptor)
     {
         if (
-            !Flags.DebugMods
+            !Flags.Current.DebugMods
             || descriptor is not CompilationDescriptorBase compilation
             || compilation.Target != ScriptingTarget.GameMod
         )
