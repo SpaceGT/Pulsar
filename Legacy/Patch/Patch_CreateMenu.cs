@@ -59,6 +59,12 @@ public static class Patch_CreateMainMenu
             BorderHighlightEnabled = false,
             BorderColor = Vector4.Zero,
         };
+        if (Flags.Current.Profile is not null)
+        {
+            string message = "Plugins are externally managed by the launch profile";
+            openBtn.Enabled = false;
+            openBtn.SetToolTip(message);
+        }
         __instance.Controls.Add(openBtn);
 
         string host = !Tools.IsWindows() || Tools.IsProton() ? "Linux" : "Windows";

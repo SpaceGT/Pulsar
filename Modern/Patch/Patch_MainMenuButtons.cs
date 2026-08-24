@@ -4,6 +4,7 @@ using HarmonyLib;
 using Keen.Game2.Client.UI.Menu;
 using Pulsar.Modern.Screens;
 using Pulsar.Modern.Screens.PluginsScreen;
+using Pulsar.Shared.Arguments;
 using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Patch;
@@ -23,6 +24,12 @@ internal class Patch_MainMenuButtons
             ScreenTools.GetKeyFromString("Plugins"),
             PluginsScreenViewModel.OpenMenu
         );
+        if (Flags.Current.Profile is not null)
+        {
+            string message = "Plugins are externally managed by the launch profile";
+            pluginsButton.IsEnabled = false;
+            ToolTip.SetTip(pluginsButton, message);
+        }
 
         var buttons = __instance._buttonsPanel.Children;
         buttons.Insert(buttons.Count - 2, pluginsButton);

@@ -114,6 +114,9 @@ public sealed class Flags
     [Option("-multiInstance", Description = "Allow multiple Pulsar instances.")]
     public bool MultiInstance { get; internal set; }
 
+    [Option("-profile <name>", Description = "Force a specific plugin profile.")]
+    public string Profile { get; internal set; }
+
     // SE1 Specific
     [Option("-bin64 <path>", Description = "Use a specific Space Engineers Bin64 directory.")]
     public string Bin64 { get; internal set; }
