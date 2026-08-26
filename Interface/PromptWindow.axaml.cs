@@ -25,13 +25,13 @@ internal partial class PromptWindow : Window
         switch (request.Buttons)
         {
             case PromptButtons.YesNoCancel:
+                AddButton("Yes", PromptResult.Yes);
+                AddButton("No", PromptResult.No, true);
                 AddButton("Cancel", PromptResult.Cancel);
-                AddButton("No", PromptResult.No);
-                AddButton("Yes", PromptResult.Yes, true);
                 break;
             case PromptButtons.YesNo:
-                AddButton("No", PromptResult.No);
-                AddButton("Yes", PromptResult.Yes, true);
+                AddButton("Yes", PromptResult.Yes);
+                AddButton("No", PromptResult.No, true);
                 break;
             default:
                 AddButton("OK", PromptResult.Ok, true);
