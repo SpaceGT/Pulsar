@@ -2,8 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using FuzzySharp;
 using ProtoBuf;
@@ -162,7 +163,7 @@ public abstract class PluginData : IEquatable<PluginData>
                     $"The plugin {name} was blocked by windows. "
                         + "Please unblock the file in the dll file properties."
                 );
-            else if (e is WebException)
+            else if (e is HttpRequestException or TaskCanceledException)
                 Status = PluginStatus.Network;
             else
                 Error();
