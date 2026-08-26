@@ -1,13 +1,11 @@
 using HarmonyLib;
+using Keen.VRage.Core;
 using Pulsar.Shared.Splash;
 
 namespace Pulsar.Modern.Patch;
 
 [HarmonyPatchCategory("Early")]
-[HarmonyPatch(
-    "Keen.VRage.Platform.Windows.EngineComponents.WinWindowsEngineComponent, VRage.Platform.Windows",
-    "OnApplicationReady"
-)]
+[HarmonyPatch(typeof(VRageCore), nameof(VRageCore.NotifyApplicationReady))]
 internal static class Patch_ShowGame
 {
     [HarmonyPriority(Priority.Last)]
@@ -16,7 +14,7 @@ internal static class Patch_ShowGame
         if (SplashManager.Instance is null)
             return;
 
-        System.Threading.Thread.Sleep(250);
+        System.Threading.Thread.Sleep(250); // Let progress bar finish
         SplashManager.Instance.Delete();
     }
 }

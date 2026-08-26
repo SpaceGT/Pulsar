@@ -75,6 +75,8 @@ internal static class Game
             args = [.. args, "-startLast"];
         if (Flags.Current.MultiInstance)
             args = [.. args, "-allowMultiple"];
+        if (Flags.Current.SplashType != SplashType.Native)
+            args = [.. args, "-nosplash"];
 
         Keen.Game2.Program.Main(args);
     }

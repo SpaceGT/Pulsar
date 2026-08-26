@@ -21,6 +21,6 @@ internal static class Progress
         tracker.Patch("Keen.Game2.GameApp, SpaceEngineers2", "PostEngineInit", 0.61f);
         tracker.Patch("Keen.VRage.Core.EngineComponents.EngineBuilder, VRage.Core", "Dispose", 0.77f);
         tracker.Patch("Keen.Game2.Simulation.RuntimeSystems.CoreScenes.GameCoreScene, Game2.Simulation", "TransitionToMainMenu", 0.90f);
-        tracker.Patch("Keen.VRage.Platform.Windows.EngineComponents.WinWindowsEngineComponent, VRage.Platform.Windows", "OnApplicationReady", 1f, true);
+        tracker.Patch("Keen.VRage.Core.VRageCore, VRage.Core", "NotifyApplicationReady", 1f, true);
     }
 }
