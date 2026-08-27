@@ -55,7 +55,7 @@ public class Preloader
             string seDll = Path.Combine(gameDir, dll);
             HashSet<MethodInfo> patchMethods = kvp.Value;
 
-            if (EnsureNotLoaded(dll))
+            if (EnsureNotLoaded(Path.GetFileNameWithoutExtension(dll)))
                 continue;
 
             if (TryReadAssembly(seDll, readerParams, patchMethods, out var asmDef))
