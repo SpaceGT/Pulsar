@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
 using Keen.VRage.Core;
@@ -9,6 +10,7 @@ using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
 using Pulsar.Shared.Arguments;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -46,15 +48,19 @@ internal static class Game
         Patch_LoadPlugin.PluginsToLoad.Add(plugin);
     }
 
-    public static void SetMainAssembly(string assemblyPath)
+    public static void SetMainAssembly(string assemblyPath, ref string[] args)
     {
         string asmFolder = Path.GetDirectoryName(assemblyPath);
+        string gameRoot = Directory.GetParent(ConfigManager.Instance.GameDir).FullName;
+        string vanillaProject = Path.Combine(gameRoot, "GameData", "Vanilla", "Vanilla.vrgproj");
 
-        // This is to fix errors on game startup.
-        // Game code uses GetEntryAssembly() and APP_CONTEXT_BASE_DIRECTORY AppContext variable,
-        // which would point to the Pulsar folder instead.
         Assembly.SetEntryAssembly(AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath));
         AppContext.SetData("APP_CONTEXT_BASE_DIRECTORY", asmFolder);
+
+        if (!args.Any(arg => arg.StartsWith("-projectPaths:")))
+            args = [.. args, $"-projectPaths:{vanillaProject}"];
+        else
+            LogFile.Warn("Unset '-projectPaths' or add 'Vanilla.vrgproj' for full preloaders!");
 
         Environment.CurrentDirectory = asmFolder;
     }

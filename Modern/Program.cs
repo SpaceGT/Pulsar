@@ -251,7 +251,14 @@ static class Program
 
     private static string[] GetCorePlugins()
     {
-        return [];
+        string game2Dir = ConfigManager.Instance.GameDir;
+
+        // Recompiled SpaceEngineers builds have built-in compatibility
+        // Official Keen releases have net48 config files for some reason.
+        if (!Tools.GetFiles(game2Dir, ["*.config"], []).Any())
+            return [];
+
+        return Tools.IsWindows() ? [] : ["linux-compat"];
     }
 
     private static void SetupGameResolver()
@@ -288,7 +295,7 @@ static class Program
 
         LogFile.GameLog = new GameLog();
 
-        Game.SetMainAssembly(originalLoaderPath);
+        Game.SetMainAssembly(originalLoaderPath, ref args);
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");
