@@ -59,7 +59,7 @@ public static class Steam
                 startInfo = new ProcessStartInfo(
                     "/bin/sh",
                     """
-                    -c "exec setsid -f steam -silent </dev/null >/dev/null 2>&1"
+                    -c "exec env -u SteamAppId setsid -f steam -silent </dev/null >/dev/null 2>&1"
                     """
                 );
             else if (GetSteamPath() is string path)
