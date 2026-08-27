@@ -114,6 +114,9 @@ public sealed class Flags
     [Option("-multiInstance", Description = "Allow multiple Pulsar instances.")]
     public bool MultiInstance { get; internal set; }
 
+    [Option("-lazyPreload", Description = "Reuse existing preloader assemblies.")]
+    public bool LazyPreload { get; internal set; }
+
     [Option("-profile <name>", Description = "Force a specific plugin profile.")]
     public string Profile { get; internal set; }
 

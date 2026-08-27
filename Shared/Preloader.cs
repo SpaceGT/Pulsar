@@ -6,6 +6,7 @@ using System.Reflection;
 using HarmonyLib;
 using Mono.Cecil;
 using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Shared;
 
@@ -53,10 +54,18 @@ public class Preloader
         {
             string dll = kvp.Key;
             string seDll = Path.Combine(gameDir, dll);
+            string newDll = Path.Combine(cacheDir, dll);
             HashSet<MethodInfo> patchMethods = kvp.Value;
 
             if (EnsureNotLoaded(Path.GetFileNameWithoutExtension(dll)))
                 continue;
+
+            // Can skip non-deterministic Preloaders: use with caution!
+            if (Flags.Current.LazyPreload && File.Exists(newDll))
+            {
+                Assembly.LoadFrom(newDll);
+                continue;
+            }
 
             if (TryReadAssembly(seDll, readerParams, patchMethods, out var asmDef))
                 continue;
@@ -69,7 +78,6 @@ public class Preloader
             asmDef.MainModule.Attributes |= ModuleAttributes.ILOnly;
 
             // CLR does not respect pure in-memory references when resolving
-            string newDll = Path.Combine(cacheDir, dll);
             asmDef.Write(newDll);
             Assembly.LoadFrom(newDll);
         }
