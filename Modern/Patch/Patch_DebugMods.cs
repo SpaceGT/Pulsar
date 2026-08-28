@@ -14,11 +14,12 @@ namespace Pulsar.Modern.Patch;
 [HarmonyPatch(typeof(ScriptCompiler), nameof(ScriptCompiler.CompileAsync))]
 internal static class Patch_DebugMods
 {
+    private static bool Prepare() => Flags.Current.DebugMods;
+
     private static void Prefix(ICompilationDescriptor descriptor)
     {
         if (
-            !Flags.Current.DebugMods
-            || descriptor is not CompilationDescriptorBase compilation
+            descriptor is not CompilationDescriptorBase compilation
             || compilation.Target != ScriptingTarget.GameMod
         )
             return;

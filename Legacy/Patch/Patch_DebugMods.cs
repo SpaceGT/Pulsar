@@ -13,11 +13,10 @@ namespace Pulsar.Legacy.Patch;
 [HarmonyPatch(typeof(MyScriptWhitelist), MethodType.Constructor, [typeof(MyScriptCompiler)])]
 internal static class Patch_AllowDebugger
 {
+    private static bool Prepare() => Flags.Current.DebugMods;
+
     private static void Postfix(MyScriptWhitelist __instance)
     {
-        if (!Flags.Current.DebugMods)
-            return;
-
         using IMyWhitelistBatch batch = __instance.OpenBatch();
         batch.AllowTypes(MyWhitelistTarget.ModApi, typeof(Debugger));
     }

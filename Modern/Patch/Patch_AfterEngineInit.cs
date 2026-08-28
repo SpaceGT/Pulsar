@@ -17,21 +17,19 @@ namespace Pulsar.Modern.Patch;
 // This is the eariest point where we can safely interact with the game's subsystems.
 internal static class Patch_AfterEngineInit
 {
+    private static bool Prepare() => Flags.Current.DebugMenu;
+
     public static void Prefix()
     {
-        if (Flags.Current.DebugMenu)
-        {
-            AvaloniaApp.Instance.MainWindow?.AttachDevTools(
-                new KeyGesture(Key.F12, KeyModifiers.Shift)
-            );
+        AvaloniaApp.Instance.MainWindow?.AttachDevTools(
+            new KeyGesture(Key.F12, KeyModifiers.Shift)
+        );
 
-            Singleton<VRageCore>
-                .Instance.Engine.Get<DebugMenuEngineComponent>()
-                ._debugMenu.IsEnabled = true;
-            Singleton<VRageCore>
-                .Instance.Engine.Get<RenderEngineComponent>()
-                .RenderContracts.GetRenderSystem()
-                .AreDebugCommandsEnabled = true;
-        }
+        Singleton<VRageCore>.Instance.Engine.Get<DebugMenuEngineComponent>()._debugMenu.IsEnabled =
+            true;
+        Singleton<VRageCore>
+            .Instance.Engine.Get<RenderEngineComponent>()
+            .RenderContracts.GetRenderSystem()
+            .AreDebugCommandsEnabled = true;
     }
 }

@@ -11,6 +11,8 @@ namespace Pulsar.Legacy.Patch;
 [HarmonyPatchCategory("Early")]
 internal class Patch_MySessionLoader
 {
+    private static bool Prepare() => Flags.Current.TrustedMods;
+
     [HarmonyPatch(typeof(MySessionLoader), "LoadMultiplayerScenarioWorld")]
     [HarmonyPrefix]
     public static void Patch_LoadMultiplayerScenarioWorld(
@@ -18,8 +20,7 @@ internal class Patch_MySessionLoader
         MyMultiplayerBase multiplayerSession
     )
     {
-        if (Flags.Current.TrustedMods)
-            world.Checkpoint.Mods.RemoveAll(SteamMods.IsModUntrusted);
+        world.Checkpoint.Mods.RemoveAll(SteamMods.IsModUntrusted);
     }
 
     [HarmonyPatch(typeof(MySessionLoader), "LoadMultiplayerSession")]
@@ -29,7 +30,6 @@ internal class Patch_MySessionLoader
         MyMultiplayerBase multiplayerSession
     )
     {
-        if (Flags.Current.TrustedMods)
-            world.Checkpoint.Mods.RemoveAll(SteamMods.IsModUntrusted);
+        world.Checkpoint.Mods.RemoveAll(SteamMods.IsModUntrusted);
     }
 }

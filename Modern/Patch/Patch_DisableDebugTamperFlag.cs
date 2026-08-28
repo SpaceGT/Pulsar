@@ -9,14 +9,11 @@ namespace Pulsar.Modern.Patch;
 [HarmonyPatch(typeof(GameSaveInfoSessionComponent), "UsedDebugMenu", MethodType.Getter)]
 internal class Patch_DisableDebugTamperFlag
 {
+    private static bool Prepare() => Flags.Current.DebugMenu;
+
     private static bool Prefix(ref bool __result)
     {
-        if (Flags.Current.DebugMenu)
-        {
-            __result = false;
-            return false;
-        }
-
-        return true;
+        __result = false;
+        return false;
     }
 }

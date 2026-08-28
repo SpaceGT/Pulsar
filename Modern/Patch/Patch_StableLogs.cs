@@ -11,15 +11,14 @@ namespace Pulsar.Modern.Patch;
 [HarmonyPatch(typeof(LogManager), nameof(LogManager.GetLogFile))]
 internal class Patch_StableLogs
 {
+    private static bool Prepare() => Flags.Current.StableLogs;
+
     private static bool Prefix(
         string filenameSuffix,
         string ____filenamePrefix,
         ref FileHandleWritable __result
     )
     {
-        if (!Flags.Current.StableLogs)
-            return true;
-
         string fileName = ____filenamePrefix.TrimEnd('_') + filenameSuffix + ".log";
         __result = TempStorageManager.Instance.GetFileHandleWritable("Logs\\" + fileName);
         return false;

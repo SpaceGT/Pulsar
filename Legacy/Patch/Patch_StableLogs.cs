@@ -10,11 +10,10 @@ namespace Pulsar.Legacy.Patch;
 [HarmonyPatch(typeof(MyLog), "GetLogName")]
 internal class Patch_StableLogs
 {
+    private static bool Prepare() => Flags.Current.StableLogs;
+
     private static bool Prefix(string appName, ref StringBuilder __result)
     {
-        if (!Flags.Current.StableLogs)
-            return true;
-
         __result = new StringBuilder(appName).Append(".log");
         return false;
     }

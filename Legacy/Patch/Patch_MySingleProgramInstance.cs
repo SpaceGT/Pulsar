@@ -13,5 +13,7 @@ namespace Pulsar.Legacy.Patch;
 )]
 internal static class Patch_MySingleProgramInstance
 {
-    private static void Postfix(ref bool __result) => __result |= Flags.Current.MultiInstance;
+    private static bool Prepare() => Flags.Current.MultiInstance;
+
+    private static void Postfix(ref bool __result) => __result = true;
 }
