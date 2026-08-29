@@ -237,13 +237,18 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public long Rank(string query)
     {
-        string[] terms = query
-            .Trim()
-            .ToUpperInvariant()
-            .Split([';'], StringSplitOptions.RemoveEmptyEntries);
-
+        string[] terms = ProcessQuery(query);
         return StrictRank(terms) * (long)int.MaxValue + FuzzyRank(terms);
     }
+
+    public bool MatchName(string query)
+    {
+        string[] terms = ProcessQuery(query);
+        return terms.Contains(FriendlyName.ToUpperInvariant());
+    }
+
+    private static string[] ProcessQuery(string query) =>
+        [.. query.Split([';']).Select(x => x.Trim().ToUpperInvariant()).Where(x => x.Length > 0)];
 
     private int StrictRank(string[] terms)
     {

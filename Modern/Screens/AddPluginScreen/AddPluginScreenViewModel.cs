@@ -12,11 +12,11 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 {
     public ObservableCollection<PluginViewModel> Plugins { get; private set; }
     public readonly bool Mods;
-    public string Filter;
+    public string Filter = string.Empty;
     public SortingMethod SortMethod = SortingMethod.Random;
 
     private readonly List<PluginViewModel> plugins;
-    private event Action onScreenClose;
+    private event Action OnScreenClose;
 
     public enum SortingMethod : int
     {
@@ -40,9 +40,9 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Mods = mods;
 
-        this.plugins = plugins;
-        Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedEnvironment)]);
-        this.onScreenClose = onScreenClose;
+        this.plugins = [.. plugins.Where(x => x.IsSupportedEnvironment)];
+        Plugins = new([.. this.plugins.Where(x => !x.IsHidden)]);
+        OnScreenClose = onScreenClose;
 
         SortPlugins(SortingMethod.Random);
     }
@@ -50,7 +50,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
     public override void OnDispose()
     {
         base.OnDispose();
-        onScreenClose?.Invoke();
+        OnScreenClose?.Invoke();
     }
 
     public void SortPlugins(SortingMethod sort)
@@ -79,12 +79,8 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Plugins.Clear();
 
-        Plugins.AddRange([
-            .. plugins.Where(x =>
-                (!x.IsHidden || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
-                && x.IsSupportedEnvironment
-            ),
-        ]);
+        Plugins.AddRange(plugins.Where(x => x.IsHidden && x.PluginData.MatchName(Filter)));
+        Plugins.AddRange(plugins.Where(x => !x.IsHidden));
     }
 
     public void SortPluginsBySearch()

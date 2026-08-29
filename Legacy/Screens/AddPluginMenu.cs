@@ -242,7 +242,7 @@ public class AddPluginMenu : PluginScreen
     private void CreatePluginList(MyGuiControlParent panel)
     {
         PluginData[] shownPlugins = hidden
-            .Where(x => x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.MatchName(Filter))
             .Concat(plugins)
             .ToArray();
 
