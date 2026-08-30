@@ -75,7 +75,14 @@ public class Updater(string repoName)
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel, PromptIcon.Question);
+        // Unattended machines skip the update and keep launching; the Cancel
+        // fallback would exit the process instead.
+        return Tools.ShowMessageBox(
+            prompt,
+            PromptButtons.YesNoCancel,
+            PromptIcon.Question,
+            PromptResult.No
+        );
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -95,7 +102,15 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Warning);
+        // Unattended machines must continue: any other fallback would exit
+        // on every launch after a game update, boot-looping hosts that
+        // restart the process automatically.
+        PromptResult result = Tools.ShowMessageBox(
+            prompt,
+            PromptButtons.YesNo,
+            PromptIcon.Warning,
+            PromptResult.Yes
+        );
 
         if (result != PromptResult.Yes)
             Environment.Exit(0);
