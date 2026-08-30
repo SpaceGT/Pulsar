@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Avalonia.Controls;
 using Keen.Game2;
@@ -50,6 +51,7 @@ internal static class ScreenTools
         return new OneOptionDialogDefinition() { ConfirmOption = GetKeyFromString("Yes") };
     }
 
+    [SuppressMessage("Interoperability", "CA1416", Justification = "Handled by SE Linux port")]
     public static SharedUIComponent GetSharedUIComponent()
     {
         return Singleton<VRageCore>.Instance.Engine.Get<GameAppComponent>().GetSharedUI();

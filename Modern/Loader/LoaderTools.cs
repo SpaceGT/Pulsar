@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using HarmonyLib;
@@ -9,6 +10,7 @@ using Keen.Game2.Client.UI.InGame;
 using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
 using Keen.VRage.Core;
 using Keen.VRage.Core.Platform.CrashReporting;
+using Keen.VRage.Library.Threading;
 using Keen.VRage.Library.Utils;
 using Pulsar.Modern.Screens;
 using Pulsar.Shared;
@@ -20,6 +22,7 @@ internal static class LoaderTools
     private const string ContinueArg = "-continue";
     private const string DebugArg = "-debug";
 
+    [SuppressMessage("Interoperability", "CA1416", Justification = "Handled by SE Linux port")]
     public static void AskToRestart()
     {
         bool isInGame =
@@ -37,6 +40,7 @@ internal static class LoaderTools
             RestartGame();
     }
 
+    [SuppressMessage("Interoperability", "CA1416", Justification = "Handled by SE Linux port")]
     private static void AskSave(Action afterMenu)
     {
         var definition = ScreenTools.GetDefaultYesNoCancelDialog();
@@ -49,13 +53,13 @@ internal static class LoaderTools
             .ShowDialog(
                 new ThreeOptionsDialogViewModel(definition)
                 {
-                    ConfirmAction = async () =>
+                    ConfirmAction = () =>
                     {
                         var inGameUi = Singleton<VRageCore>
                             .Instance.Engine.Get<GameAppComponent>()
                             .ClientSession.SessionComponents.Get<SessionInGameUISessionComponent>();
 
-                        await inGameUi.SaveAndExecute(afterMenu);
+                        inGameUi.SaveAndExecute(afterMenu).SkipWait();
                     },
                     DefaultAction = () =>
                     {

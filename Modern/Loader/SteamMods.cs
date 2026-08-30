@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using Keen.VRage.Core;
 using Keen.VRage.Library.Threading;
@@ -13,6 +14,7 @@ namespace Pulsar.Modern.Loader;
 internal static class SteamMods
 {
     // This may need to be changed depending on if mod loading changes
+    [SuppressMessage("Interoperability", "CA1416", Justification = "Handled by SE Linux port")]
     public static void Update(IEnumerable<ulong> ids)
     {
         if (!Steam.IsInitialized || !ids.Any())

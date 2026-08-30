@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -74,6 +75,7 @@ internal static class Game
         return new Version(version.FileVersion);
     }
 
+    [SuppressMessage("Interoperability", "CA1416", Justification = "Handled by SE Linux port")]
     public static void StartSpaceEngineers2(string[] args)
     {
         // Prefer native SE2 arguments for Flag implementation
