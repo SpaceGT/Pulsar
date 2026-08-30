@@ -30,13 +30,16 @@
   <Target Name="Deploy" AfterTargets="Build" Condition="'$(TargetPlatform)' == 'Windows'">
     <PropertyGroup>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <ReadmePath>$(MSBuildProjectDirectory)/../README.md</ReadmePath>
     </PropertyGroup>
     <ItemGroup>
       <DeployFile Include="$(TargetPath)" />
     </ItemGroup>
     <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <Error Condition="!Exists('$(ReadmePath)')" Text="Readme file not found!" />
     <Copy SourceFiles="@(DeployFile)" DestinationFolder="$(Pulsar)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
+    <Copy SourceFiles="$(ReadmePath)" DestinationFolder="$(Pulsar)" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />

@@ -48,6 +48,7 @@
     <PropertyGroup>
       <DeployDirectory>$(Pulsar)/Libraries/Modern</DeployDirectory>
       <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <ReadmePath>$(MSBuildProjectDirectory)/../README.md</ReadmePath>
       <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
       <DestinationExecutable>$(Pulsar)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
     </PropertyGroup>
@@ -82,11 +83,13 @@
       <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
     </ItemGroup>
     <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <Error Condition="!Exists('$(ReadmePath)')" Text="Readme file not found!" />
     <RemoveDir Directories="$(DeployDirectory)" />
     <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
     <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
     <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
+    <Copy SourceFiles="$(ReadmePath)" DestinationFolder="$(Pulsar)" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
