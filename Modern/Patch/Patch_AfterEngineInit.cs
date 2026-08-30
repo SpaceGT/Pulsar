@@ -8,7 +8,7 @@ using Keen.VRage.Library.Utils;
 using Keen.VRage.Render.EngineComponents;
 using Keen.VRage.UI.AvaloniaInterface;
 using Pulsar.Shared;
-using Pulsar.Shared.Splash;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -17,23 +17,19 @@ namespace Pulsar.Modern.Patch;
 // This is the eariest point where we can safely interact with the game's subsystems.
 internal static class Patch_AfterEngineInit
 {
+    private static bool Prepare() => Flags.Current.DebugMenu;
+
     public static void Prefix()
     {
-        Singleton<VRageCore>.Instance.OnApplicationReady += () => SplashManager.Instance?.Delete();
+        AvaloniaApp.Instance.MainWindow?.AttachDevTools(
+            new KeyGesture(Key.F12, KeyModifiers.Shift)
+        );
 
-        if (Flags.DebugMenu)
-        {
-            AvaloniaApp.Instance.MainWindow?.AttachDevTools(
-                new KeyGesture(Key.F12, KeyModifiers.Shift)
-            );
-
-            Singleton<VRageCore>
-                .Instance.Engine.Get<DebugMenuEngineComponent>()
-                ._debugMenu.IsEnabled = true;
-            Singleton<VRageCore>
-                .Instance.Engine.Get<RenderEngineComponent>()
-                .RenderContracts.GetRenderSystem()
-                .AreDebugCommandsEnabled = true;
-        }
+        Singleton<VRageCore>.Instance.Engine.Get<DebugMenuEngineComponent>()._debugMenu.IsEnabled =
+            true;
+        Singleton<VRageCore>
+            .Instance.Engine.Get<RenderEngineComponent>()
+            .RenderContracts.GetRenderSystem()
+            .AreDebugCommandsEnabled = true;
     }
 }

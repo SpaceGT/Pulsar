@@ -5,6 +5,7 @@ using System.Text;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Screens.Controls;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Sandbox.Graphics.GUI;
@@ -26,6 +27,12 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     public static void Open()
     {
+        if (Steam.IsInitialized && !PlayerConsent.ConsentRequested)
+        {
+            PlayerConsent.ShowDialog(Open);
+            return;
+        }
+
         var configManager = ConfigManager.Instance;
         MainPluginMenu menu = new(configManager);
         MyGuiSandbox.AddScreen(menu);
@@ -297,7 +304,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
         MyGuiControlButton sourceButton = null;
 
-        if (Flags.CustomSources)
+        if (Flags.Current.CustomSources)
             sourceButton = new MyGuiControlButton(
                 text: new StringBuilder("Sources"),
                 toolTip: "Add or remove plugin sources",
@@ -324,6 +331,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
             toolTip: "Consent to use your data for usage tracking",
             isChecked: PlayerConsent.ConsentGiven
         );
+        consentBox.Enabled = Steam.IsInitialized;
         consentBox.IsCheckedChanged += OnConsentBoxChanged;
         PlayerConsent.OnConsentChanged += OnConsentChanged;
         layout.Add(consentBox, MyAlignH.Left);
@@ -492,7 +500,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void ReplaceDraft(Profile profile)
     {
-        SyncDevFolders(profile, draft);
         profile.Name = draft.Name;
         draft = profile;
     }
@@ -500,22 +507,16 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     private void SetEnabled(PluginData plugin, bool enabled)
     {
         plugin.UpdateProfile(draft, enabled);
-
-        if (!enabled && plugin is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
-
         RefreshPluginLists();
     }
 
     private void OnCancelClick(MyGuiControlButton btn)
     {
-        SyncDevFolders(profiles.Current, draft);
         CloseScreen();
     }
 
     protected override void Canceling()
     {
-        SyncDevFolders(profiles.Current, draft);
         base.Canceling();
     }
 
@@ -577,9 +578,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
                 diff |= cGitHub.SelectedVersion != dGitHub.SelectedVersion;
 
             if (cConfig is LocalFolderConfig cFolder && dConfig is LocalFolderConfig dFolder)
-                diff |=
-                    cFolder.DataFile != dFolder.DataFile
-                    || cFolder.DebugBuild != dFolder.DebugBuild;
+                diff |= cFolder.DebugBuild != dFolder.DebugBuild;
 
             if (diff && pluginList.TryGetPlugin(id, out PluginData plugin))
                 plugin.LoadData(dConfig);
@@ -588,25 +587,6 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         }
 
         return hasDiff;
-    }
-
-    private void SyncDevFolders(Profile target, Profile previous)
-    {
-        IEnumerable<string> folderIDs = target
-            .DevFolder.Concat(previous.DevFolder)
-            .Select(c => c.Id);
-
-        foreach (string configID in folderIDs)
-        {
-            var tFolder = (LocalFolderConfig)target.GetData(configID);
-            var pFolder = (LocalFolderConfig)previous.GetData(configID);
-
-            if (
-                tFolder?.DataFile != pFolder?.DataFile
-                && pluginList.TryGetPlugin(configID, out PluginData plugin)
-            )
-                plugin.LoadData(tFolder);
-        }
     }
 
     #endregion

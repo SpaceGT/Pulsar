@@ -5,19 +5,20 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using HarmonyLib;
 using Keen.VRage.Core;
 using Keen.VRage.Library.Utils;
-using Pulsar.Modern.Compiler;
+using Pulsar.Compiler;
+using Pulsar.Interface;
 using Pulsar.Modern.Launcher;
 using Pulsar.Modern.Loader;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
-using Application = System.Windows.Forms.Application;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
 using Tools = Pulsar.Shared.Tools;
@@ -49,19 +50,29 @@ static class Program
 
     private static void PulsarMain(string[] args)
     {
-        Application.EnableVisualStyles();
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
+        Parser.Initialize(args, false);
+
+        string guiPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Interface",
+            "Interface" + Tools.ExecutableExtension
+        );
+
+        using InterfaceClient interfaceClient = new(guiPath);
+        Tools.EarlyInit(interfaceClient);
 
         if (SharedLauncher.IsOtherPulsarRunning())
         {
-            Tools.ShowMessageBox("Error: Pulsar is already running!");
+            string message = "Pulsar is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return;
         }
 
-        if (Flags.ExternalDebug)
+        if (Flags.Current.ExternalDebug)
             Debugger.Launch();
-
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
         SetupCoreData(baseDir);
         Updater updater = TryUpdate(baseDir);
@@ -77,17 +88,19 @@ static class Program
         Environment.CurrentDirectory = baseDir;
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
-        string pulsarDir = Path.Combine(baseDir, asmName.Name);
-
-        if (!Directory.Exists(pulsarDir))
-            pulsarDir = Path.Combine(baseDir, "Modern");
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string dataDir = Flags.Current.UseHome ? Path.Combine(appData, "Pulsar") : baseDir;
+        string pulsarDir = Path.Combine(dataDir, "Modern");
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
+        LogFile.WriteLine($"Flavour: {asmName.Name}");
+        LogFile.WriteLine($"Platform: {Tools.Platform}");
+        LogFile.WriteLine($"Runtime: {Tools.Runtime}");
 
-        Flags.LogFlags();
+        Parser.LogChanged();
 
-        if (Flags.SplashType == SplashType.Pulsar)
+        if (Flags.Current.SplashType == SplashType.Pulsar)
             SplashManager.Instance = new SplashManager();
 
         SplashManager.Instance?.SetTitle("Pulsar");
@@ -105,7 +118,7 @@ static class Program
         string checkFile = Path.Combine(baseDir, "checksum.txt");
         string libraryDir = Path.Combine(baseDir, "Libraries");
 
-        if (Flags.MakeCheckFile)
+        if (Flags.Current.MakeCheckFile)
         {
             UTF8Encoding encoding = new();
             checkSum = Tools.GetFolderHash(libraryDir);
@@ -125,16 +138,19 @@ static class Program
         string game2Dir = Folder.GetGame2();
         if (game2Dir is null)
         {
-            Tools.ShowMessageBox(
-                $"Error: {OldLauncher} not found!\n"
-                    + "You can specify a custom location with \"-game2\""
-            );
+            string message =
+                $"{OldLauncher} not found!\nYou can specify a custom location with \"-game2\"";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             Environment.Exit(1);
         }
 
         string modDir = Path.Combine(
             game2Dir,
-            @"..\..\..\workshop\content",
+            "..",
+            "..",
+            "..",
+            "workshop",
+            "content",
             Steam.AppIdSe2.ToString()
         );
 
@@ -183,8 +199,6 @@ static class Program
     private static void SetupSteam()
     {
         SplashManager.Instance?.SetText("Starting Steam...");
-        string game2Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(game2Dir);
         Steam.Init(Steam.AppIdSe2);
     }
 
@@ -194,23 +208,34 @@ static class Program
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string dependencyDir = Path.Combine(baseDir, "Libraries", asmName.Name);
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Compiler" + Tools.ExecutableExtension
+        );
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string game2Dir = ConfigManager.Instance.GameDir;
 
-        using (CompilerFactory compiler = new([game2Dir, dependencyDir], game2Dir, pulsarDir))
-        {
-            // The AppDomain must be created ASAP if running under Mono
-            // as Mono does not isolate assemblies properly.
-            if (!Tools.IsNative())
-                compiler.Init();
+        string[] runtimeDirs = CompilerFactory.GetRuntimeDirectories();
 
+        using (
+            CompilerFactory compiler = new(
+                compilerPath,
+                [.. References.GetReferences(game2Dir)],
+                [.. runtimeDirs, game2Dir, dependencyDir],
+                LogFile.FilePath,
+                [.. Tools.GetCompilationSymbols(trusted: true)]
+            )
+        )
+        {
             Tools.Init(new ExternalTools(), compiler);
             SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }
 
-        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
-        if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
+        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Value));
+        if (preloader.HasPatches)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
             string preloadDir = Path.Combine(pulsarDir, "Preloader");
@@ -226,7 +251,14 @@ static class Program
 
     private static string[] GetCorePlugins()
     {
-        return [];
+        string game2Dir = ConfigManager.Instance.GameDir;
+
+        // Recompiled SpaceEngineers builds have built-in compatibility
+        // Official Keen releases have net48 config files for some reason.
+        if (!Tools.GetFiles(game2Dir, ["*.config"], []).Any())
+            return [];
+
+        return Tools.IsWindows() ? [] : ["linux-compat"];
     }
 
     private static void SetupGameResolver()
@@ -263,40 +295,17 @@ static class Program
 
         LogFile.GameLog = new GameLog();
 
-        Game.SetMainAssembly(originalLoaderPath);
+        Game.SetMainAssembly(originalLoaderPath, ref args);
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");
+        Progress.Start(assemblyName + ".Progress");
 
         Game.RegisterPlugin(typeof(PluginLoader));
 
-        SplashManager.Instance?.SetText("Launching Space Engineers 2...");
-        if (Tools.IsNative())
-            ProgressPollFactory().Start();
-
+        SplashManager.Instance?.SetText("Launching Space Engineers...");
+        SplashManager.Instance?.SetBarValue(0);
         Game.StartSpaceEngineers2(args);
-    }
-
-    private static Thread ProgressPollFactory()
-    {
-        static void ProgressPoll()
-        {
-            float progress = 0;
-            SplashManager splash = SplashManager.Instance;
-
-            while (SplashManager.Instance is not null && progress < 1)
-            {
-                // FIXME: Does not work well with preloaded assemblies
-                progress = Game.GetLoadProgress();
-
-                if (float.IsNaN(splash.BarValue) || splash.BarValue < progress)
-                    splash?.SetBarValue(progress);
-
-                Thread.Sleep(250); // ms
-            }
-        }
-
-        return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

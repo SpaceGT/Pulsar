@@ -1,6 +1,7 @@
 ﻿using HarmonyLib;
 using Keen.Game2.Simulation.RuntimeSystems.Saves;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Patch;
 
@@ -8,14 +9,11 @@ namespace Pulsar.Modern.Patch;
 [HarmonyPatch(typeof(GameSaveInfoSessionComponent), "UsedDebugMenu", MethodType.Getter)]
 internal class Patch_DisableDebugTamperFlag
 {
+    private static bool Prepare() => Flags.Current.DebugMenu;
+
     private static bool Prefix(ref bool __result)
     {
-        if (Flags.DebugMenu)
-        {
-            __result = false;
-            return false;
-        }
-
-        return true;
+        __result = false;
+        return false;
     }
 }

@@ -2,39 +2,69 @@
   <PropertyGroup>
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
-    <Copyright>© 2025 SpaceGT</Copyright>
+    <Copyright>© 2026 SpaceGT</Copyright>
   </PropertyGroup>
   <PropertyGroup>
-    <AssemblyName>Pulsar.Compiler</AssemblyName>
+    <AssemblyName>Compiler</AssemblyName>
     <RootNamespace>Pulsar.Compiler</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <OutputType>Exe</OutputType>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFramework>net48</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
   <PropertyGroup>
-    <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release</Configurations>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
+  <Target Name="Deploy" AfterTargets="Build">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/Compiler</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(DeployDirectory)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployFile Include="$(TargetDir)Mono.Cecil.dll" />
+      <DeployFile Include="$(TargetDir)NLog.dll" />
+      <DeployFile Include="$(TargetDir)Microsoft.CodeAnalysis.dll" />
+      <DeployFile Include="$(TargetDir)Microsoft.CodeAnalysis.CSharp.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <DeployFile Include="$(TargetDir)$(AssemblyName).exe.config" />
+      <DeployFile Include="$(TargetDir)System.Collections.Immutable.dll" />
+      <DeployFile Include="$(TargetDir)System.Memory.dll" />
+      <DeployFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      <DeployFile Include="$(TargetDir)System.Reflection.Metadata.dll" />
+      <DeployFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <DeployFile Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
+      <DeployFile Include="$(TargetDir)$(AssemblyName).deps.json" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
+  </Target>
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
+  </Target>
+  <ItemGroup>
+    <ProjectReference Include="../Protocol/Protocol.csproj" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />

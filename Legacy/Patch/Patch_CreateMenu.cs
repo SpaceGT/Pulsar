@@ -2,6 +2,7 @@
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.GUI;
 using VRage.Game;
@@ -58,15 +59,22 @@ public static class Patch_CreateMainMenu
             BorderHighlightEnabled = false,
             BorderColor = Vector4.Zero,
         };
+        if (Flags.Current.Profile is not null)
+        {
+            string message = "Plugins are externally managed by the launch profile";
+            openBtn.Enabled = false;
+            openBtn.SetToolTip(message);
+        }
         __instance.Controls.Add(openBtn);
 
-        ___m_exitGameButton?.Text = $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+        string host = !Tools.IsWindows() || Tools.IsProton() ? "Linux" : "Windows";
+        ___m_exitGameButton?.Text = $"Exit to {host}";
 
         if (
             ___m_continueButton is not null
             && ___m_continueButton.Visible
             && !usedAutoRejoin
-            && Flags.ContinueGame
+            && Flags.Current.ContinueGame
         )
         {
             ___m_continueButton.PressButton();

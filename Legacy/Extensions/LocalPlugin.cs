@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.IO;
+﻿using Pulsar.Shared;
 using Pulsar.Shared.Data;
 using Sandbox.Graphics.GUI;
 
@@ -9,9 +8,7 @@ internal static class LocalPluginExtensions
 {
     public static void Show(this LocalPlugin localPlugin)
     {
-        string file = Path.GetFullPath(localPlugin.Dll);
-        if (File.Exists(file))
-            Process.Start("explorer.exe", $"/select, \"{file}\"");
+        Tools.ShowInFileManager(localPlugin.Dll);
     }
 
     public static void GetDescriptionText(MyGuiControlMultilineText textbox)

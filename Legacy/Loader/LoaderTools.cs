@@ -1,11 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Shared;
 using Sandbox;
@@ -135,15 +135,15 @@ public static class LoaderTools
 
     public static void Restart(bool autoRejoin = false, bool? debugger = null)
     {
-        Shared.Launcher.Mutex.Close();
+        Shared.Launcher.ReleaseInstanceLock();
         Start(autoRejoin, debugger ?? Debugger.IsAttached);
         Process.GetCurrentProcess().Kill();
     }
 
     private static void Start(bool autoRejoin, bool debugger)
     {
-        // First "argument" is the invoked executable
-        List<string> args = [.. Environment.GetCommandLineArgs().Skip(1)];
+        string fileName = Process.GetCurrentProcess().MainModule.FileName;
+        List<string> args = Shared.Tools.GetRestartArgs(fileName);
 
         args.Remove(ContinueArg);
         if (autoRejoin)
@@ -154,7 +154,7 @@ public static class LoaderTools
             args.Add(DebugArg);
 
         ProcessStartInfo startInfo = new(
-            fileName: Application.ExecutablePath,
+            fileName: fileName,
             arguments: string.Join(" ", args.Select(a => $"\"{a}\""))
         );
 

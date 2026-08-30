@@ -1,8 +1,8 @@
-﻿using System.IO;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats;
@@ -87,7 +87,7 @@ internal class PluginViewModel : AttachedViewModel
             return "You have downvoted this.";
         }
     }
-    public bool CanVote => PluginData.Enabled || PluginStat.Tried;
+    public bool CanVote => Steam.IsInitialized && (PluginData.Enabled || PluginStat.Tried);
     public bool ShowStatElements => !PluginData.IsLocal;
 
     // Setter is used from Avalonia axaml, so those references don't show up.
@@ -98,9 +98,6 @@ internal class PluginViewModel : AttachedViewModel
         {
             PluginData.UpdateProfile(draft, value);
 
-            if (!value && PluginData is LocalFolderPlugin devFolder)
-                devFolder.DeserializeFile(null);
-
             OnPropertyChanged(nameof(DraftEnabled));
             OnPropertyChanged(nameof(FriendlyName));
             OnPropertyChanged(nameof(ToolTip));
@@ -109,7 +106,6 @@ internal class PluginViewModel : AttachedViewModel
             OnPropertyChanged(nameof(ShortDescription));
             OnPropertyChanged(nameof(PluginConfig));
             OnPropertyChanged(nameof(DebugBuild));
-            OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
         }
     }
 
@@ -142,17 +138,8 @@ internal class PluginViewModel : AttachedViewModel
         }
     }
 
-    public bool LoadDataFileButtonEnabled =>
-        PluginConfig is LocalFolderConfig folderConfig
-        && (
-            string.IsNullOrEmpty(folderConfig.DataFile)
-            || !File.Exists(
-                Path.Combine(((LocalFolderPlugin)PluginData).Folder, folderConfig.DataFile)
-            )
-        );
-
     public bool IsHidden => PluginData.Hidden;
-    public bool IsSupportedRuntime => PluginData.IsSupportedRuntime();
+    public bool IsSupportedEnvironment => PluginData.IsSupportedEnvironment();
 
     private readonly Profile draft;
     private readonly PluginInstance pluginInstance;
@@ -234,37 +221,5 @@ internal class PluginViewModel : AttachedViewModel
     public long Rank(string query)
     {
         return PluginData.Rank(query);
-    }
-
-    public void ShowLoadDataFileScreen()
-    {
-        ((LocalFolderPlugin)PluginData).LoadNewDataFile(
-            (file) =>
-            {
-                ((LocalFolderConfig)PluginConfig).DataFile = file;
-                OnPropertyChanged(nameof(FriendlyName));
-                OnPropertyChanged(nameof(ToolTip));
-                OnPropertyChanged(nameof(Author));
-                OnPropertyChanged(nameof(DetailDescription));
-                OnPropertyChanged(nameof(ShortDescription));
-                OnPropertyChanged(nameof(PluginConfig));
-                OnPropertyChanged(nameof(DebugBuild));
-                OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
-            }
-        );
-    }
-
-    public void RemoveDataFile()
-    {
-        ((LocalFolderPlugin)PluginData).DeserializeFile(null);
-        ((LocalFolderConfig)PluginConfig).DataFile = null;
-        OnPropertyChanged(nameof(FriendlyName));
-        OnPropertyChanged(nameof(ToolTip));
-        OnPropertyChanged(nameof(Author));
-        OnPropertyChanged(nameof(DetailDescription));
-        OnPropertyChanged(nameof(ShortDescription));
-        OnPropertyChanged(nameof(PluginConfig));
-        OnPropertyChanged(nameof(DebugBuild));
-        OnPropertyChanged(nameof(LoadDataFileButtonEnabled));
     }
 }

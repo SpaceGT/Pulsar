@@ -5,13 +5,13 @@ This is a hard fork of the discontinued [PluginLoader](https://github.com/seplug
 ## Installation
 Pulsar is portable: simply download the [latest release](https://github.com/SpaceGT/Pulsar/releases/latest) into a folder of choice.<br>
 This folder **must not** contain important data; It **will be cleaned** during a Pulsar update! <br>
-If you are building from source, the deploy script will copy all files to their required location.<br>
+If you are building from source, the deployment targets will copy all files to their required location.<br>
 An windows-only [installer](https://github.com/StarCpt/Pulsar-Installer) exists which can do all the work (including Steam configuration) for you.<br>
 
 ## Executables
 `Legacy` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET Framework](https://dotnet.microsoft.com/en-us/download/dotnet-framework)<br>
 `Interim` runs [Space Engineers 1](https://steampowered.com/app/244850) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-(via [se-dotnet-compat](https://github.com/viktor-ferenczi/se-dotnet-compat))<br>
+(via [dotnet-compat](https://github.com/CometWorks/dotnet-compat))<br>
 `Modern` runs [Space Engineers 2](https://steampowered.com/app/1133870) on [.NET 10](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)<br>
 
 ## Steam
@@ -24,6 +24,20 @@ Starting Space Engineers from Steam will now open Pulsar as well!<br>
 ## Plugins
 Pulsar officially endorses the [PluginHub](https://github.com/StarCpt/PluginHub) for high-quality vetted plugins.<br>
 Further sources may be added in-game but make sure you fully understand the risks.<br>
+
+## Development
+Local build paths are empty in `Directory.Build.props`:
+- `TargetPlatform`
+- `Pulsar`
+- `Bin64`
+- `Game2`
+- `Steamworks`
+
+To override them, copy its first `PropertyGroup` into `Directory.Build.props.user` 
+(git-ignored) in the repo root, wrapped in a top-level `<Project>` element, 
+and fill in your paths.
+
+Anything left empty there falls back to the defaults in `Directory.Build.props`.
 
 ## Contact
 We have an active [Discord](https://discord.gg/z8ZczP2YZY) for updates and developer information.<br>

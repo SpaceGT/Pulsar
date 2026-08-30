@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Pulsar.Legacy.Screens.GuiControls;
+using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Stats.Model;
@@ -41,19 +42,20 @@ public class AddPluginMenu : PluginScreen
         Search,
         Usage,
         Rating,
+        Random,
     }
 
     public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
         : base(size: new Vector2(0.8f, 0.9f))
     {
-        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedRuntime());
+        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedEnvironment());
         this.plugins = [.. supported.Where(x => !x.Hidden)];
         hidden = [.. supported.Where(x => x.Hidden)];
 
         stats = ConfigManager.Instance.Stats ?? new PluginStats();
         this.mods = mods;
         this.draft = draft;
-        SortPlugins(SortingMethod.Name);
+        SortPlugins(SortingMethod.Random);
     }
 
     public override string GetFriendlyName()
@@ -168,6 +170,9 @@ public class AddPluginMenu : PluginScreen
     {
         switch (sort)
         {
+            case SortingMethod.Random:
+                Tools.Shuffle(plugins);
+                break;
             case SortingMethod.Name:
                 plugins.Sort(ComparePluginsByName);
                 break;
@@ -203,7 +208,7 @@ public class AddPluginMenu : PluginScreen
 
     private int ComparePluginsByName(PluginData x, PluginData y)
     {
-        return x.FriendlyName.CompareTo(y.FriendlyName, StringComparison.OrdinalIgnoreCase);
+        return StringComparer.OrdinalIgnoreCase.Compare(x.FriendlyName, y.FriendlyName);
     }
 
     private int ComparePluginsByUsage(PluginData x, PluginData y)
@@ -237,7 +242,7 @@ public class AddPluginMenu : PluginScreen
     private void CreatePluginList(MyGuiControlParent panel)
     {
         PluginData[] shownPlugins = hidden
-            .Where(x => x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
+            .Where(x => x.MatchName(Filter))
             .Concat(plugins)
             .ToArray();
 
@@ -365,10 +370,6 @@ public class AddPluginMenu : PluginScreen
             return;
 
         plugin.UpdateProfile(draft, checkbox.IsChecked);
-
-        if (!checkbox.IsChecked && plugin is LocalFolderPlugin devFolder)
-            devFolder.DeserializeFile(null);
-
         RefreshPluginList();
     }
 

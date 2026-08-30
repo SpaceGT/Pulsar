@@ -4,13 +4,15 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Pulsar.Legacy.Screens;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Splash;
+using Sandbox.Engine.Utils;
 using Sandbox.Game.World;
 using VRage;
 using VRage.Plugins;
@@ -69,48 +71,41 @@ public class PluginLoader : IHandleInputPlugin
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
-        if (ConfigManager.Instance.SafeMode)
-        {
-            plugins.Clear();
-            LogFile.Warn("Skipping plugin instantiation");
-        }
-        else
-        {
-            InstantiatePlugins();
-            LogFile.WriteLine($"Initializing {plugins.Count} plugins");
-            SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
+        InstantiatePlugins();
+        LogFile.WriteLine($"Initializing {plugins.Count} plugins");
+        SplashManager.Instance?.SetText($"Initializing {plugins.Count} plugins");
 
-            if (Flags.CheckAllPlugins)
-                debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
+        if (Flags.Current.CheckAllPlugins)
+            debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
-            for (int i = plugins.Count - 1; i >= 0; i--)
+        for (int i = plugins.Count - 1; i >= 0; i--)
+        {
+            PluginInstance p = plugins[i];
+            if (!p.Init(gameInstance))
             {
-                PluginInstance p = plugins[i];
-                if (!p.Init(gameInstance))
-                {
-                    plugins.RemoveAtFast(i);
-                    if (Flags.CheckAllPlugins)
-                        debugCompileResults
-                            .Append(p.FriendlyName ?? "(null)")
-                            .Append(" - ")
-                            .Append(p.Id ?? "(null)")
-                            .Append(" by ")
-                            .Append(p.Author ?? "(null)")
-                            .AppendLine();
-                }
+                plugins.RemoveAtFast(i);
+                if (Flags.Current.CheckAllPlugins)
+                    debugCompileResults
+                        .Append(p.FriendlyName ?? "(null)")
+                        .Append(" - ")
+                        .Append(p.Id ?? "(null)")
+                        .Append(" by ")
+                        .Append(p.Author ?? "(null)")
+                        .AppendLine();
             }
         }
 
         init = true;
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
         {
-            MessageBox.Show("All plugins compiled, log file will now open");
+            string message = "All plugins compiled, log file will now open";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }
 
-        SplashManager.Instance?.SetText($"Updating workshop items...");
+        SplashManager.Instance?.SetText("Updating workshop items...");
 
         PluginList list = ConfigManager.Instance.List;
         Profile current = ConfigManager.Instance.Profiles.Current;
@@ -183,8 +178,8 @@ public class PluginLoader : IHandleInputPlugin
 
     private void InstantiatePlugins()
     {
-        foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+        foreach (var plugin in SharedLoader.Instance.Plugins)
+            if (PluginInstance.TryGet(plugin.Key, plugin.Value, out PluginInstance instance))
                 plugins.Add(instance);
 
         for (int i = plugins.Count - 1; i >= 0; i--)
@@ -198,7 +193,7 @@ public class PluginLoader : IHandleInputPlugin
     private static void ShowGame()
     {
         SplashManager.Instance?.Delete();
-        Patch.Patch_ShowAndFocus.Enabled = true;
+        MyFakes.ENABLE_HIDDEN_GAME_FORM = false;
         MyVRage.Platform.Windows.Window.ShowAndFocus();
     }
 }

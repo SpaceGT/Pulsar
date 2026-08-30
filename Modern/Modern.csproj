@@ -10,39 +10,29 @@
     <AssemblyName>Modern</AssemblyName>
     <RootNamespace>Pulsar.Modern</RootNamespace>
     <PackageId>Pulsar</PackageId>
-    <StartProgram>$(Pulsar)\Modern.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Modern$(ExecutableExtension)</StartProgram>
     <IsPackable>false</IsPackable>
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Steamworks>$(Game2)</Steamworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
   <PropertyGroup>
-    <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release</Configurations>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>..\Shared\Splash\icon.ico</ApplicationIcon>
+    <ApplicationIcon>../Interface/Assets/icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -54,55 +44,109 @@
   <PropertyGroup>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot;" />
+  <Target Name="Deploy" AfterTargets="Build">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/Modern</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(Pulsar)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)0Harmony.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Mono.Cecil.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
+      <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
+      <DeployLibraryFile Include="$(TargetDir)SharpCompress.dll" />
+      <DeployLibraryFile Include="$(TargetDir)McMaster.Extensions.CommandLineUtils.dll" />
+      <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Configuration.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.DependencyResolver.Core.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Frameworks.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.LibraryModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Packaging.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.ProjectModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Versioning.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <DeployLibraryFile Include="$(Steamworks)/Steamworks.NET.dll" />
+      <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
+    <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Game2)&quot;" />
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
+    <Error Condition="'$(Game2)' == '' or !Exists('$(Game2)')" Text="Specify SpaceEngineers Game2 path!" />
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+    <Error Condition="!Exists('$(Steamworks)/$(SteamApiFileName)')" Text="$(SteamApiFileName) not found!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" AdditionalProperties="Steamworks=$(Steamworks)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Avalonia.Controls.ItemsRepeater" HintPath="$(Game2)\Avalonia.Controls.ItemsRepeater.dll" Private="False" />
-    <Reference Include="Avalonia.Diagnostics" HintPath="$(Game2)\Avalonia.Diagnostics.dll" Private="False" />
-    <Reference Include="Avalonia.ReactiveUI" HintPath="$(Game2)\Avalonia.ReactiveUI.dll" Private="False" />
-    <Reference Include="Avalonia.Themes.Fluent" HintPath="$(Game2)\Avalonia.Themes.Fluent.dll" Private="False" />
-    <Reference Include="DynamicData" HintPath="$(Game2)\DynamicData.dll" Private="False" />
-    <Reference Include="Game2.Client" HintPath="$(Game2)\Game2.Client.dll" Private="False" />
-    <Reference Include="Game2.Game" HintPath="$(Game2)\Game2.Game.dll" Private="False" />
-    <Reference Include="Game2.Simulation" HintPath="$(Game2)\Game2.Simulation.dll" Private="False" />
-    <Reference Include="SpaceEngineers2" HintPath="$(Game2)\SpaceEngineers2.dll" Private="False" />
-    <Reference Include="Steamworks.NET" HintPath="$(Game2)\Steamworks.NET.dll" Private="False" />
-    <Reference Include="VRage.Client" HintPath="$(Game2)\VRage.Client.dll" Private="False" />
-    <Reference Include="VRage.Core" HintPath="$(Game2)\VRage.Core.dll" Private="False" />
-    <Reference Include="VRage.Core.Game" HintPath="$(Game2)\VRage.Core.Game.dll" Private="False" />
-    <Reference Include="VRage.DCS" HintPath="$(Game2)\VRage.DCS.dll" Private="False" />
-    <Reference Include="VRage.Input" HintPath="$(Game2)\VRage.Input.dll" Private="False" />
-    <Reference Include="VRage.Library" HintPath="$(Game2)\VRage.Library.dll" Private="False" />
-    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)\VRage.Platform.Windows.dll" Private="False" />
-    <Reference Include="VRage.Render" HintPath="$(Game2)\VRage.Render.dll" Private="False" />
-    <Reference Include="VRage.Steam" HintPath="$(Game2)\VRage.Steam.dll" Private="False" />
-    <Reference Include="VRage.UI" HintPath="$(Game2)\VRage.UI.dll" Private="False" />
-    <Reference Include="VRage.UI.Shared" HintPath="$(Game2)\VRage.UI.Shared.dll" Private="False" />
+    <Reference Include="Avalonia.Controls.ItemsRepeater" HintPath="$(Game2)/Avalonia.Controls.ItemsRepeater.dll" Private="False" />
+    <Reference Include="Avalonia.Diagnostics" HintPath="$(Game2)/Avalonia.Diagnostics.dll" Private="False" />
+    <Reference Include="Avalonia.ReactiveUI" HintPath="$(Game2)/Avalonia.ReactiveUI.dll" Private="False" />
+    <Reference Include="Avalonia.Themes.Fluent" HintPath="$(Game2)/Avalonia.Themes.Fluent.dll" Private="False" />
+    <Reference Include="DynamicData" HintPath="$(Game2)/DynamicData.dll" Private="False" />
+    <Reference Include="Game2.Client" HintPath="$(Game2)/Game2.Client.dll" Private="False" />
+    <Reference Include="Game2.Game" HintPath="$(Game2)/Game2.Game.dll" Private="False" />
+    <Reference Include="Game2.Simulation" HintPath="$(Game2)/Game2.Simulation.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Game2)/Microsoft.CodeAnalysis.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(Game2)/Microsoft.CodeAnalysis.CSharp.dll" Private="False" />
+    <Reference Include="SpaceEngineers2" HintPath="$(Game2)/SpaceEngineers2.dll" Private="False" />
+    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)/Steamworks.NET.dll" Private="False" />
+    <Reference Include="VRage.Client" HintPath="$(Game2)/VRage.Client.dll" Private="False" />
+    <Reference Include="VRage.Core" HintPath="$(Game2)/VRage.Core.dll" Private="False" />
+    <Reference Include="VRage.Core.Game" HintPath="$(Game2)/VRage.Core.Game.dll" Private="False" />
+    <Reference Include="VRage.DCS" HintPath="$(Game2)/VRage.DCS.dll" Private="False" />
+    <Reference Include="VRage.Input" HintPath="$(Game2)/VRage.Input.dll" Private="False" />
+    <Reference Include="VRage.Library" HintPath="$(Game2)/VRage.Library.dll" Private="False" />
+    <Reference Include="VRage.Platform.Windows" HintPath="$(Game2)/VRage.Platform.Windows.dll" Private="False" />
+    <Reference Include="VRage.Render" HintPath="$(Game2)/VRage.Render.dll" Private="False" />
+    <Reference Include="VRage.Steam" HintPath="$(Game2)/VRage.Steam.dll" Private="False" />
+    <Reference Include="VRage.Scripting" HintPath="$(Game2)/VRage.Scripting.dll" Private="False" />
+    <Reference Include="VRage.UI" HintPath="$(Game2)/VRage.UI.dll" Private="False" />
+    <Reference Include="VRage.UI.Shared" HintPath="$(Game2)/VRage.UI.Shared.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
     <PackageReference Include="Krafs.Publicizer" Version="2.3.0">
       <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers;</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
-    <PackageReference Include="Tmds.DBus.Protocol" Version="0.92.0" />
-  </ItemGroup>
-  <ItemGroup>
-    <Publicize Include="0Harmony" />
     <Publicize Include="Game2.Client" />
-    <Publicize Include="Game2.Game" />
     <Publicize Include="SpaceEngineers2" />
     <Publicize Include="VRage.Client" />
     <Publicize Include="VRage.Steam" />
     <Publicize Include="VRage.UI" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+    <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <!-- Required by Avalonia's Visual Designer; SpaceEngineers2 uses the Keen Assemblies. -->
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" PrivateAssets="all" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" PrivateAssets="all" />
   </ItemGroup>
 </Project>

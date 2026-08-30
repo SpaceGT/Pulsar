@@ -40,7 +40,10 @@ public static class PlayerConsent
                     },
                     DefaultAction = () =>
                     {
-                        ShowWithdrawConsentDialog(continuation);
+                        if (ConsentRequested && ConsentGiven)
+                            ShowWithdrawConsentDialog(continuation);
+                        else
+                            StoreConsent(false, continuation);
                     },
                 }
             );

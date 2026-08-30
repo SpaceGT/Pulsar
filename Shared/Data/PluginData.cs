@@ -2,12 +2,14 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Reflection;
-using System.Windows.Forms;
+using System.Threading.Tasks;
 using System.Xml.Serialization;
 using FuzzySharp;
 using ProtoBuf;
+using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 
 namespace Pulsar.Shared.Data;
@@ -20,6 +22,8 @@ namespace Pulsar.Shared.Data;
 [ProtoInclude(104, typeof(ModPlugin))]
 public abstract class PluginData : IEquatable<PluginData>
 {
+    protected IReadOnlyDictionary<string, string> namedAssets = new Dictionary<string, string>();
+
     public string Source;
     public abstract bool IsLocal { get; }
     public abstract bool IsCompiled { get; }
@@ -36,7 +40,7 @@ public abstract class PluginData : IEquatable<PluginData>
             return Status switch
             {
                 PluginStatus.Network => "Network!",
-                PluginStatus.Runtime => "Runtime!",
+                PluginStatus.Environment => "Host!",
                 PluginStatus.Updated => "Updated",
                 PluginStatus.Error => "Error!",
                 PluginStatus.Blocked => "Blocked!",
@@ -69,6 +73,9 @@ public abstract class PluginData : IEquatable<PluginData>
     [ProtoMember(8)]
     public string Runtimes { get; set; }
 
+    [ProtoMember(10)]
+    public string Platforms { get; set; }
+
     [ProtoMember(9)]
     [XmlArray]
     [XmlArrayItem("Id")]
@@ -94,9 +101,9 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public virtual bool TryLoadAssembly(out Assembly a)
     {
-        if (!IsSupportedRuntime())
+        if (!IsSupportedEnvironment())
         {
-            Status = PluginStatus.Runtime;
+            Status = PluginStatus.Environment;
             a = null;
             return false;
         }
@@ -156,7 +163,7 @@ public abstract class PluginData : IEquatable<PluginData>
                     $"The plugin {name} was blocked by windows. "
                         + "Please unblock the file in the dll file properties."
                 );
-            else if (e is WebException)
+            else if (e is HttpRequestException or TaskCanceledException)
                 Status = PluginStatus.Network;
             else
                 Error();
@@ -165,14 +172,9 @@ public abstract class PluginData : IEquatable<PluginData>
         }
     }
 
-    public bool IsSupportedRuntime()
+    public bool IsSupportedEnvironment()
     {
-        return Runtimes is null
-#if NETFRAMEWORK
-            || Runtimes.Contains("NETFramework");
-#else
-            || Runtimes.Contains("NETCoreApp");
-#endif
+        return Tools.IsSupportedEnvironment(Runtimes, Platforms);
     }
 
     public override bool Equals(object obj)
@@ -208,7 +210,7 @@ public abstract class PluginData : IEquatable<PluginData>
     public void Error(string msg = null)
     {
         Status = PluginStatus.Error;
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             return;
         msg ??=
             $"The plugin '{this}' caused an error. "
@@ -222,10 +224,9 @@ public abstract class PluginData : IEquatable<PluginData>
         else
             msg += "See info.log for details.\n\nWould you like to open the Pulsar log?";
 
-        MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-        DialogResult result = Tools.ShowMessageBox(msg, buttons, MessageBoxIcon.Error);
+        PromptResult result = Tools.ShowMessageBox(msg, PromptButtons.YesNo, PromptIcon.Error);
 
-        if (result == DialogResult.No)
+        if (result != PromptResult.Yes)
             return;
 
         if (LogFile.GameLog?.Exists() ?? false)
@@ -236,13 +237,18 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public long Rank(string query)
     {
-        string[] terms = query
-            .Trim()
-            .ToUpperInvariant()
-            .Split([';'], StringSplitOptions.RemoveEmptyEntries);
-
+        string[] terms = ProcessQuery(query);
         return StrictRank(terms) * (long)int.MaxValue + FuzzyRank(terms);
     }
+
+    public bool MatchName(string query)
+    {
+        string[] terms = ProcessQuery(query);
+        return terms.Contains(FriendlyName.ToUpperInvariant());
+    }
+
+    private static string[] ProcessQuery(string query) =>
+        [.. query.Split([';']).Select(x => x.Trim().ToUpperInvariant()).Where(x => x.Length > 0)];
 
     private int StrictRank(string[] terms)
     {
@@ -253,7 +259,7 @@ public abstract class PluginData : IEquatable<PluginData>
 
             int score = 0;
             foreach (string term in terms)
-                if (value.Contains(term, StringComparison.OrdinalIgnoreCase))
+                if (value.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
                     score += 1;
 
             return score;
@@ -261,8 +267,9 @@ public abstract class PluginData : IEquatable<PluginData>
 
         int nameScore = (int)Score(FriendlyName);
         int? authorScore = Score(Author);
+        int? sourceScore = Score(Source);
 
-        return GetFinalScore([nameScore, authorScore]);
+        return GetFinalScore([nameScore, authorScore, sourceScore]);
     }
 
     private int FuzzyRank(string[] terms)
@@ -283,9 +290,10 @@ public abstract class PluginData : IEquatable<PluginData>
 
         int nameScore = (int)Score(FriendlyName, Fuzz.PartialRatio);
         int? authorScore = Score(Author, Fuzz.Ratio);
+        int? sourceScore = Score(Source, Fuzz.Ratio);
         int? tooltipScore = Score(Tooltip, Fuzz.TokenSetRatio);
 
-        return GetFinalScore([nameScore, authorScore, tooltipScore], penalty);
+        return GetFinalScore([nameScore, authorScore, sourceScore, tooltipScore], penalty);
     }
 
     private static int GetFinalScore(int?[] scores, double? penalty = null)
@@ -317,10 +325,7 @@ public abstract class PluginData : IEquatable<PluginData>
     /// </summary>
     public virtual void InvalidateCache() { }
 
-    public virtual string GetAssetPath()
-    {
-        return null;
-    }
+    public IReadOnlyDictionary<string, string> GetNamedAssets() => namedAssets;
 
     public string GetConfigPath(string name, string extension = null)
     {
@@ -332,7 +337,6 @@ public abstract class PluginData : IEquatable<PluginData>
         string config = Path.Combine(data, name);
         if (extension is null)
         {
-            config += @"\";
             if (!Directory.Exists(config))
                 Directory.CreateDirectory(config);
         }

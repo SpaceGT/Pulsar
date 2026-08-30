@@ -1,9 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using System.Linq;
+using Avalonia.Controls;
 using HarmonyLib;
 using Keen.Game2.Client.UI.Menu;
-using Keen.Game2.Client.UI.Menu.MainMenu;
 using Pulsar.Modern.Screens;
 using Pulsar.Modern.Screens.PluginsScreen;
+using Pulsar.Shared.Arguments;
 using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Patch;
@@ -21,16 +22,23 @@ internal class Patch_MainMenuButtons
 
         Button pluginsButton = __instance.CreateButton(
             ScreenTools.GetKeyFromString("Plugins"),
-            () => PluginsScreenViewModel.OpenMenu()
+            PluginsScreenViewModel.OpenMenu
         );
+        if (Flags.Current.Profile is not null)
+        {
+            string message = "Plugins are externally managed by the launch profile";
+            pluginsButton.IsEnabled = false;
+            ToolTip.SetTip(pluginsButton, message);
+        }
 
-        __instance._buttonsPanel.Children.Insert(
-            __instance._buttonsPanel.Children.Count - 2,
-            pluginsButton
-        );
+        var buttons = __instance._buttonsPanel.Children;
+        buttons.Insert(buttons.Count - 2, pluginsButton);
 
-        if (__instance.DataContext is MainMenuScreenViewModel)
-            ((Button)__instance._buttonsPanel.Children[^1]).Content =
-                $"Exit to {(Tools.IsNative() ? "Windows" : "Linux")}";
+        string host = Tools.IsWindows() && !Tools.IsProton() ? "Windows" : "Linux";
+        if (buttons.FirstOrDefault(x => x.Name == "MenuQuit") is Button button)
+            button.Content = $"Exit to {host}";
+
+        ScreenTools.GetSharedUIComponent().DialogsConfiguration.ConfirmExitDialog.Title =
+            ScreenTools.GetKeyFromString($"Exit To {host}");
     }
 }

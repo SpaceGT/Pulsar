@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Xml.Serialization;
 using Mono.Cecil;
+using Pulsar.Shared.Assets;
 
 namespace Pulsar.Shared.Data;
 
@@ -14,50 +15,81 @@ public class LocalPlugin : PluginData
 
     public string Dll;
     private GitHubPlugin github;
-    private AssemblyResolver resolver;
 
     private LocalPlugin() { }
 
-    public LocalPlugin(string dll)
+    public LocalPlugin(string dll, string localRoot)
     {
         Dll = dll;
-        Id = Path.GetFileName(dll);
-        FriendlyName = Path.GetFileNameWithoutExtension(dll);
-        Status = PluginStatus.None;
-        Runtimes = GetRuntimes(dll);
 
-        TryLoadDataFile(Dll + ".xml");
+        string directory = Path.GetDirectoryName(dll);
+        if (
+            Path.GetFileName(dll) == PluginCache.PluginFile
+            && !Tools.PathsEqual(directory, localRoot)
+        )
+        {
+            FriendlyName = Path.GetFileName(directory);
+            Id = FriendlyName + ".dll";
+        }
+        else
+        {
+            FriendlyName = Path.GetFileNameWithoutExtension(dll);
+            Id = Path.GetFileName(dll);
+        }
+
+        Status = PluginStatus.None;
+        (Runtimes, Platforms) = GetEnvironment(dll);
+
+        string dataFile = Path.ChangeExtension(Dll, ".xml");
+        // FIXME: Fallback for legacy naming convention
+        dataFile = File.Exists(dataFile) ? dataFile : Dll + ".xml";
+        TryLoadDataFile(dataFile);
     }
 
-    private static string GetRuntimes(string dll)
+    private static (string runtimes, string platforms) GetEnvironment(string dll)
     {
+        const string platformAttribute = "System.Runtime.Versioning.TargetPlatformAttribute";
+
         using var assembly = AssemblyDefinition.ReadAssembly(dll);
         var references = assembly.MainModule.AssemblyReferences;
 
+        string runtimes = null;
         if (references.Any(r => r.Name == "System.Runtime"))
-            return "NETCoreApp";
+            runtimes = "CoreCLR";
+        else if (references.Any(r => r.Name == "mscorlib"))
+            runtimes = "CLR;Mono";
 
-        if (references.Any(r => r.Name == "mscorlib"))
-            return "NETFramework";
+        string platforms = null;
+        foreach (var attribute in assembly.CustomAttributes)
+        {
+            if (attribute.AttributeType.FullName != platformAttribute)
+                continue;
 
-        return null;
+            string name = (string)attribute.ConstructorArguments[0].Value;
+            if (name.StartsWith("Windows", StringComparison.OrdinalIgnoreCase))
+                platforms = "Windows";
+
+            break;
+        }
+
+        return (runtimes, platforms);
     }
 
     public override Assembly GetAssembly()
     {
+        string directory = Path.GetDirectoryName(Path.GetFullPath(Dll));
+        namedAssets = AssetResolver.ResolveLocal(github?.Assets, directory);
+
         if (File.Exists(Dll))
         {
-            resolver = new AssemblyResolver();
-            resolver.AddSourceFolder(Path.GetDirectoryName(Dll));
-            resolver.AddAllowedAssemblyFile(Dll);
-            Assembly a = Assembly.LoadFile(Dll);
+            Assembly a = Assembly.LoadFrom(Dll);
             Version = a.GetName().Version;
             return a;
         }
         return null;
     }
 
-    public void TryLoadDataFile(string file)
+    private void TryLoadDataFile(string file)
     {
         if (!File.Exists(file))
             return;
@@ -74,10 +106,13 @@ public class LocalPlugin : PluginData
             }
 
             GitHubPlugin github = (GitHubPlugin)resultObj;
+            Id = github.Id ?? Id;
             FriendlyName = github.FriendlyName;
             Tooltip = github.Tooltip;
             Author = github.Author;
             Description = github.Description;
+            Runtimes = github.Runtimes ?? Runtimes;
+            Platforms = github.Platforms ?? Platforms;
             DependencyIds = github.DependencyIds;
 
             this.github = github;
@@ -94,14 +129,6 @@ public class LocalPlugin : PluginData
 
         if (enabled)
             draft.Local.Add(Id);
-    }
-
-    public override string GetAssetPath()
-    {
-        if (string.IsNullOrEmpty(github?.AssetFolder) || !Path.IsPathRooted(github.AssetFolder))
-            return null;
-
-        return Path.GetFullPath(github.AssetFolder);
     }
 
     public override string ToString() => Id;

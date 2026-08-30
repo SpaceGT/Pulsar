@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Version>2.3.1</Version>
     <Product>Pulsar</Product>
-    <Copyright>© 2025 SpaceGT</Copyright>
+    <Copyright>© 2026 SpaceGT</Copyright>
     <AssemblyTitle>Pulsar</AssemblyTitle>
     <Description>Plugin and Mod loader for Space Engineers 1</Description>
   </PropertyGroup>
@@ -13,43 +13,32 @@
   </PropertyGroup>
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFrameworks>net48;net10.0-windows</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
-    <AutoGenerateBindingRedirects>false</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <Steamworks>$(Bin64)</Steamworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' == 'net48'">
     <AssemblyName>Legacy</AssemblyName>
-    <StartProgram>$(Pulsar)\Legacy.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Legacy$(ExecutableExtension)</StartProgram>
   </PropertyGroup>
   <PropertyGroup Condition="'$(TargetFramework)' != 'net48'">
     <AssemblyName>Interim</AssemblyName>
-    <StartProgram>$(Pulsar)\Interim.exe</StartProgram>
+    <StartProgram>$(Pulsar)/Interim$(ExecutableExtension)</StartProgram>
   </PropertyGroup>
   <PropertyGroup>
-    <Platforms>x64</Platforms>
     <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release</Configurations>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup>
-    <ApplicationIcon>..\Shared\Splash\icon.ico</ApplicationIcon>
+    <ApplicationIcon>../Interface/Assets/icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
     <ApplicationManifest>app.manifest</ApplicationManifest>
@@ -62,27 +51,94 @@
     <StartAction>Program</StartAction>
     <StartWorkingDirectory>$(Pulsar)</StartWorkingDirectory>
   </PropertyGroup>
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="call &quot;$(ProjectDir)deploy.bat&quot; &quot;$(TargetPath)&quot; &quot;$(Pulsar)&quot; &quot;$(SolutionDir)LICENSE&quot; &quot;$(TargetFrameworkIdentifier)&quot;" />
+  <Target Name="Deploy" AfterTargets="Build" Condition="'$(TargetFramework)' != ''">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/$(AssemblyName)</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(Pulsar)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)0Harmony.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Mono.Cecil.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NLog.dll" />
+      <DeployLibraryFile Include="$(TargetDir)protobuf-net.dll" />
+      <DeployLibraryFile Include="$(TargetDir)SharpCompress.dll" />
+      <DeployLibraryFile Include="$(TargetDir)McMaster.Extensions.CommandLineUtils.dll" />
+      <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Configuration.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.DependencyResolver.Core.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Frameworks.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.LibraryModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Packaging.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.ProjectModel.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Protocol.dll" />
+      <DeployLibraryFile Include="$(TargetDir)NuGet.Versioning.dll" />
+    </ItemGroup>
+    <ItemGroup>
+      <DeployLibraryFile Include="$(Steamworks)/Steamworks.NET.dll" />
+      <DeployLibraryFile Include="$(Steamworks)/$(SteamApiFileName)" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).exe.config" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Win32.Registry.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Buffers.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Memory.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      <DeployLibraryFile Include="$(TargetDir)System.Threading.Tasks.Extensions.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
+      <DeployRootFile Include="$(TargetDir)$(AssemblyName).deps.json" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployRootFile)" DestinationFolder="$(Pulsar)" />
+    <Copy SourceFiles="@(DeployLibraryFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
   </Target>
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="call &quot;$(SolutionDir)verify.bat&quot; &quot;$(Bin64)&quot;" />
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
+    <Error Condition="'$(Bin64)' == '' or !Exists('$(Bin64)')" Text="Specify SpaceEngineers Bin64 path!" />
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+    <Error Condition="!Exists('$(Steamworks)/$(SteamApiFileName)')" Text="$(SteamApiFileName) not found!" />
   </Target>
   <ItemGroup>
-    <ProjectReference Include="..\Shared\Shared.csproj" />
+    <ProjectReference Include="../Shared/Shared.csproj" AdditionalProperties="Steamworks=$(Steamworks)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetPlatform)' == 'Windows' and '$(TargetFramework)' == 'net10.0'">
+    <!-- Required by SpaceEngineers internally; Pulsar uses Avalonia rather than WinForms. -->
+    <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Sandbox.Game" HintPath="$(Bin64)\Sandbox.Game.dll" Private="False" />
-    <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)\Sandbox.Graphics.dll" Private="False" />
-    <Reference Include="SpaceEngineers" HintPath="$(Bin64)\SpaceEngineers.exe" Private="False" />
-    <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)\SpaceEngineers.Game.dll" Private="False" />
-    <Reference Include="VRage" HintPath="$(Bin64)\VRage.dll" Private="False" />
-    <Reference Include="VRage.Game" HintPath="$(Bin64)\VRage.Game.dll" Private="False" />
-    <Reference Include="VRage.Input" HintPath="$(Bin64)\VRage.Input.dll" Private="False" />
-    <Reference Include="VRage.Library" HintPath="$(Bin64)\VRage.Library.dll" Private="False" />
-    <Reference Include="VRage.Math" HintPath="$(Bin64)\VRage.Math.dll" Private="False" />
-    <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)\VRage.Platform.Windows.dll" Private="False" />
-    <Reference Include="VRage.Scripting" HintPath="$(Bin64)\VRage.Scripting.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis" HintPath="$(Bin64)/Microsoft.CodeAnalysis.dll" Private="False" />
+    <Reference Include="Microsoft.CodeAnalysis.CSharp" HintPath="$(Bin64)/Microsoft.CodeAnalysis.CSharp.dll" Private="False" />
+    <Reference Include="Sandbox.Game" HintPath="$(Bin64)/Sandbox.Game.dll" Private="False" />
+    <Reference Include="Sandbox.Graphics" HintPath="$(Bin64)/Sandbox.Graphics.dll" Private="False" />
+    <Reference Include="SpaceEngineers" HintPath="$(Bin64)/SpaceEngineers.exe" Private="False" />
+    <Reference Include="SpaceEngineers.Game" HintPath="$(Bin64)/SpaceEngineers.Game.dll" Private="False" />
+    <Reference Include="VRage" HintPath="$(Bin64)/VRage.dll" Private="False" />
+    <Reference Include="VRage.Game" HintPath="$(Bin64)/VRage.Game.dll" Private="False" />
+    <Reference Include="VRage.Input" HintPath="$(Bin64)/VRage.Input.dll" Private="False" />
+    <Reference Include="VRage.Library" HintPath="$(Bin64)/VRage.Library.dll" Private="False" />
+    <Reference Include="VRage.Math" HintPath="$(Bin64)/VRage.Math.dll" Private="False" />
+    <Reference Include="VRage.Platform.Windows" HintPath="$(Bin64)/VRage.Platform.Windows.dll" Private="False" />
+    <Reference Include="VRage.Scripting" HintPath="$(Bin64)/VRage.Scripting.dll" Private="False" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <Reference Include="System.Collections.Immutable" HintPath="$(Bin64)/System.Collections.Immutable.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />

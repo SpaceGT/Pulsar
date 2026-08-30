@@ -1,24 +1,24 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
 using HarmonyLib;
-using Pulsar.Legacy.Compiler;
+using Pulsar.Compiler;
+using Pulsar.Interface;
 using Pulsar.Legacy.Launcher;
 using Pulsar.Legacy.Loader;
 using Pulsar.Legacy.Patch;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Splash;
 using SharedLauncher = Pulsar.Shared.Launcher;
 using SharedLoader = Pulsar.Shared.Loader;
-#if NETCOREAPP
-using System.Runtime.InteropServices;
-#endif
 
 namespace Pulsar.Legacy;
 
@@ -49,19 +49,29 @@ static class Program
     static void PulsarMain(string[] args)
     {
 #endif
-        Application.EnableVisualStyles();
+        Assembly currentAssembly = Assembly.GetExecutingAssembly();
+        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
+        Parser.Initialize(args, true);
+
+        string guiPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Interface",
+            "Interface" + Tools.ExecutableExtension
+        );
+
+        using InterfaceClient interfaceClient = new(guiPath);
+        Tools.EarlyInit(interfaceClient);
 
         if (SharedLauncher.IsOtherPulsarRunning())
         {
-            Tools.ShowMessageBox("Error: Pulsar is already running!");
+            string message = "Pulsar is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return;
         }
 
-        if (Flags.ExternalDebug)
+        if (Flags.Current.ExternalDebug)
             Debugger.Launch();
-
-        Assembly currentAssembly = Assembly.GetExecutingAssembly();
-        string baseDir = Path.GetDirectoryName(currentAssembly.Location);
 
         SetupCoreData(baseDir);
         Updater updater = TryUpdate(baseDir);
@@ -77,17 +87,22 @@ static class Program
         Environment.CurrentDirectory = baseDir;
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
-        string pulsarDir = Path.Combine(baseDir, asmName.Name);
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string dataDir = Flags.Current.UseHome ? Path.Combine(appData, "Pulsar") : baseDir;
+        string pulsarDir = Path.Combine(dataDir, asmName.Name);
 
         if (!Directory.Exists(pulsarDir))
-            pulsarDir = Path.Combine(baseDir, "Legacy");
+            pulsarDir = Path.Combine(dataDir, "Legacy");
 
         LogFile.Init(pulsarDir);
         LogFile.WriteLine($"Starting Pulsar v{asmName.Version.ToString(3)}");
+        LogFile.WriteLine($"Flavour: {asmName.Name}");
+        LogFile.WriteLine($"Platform: {Tools.Platform}");
+        LogFile.WriteLine($"Runtime: {Tools.Runtime}");
 
-        Flags.LogFlags();
+        Parser.LogChanged();
 
-        if (Flags.SplashType == SplashType.Pulsar)
+        if (Flags.Current.SplashType == SplashType.Pulsar)
             SplashManager.Instance = new SplashManager();
 
         SplashManager.Instance?.SetTitle("Pulsar");
@@ -105,7 +120,7 @@ static class Program
         string checkFile = Path.Combine(baseDir, "checksum.txt");
         string libraryDir = Path.Combine(baseDir, "Libraries");
 
-        if (Flags.MakeCheckFile)
+        if (Flags.Current.MakeCheckFile)
         {
             UTF8Encoding encoding = new();
             checkSum = Tools.GetFolderHash(libraryDir);
@@ -125,16 +140,19 @@ static class Program
         string bin64Dir = Folder.GetBin64();
         if (bin64Dir is null)
         {
-            Tools.ShowMessageBox(
-                $"Error: {OldLauncher} not found!\n"
-                    + "You can specify a custom location with \"-bin64\""
-            );
+            string message =
+                $"{OldLauncher} not found!\nYou can specify a custom location with \"-bin64\"";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             Environment.Exit(1);
         }
 
         string modDir = Path.Combine(
             bin64Dir,
-            @"..\..\..\workshop\content",
+            "..",
+            "..",
+            "..",
+            "workshop",
+            "content",
             Steam.AppIdSe1.ToString()
         );
 
@@ -188,8 +206,6 @@ static class Program
     private static void SetupSteam()
     {
         SplashManager.Instance?.SetText("Starting Steam...");
-        string bin64Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += Steam.SteamworksResolver(bin64Dir);
         Steam.Init(Steam.AppIdSe1);
     }
 
@@ -199,23 +215,43 @@ static class Program
 
         var asmName = Assembly.GetExecutingAssembly().GetName();
         string dependencyDir = Path.Combine(baseDir, "Libraries", asmName.Name);
+        string compilerPath = Path.Combine(
+            baseDir,
+            "Libraries",
+            "Compiler",
+            "Compiler" + Tools.ExecutableExtension
+        );
 
         string pulsarDir = ConfigManager.Instance.PulsarDir;
         string bin64Dir = ConfigManager.Instance.GameDir;
 
-        using (CompilerFactory compiler = new([bin64Dir, dependencyDir], bin64Dir, pulsarDir))
-        {
-            // The AppDomain must be created ASAP if running under Mono
-            // as Mono does not isolate assemblies properly.
-            if (!Tools.IsNative())
-                compiler.Init();
+        string[] runtimeDirs = CompilerFactory.GetRuntimeDirectories();
 
+#if NETFRAMEWORK
+        string wpfDir = Path.Combine(RuntimeEnvironment.GetRuntimeDirectory(), "WPF");
+        string[] probeDirs = [.. runtimeDirs, wpfDir, bin64Dir, dependencyDir];
+#else
+        string[] probeDirs = [.. runtimeDirs, bin64Dir, dependencyDir];
+#endif
+
+        string[] references = [.. References.GetReferences(bin64Dir)];
+
+        using (
+            CompilerFactory compiler = new(
+                compilerPath,
+                references,
+                probeDirs,
+                LogFile.FilePath,
+                [.. Tools.GetCompilationSymbols(trusted: true)]
+            )
+        )
+        {
             Tools.Init(new ExternalTools(), compiler);
             SharedLoader.Instance = new SharedLoader(StatsServer, GetCorePlugins());
         }
 
-        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Item2));
-        if (preloader.HasPatches && !ConfigManager.Instance.SafeMode)
+        Preloader preloader = new(SharedLoader.Instance.Plugins.Select(x => x.Value));
+        if (preloader.HasPatches)
         {
             SplashManager.Instance?.SetText("Applying Preloaders...");
             string preloadDir = Path.Combine(pulsarDir, "Preloader");
@@ -235,8 +271,12 @@ static class Program
         return [];
 #else
         string bin64Dir = ConfigManager.Instance.GameDir;
-        bool isGameFramework = Tools.GetFiles(bin64Dir, ["*.config"], []).Any();
-        return isGameFramework ? ["se-dotnet-compat"] : [];
+
+        // Recompiled SpaceEngineers builds have built-in compatibility
+        if (!Tools.GetFiles(bin64Dir, ["*.config"], []).Any())
+            return [];
+
+        return Tools.IsWindows() ? ["dotnet-compat"] : ["dotnet-compat", "linux-compat"];
 #endif
     }
 
@@ -279,41 +319,17 @@ static class Program
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");
+        Progress.Start(assemblyName + ".Progress");
 
         Game.SetupMyFakes();
-        Game.ShowIntroVideo(Flags.GameIntroVideo);
+        Game.ShowIntroVideo(Flags.Current.GameIntroVideo);
         Game.RegisterPlugin(new PluginLoader());
 
-#if NETCOREAPP
-        Game.AddCompilationSymbols("NETCOREAPP");
-#endif
+        IEnumerable<string> symbols = Tools.GetCompilationSymbols(trusted: false);
+        Game.ConfigureCompiler(symbols, Flags.Current.DebugMods);
 
         SplashManager.Instance?.SetText("Launching Space Engineers...");
-        if (Tools.IsNative())
-            ProgressPollFactory().Start();
-
+        SplashManager.Instance?.SetBarValue(0);
         Game.StartSpaceEngineers(args);
-    }
-
-    private static Thread ProgressPollFactory()
-    {
-        static void ProgressPoll()
-        {
-            float progress = 0;
-            SplashManager splash = SplashManager.Instance;
-
-            while (SplashManager.Instance is not null && progress < 1)
-            {
-                // FIXME: Does not work well with preloaded assemblies
-                progress = Game.GetLoadProgress();
-
-                if (float.IsNaN(splash.BarValue) || splash.BarValue < progress)
-                    splash?.SetBarValue(progress);
-
-                Thread.Sleep(250); // ms
-            }
-        }
-
-        return new Thread(ProgressPoll) { IsBackground = true, Name = "ProgressPoll" };
     }
 }

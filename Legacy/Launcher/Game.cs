@@ -7,6 +7,7 @@ using System.Reflection;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 using Sandbox;
 using Sandbox.Engine.Utils;
 using Sandbox.Game;
@@ -51,12 +52,13 @@ internal static class Game
         );
         var m_plugins = (List<IPlugin>)m_pluginsField.GetValue(null);
         m_plugins.Add(plugin);
-        
+
         FieldInfo m_handleInputPluginsField = typeof(MyPlugins).GetField(
             "m_handleInputPlugins",
             BindingFlags.Static | BindingFlags.NonPublic
         );
-        var m_handleInputPlugins = (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
+        var m_handleInputPlugins =
+            (List<IHandleInputPlugin>)m_handleInputPluginsField.GetValue(null);
         m_handleInputPlugins.Add(plugin);
     }
 
@@ -104,31 +106,24 @@ internal static class Game
     public static void SetupMyFakes()
     {
         typeof(MyFakes).TypeInitializer.Invoke(null, null);
-        MyFakes.ENABLE_F12_MENU = Flags.DebugMenu;
+        MyFakes.ENABLE_F12_MENU = Flags.Current.DebugMenu;
+        MyFakes.ENABLE_HIDDEN_GAME_FORM = true;
 
         // Note SpaceEngineers internally prioritises -nosplash over ENABLE_SPLASHSCREEN
         // (therefore SplashType.Native and SplashType.None are mutually exclusive)
-        MyFakes.ENABLE_SPLASHSCREEN = Flags.SplashType == SplashType.Native;
-    }
-
-    public static float GetLoadProgress()
-    {
-        // No native function in Space Engineers does this but we can estimate
-        // FIXME: Does not work well with Preloaders or under Proton
-        float expectedGrowth = 700f * 1024 * 1024;
-
-        Process process = Process.GetCurrentProcess();
-        process.Refresh();
-
-        float ratio = process.PrivateMemorySize64 / expectedGrowth;
-
-        return Math.Min(1f, Math.Max(0f, ratio));
+        MyFakes.ENABLE_SPLASHSCREEN = Flags.Current.SplashType == SplashType.Native;
     }
 
     public static void StartSpaceEngineers(string[] args) => MyProgram.Main(args);
 
-    public static void AddCompilationSymbols(params string[] symbols) =>
-        MyScriptCompiler.Static.AddConditionalCompilationSymbols(symbols);
+    public static void ConfigureCompiler(IEnumerable<string> symbols, bool debug)
+    {
+        if (debug)
+            symbols = symbols.Append("DEBUG");
+
+        MyScriptCompiler.Static.EnableDebugInformation = debug;
+        MyScriptCompiler.Static.AddConditionalCompilationSymbols([.. symbols]);
+    }
 
     public static void ShowIntroVideo(bool enabled) =>
         MyPlatformGameSettings.ENABLE_LOGOS = enabled;

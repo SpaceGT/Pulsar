@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using DynamicData;
 using Keen.VRage.UI.Screens;
+using Pulsar.Shared;
 
 namespace Pulsar.Modern.Screens.AddPluginScreen;
 
@@ -11,11 +12,11 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 {
     public ObservableCollection<PluginViewModel> Plugins { get; private set; }
     public readonly bool Mods;
-    public string Filter;
-    public SortingMethod SortMethod = SortingMethod.Name;
+    public string Filter = string.Empty;
+    public SortingMethod SortMethod = SortingMethod.Random;
 
     private readonly List<PluginViewModel> plugins;
-    private event Action onScreenClose;
+    private event Action OnScreenClose;
 
     public enum SortingMethod : int
     {
@@ -23,6 +24,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
         Search,
         Usage,
         Rating,
+        Random,
     }
 
     public AddPluginScreenViewModel(
@@ -38,23 +40,26 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Mods = mods;
 
-        this.plugins = plugins;
-        Plugins = new([.. this.plugins.Where(x => !x.IsHidden && x.IsSupportedRuntime)]);
-        this.onScreenClose = onScreenClose;
+        this.plugins = [.. plugins.Where(x => x.IsSupportedEnvironment)];
+        Plugins = new([.. this.plugins.Where(x => !x.IsHidden)]);
+        OnScreenClose = onScreenClose;
 
-        SortPlugins(SortingMethod.Name);
+        SortPlugins(SortingMethod.Random);
     }
 
     public override void OnDispose()
     {
         base.OnDispose();
-        onScreenClose?.Invoke();
+        OnScreenClose?.Invoke();
     }
 
     public void SortPlugins(SortingMethod sort)
     {
         switch (sort)
         {
+            case SortingMethod.Random:
+                Tools.Shuffle(plugins);
+                break;
             case SortingMethod.Name:
                 plugins.Sort(ComparePluginsByName);
                 break;
@@ -74,12 +79,8 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Plugins.Clear();
 
-        Plugins.AddRange([
-            .. plugins.Where(x =>
-                (!x.IsHidden || x.FriendlyName.Equals(Filter, StringComparison.OrdinalIgnoreCase))
-                && x.IsSupportedRuntime
-            ),
-        ]);
+        Plugins.AddRange(plugins.Where(x => x.IsHidden && x.PluginData.MatchName(Filter)));
+        Plugins.AddRange(plugins.Where(x => !x.IsHidden));
     }
 
     public void SortPluginsBySearch()

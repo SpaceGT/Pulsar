@@ -4,27 +4,31 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
+using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Shared;
 
 public class Launcher(string sePath)
 {
-    public static Mutex Mutex { get; private set; }
+    private static Mutex mutex;
+    private static bool ownsMutex;
 
     public bool CanStart()
     {
-        if (IsSpaceEngineersRunning())
+        if (!Flags.Current.MultiInstance && IsSpaceEngineersRunning())
         {
-            Tools.ShowMessageBox("Error: Space Engineers is already running!");
+            string message = "Space Engineers is already running!";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return false;
         }
 
         if (Environment.GetCommandLineArgs().Contains("-plugin"))
         {
-            Tools.ShowMessageBox(
-                "ERROR: \"-plugin\" support has been dropped!\n"
-                    + "Use \"-sources\" add plugins there instead."
-            );
+            string message =
+                "\"-plugin\" support has been dropped!\n"
+                + "Use \"-sources\" add plugins there instead.";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return false;
         }
 
@@ -42,10 +46,43 @@ public class Launcher(string sePath)
 
     public static bool IsOtherPulsarRunning()
     {
+        if (Flags.Current.MultiInstance)
+            return false;
+
         string callerName = Assembly.GetEntryAssembly().GetName().Name;
         string mutexName = callerName == "Modern" ? "Modern" : "Legacy";
-        Mutex = new Mutex(true, $"Pulsar.{mutexName}", out bool isOwner);
-        return !isOwner;
+
+#if NETFRAMEWORK
+        mutex = new Mutex(false, $"Pulsar.{mutexName}");
+#else
+        NamedWaitHandleOptions options = new()
+        {
+            CurrentUserOnly = true,
+            CurrentSessionOnly = false,
+        };
+        mutex = new Mutex(false, $"Pulsar.{mutexName}", options);
+#endif
+
+        try
+        {
+            ownsMutex = mutex.WaitOne(0);
+        }
+        catch (AbandonedMutexException)
+        {
+            ownsMutex = true;
+        }
+
+        return !ownsMutex;
+    }
+
+    public static void ReleaseInstanceLock()
+    {
+        if (ownsMutex)
+            mutex.ReleaseMutex();
+
+        mutex?.Dispose();
+        mutex = null;
+        ownsMutex = false;
     }
 
     public bool VerifyConfig()

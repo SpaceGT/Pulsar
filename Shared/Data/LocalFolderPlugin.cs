@@ -7,8 +7,10 @@ using System.Reflection;
 using System.Text;
 using System.Xml.Serialization;
 using Pulsar.Compiler;
+using Pulsar.Shared.Assets;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Network;
+using Pulsar.Shared.Splash;
 
 namespace Pulsar.Shared.Data;
 
@@ -20,18 +22,36 @@ public class LocalFolderPlugin : PluginData
     public override bool IsCompiled => true;
     private string[] sourceDirectories;
     private GitHubPlugin github;
-    private AssemblyResolver resolver;
     private LocalFolderConfig settings;
 
     public string Folder;
 
-    public LocalFolderPlugin(string folder)
+    public LocalFolderPlugin(string folder, string file)
     {
-        Id = Path.GetFileName(folder.TrimEnd('\\'));
+        Id = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar));
         Folder = folder;
         Status = PluginStatus.None;
         FriendlyName = Id;
+
+        TryLoadDataFile(file);
         settings = new() { Id = Id };
+    }
+
+    public static void ClearDevFolderCache()
+    {
+        string pluginCache = Path.Combine(ConfigManager.Instance.PulsarDir, "DevFolder");
+        if (!Directory.Exists(pluginCache))
+            return;
+
+        try
+        {
+            LogFile.WriteLine("Deleting dev folder cache because of an update");
+            Directory.Delete(pluginCache, true);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Failed to delete dev folder cache: " + e);
+        }
     }
 
     public override string ToString() => Id;
@@ -41,16 +61,7 @@ public class LocalFolderPlugin : PluginData
         if (config is not LocalFolderConfig folderConfig)
             return;
 
-        string file;
-        if (folderConfig.DataFile is null)
-            file = null;
-        else if (!Path.IsPathRooted(folderConfig.DataFile))
-            file = Path.Combine(Folder, folderConfig.DataFile);
-        else
-            file = folderConfig.DataFile;
-
         settings = Tools.DeepCopy(folderConfig);
-        DeserializeFile(file);
     }
 
     public override Assembly GetAssembly()
@@ -58,103 +69,121 @@ public class LocalFolderPlugin : PluginData
         if (!Directory.Exists(Folder))
             throw new DirectoryNotFoundException("Unable to find directory '" + Folder + "'");
 
+        PluginAsset[] assets = github?.Assets ?? [];
+        string[] projectFiles = [.. GetProjectFilesGit(Folder) ?? GetProjectFilesFallback(Folder)];
+        if (projectFiles.Length == 0)
+            throw new IOException("No files were found in the directory specified.");
+
         bool debug = settings.DebugBuild;
+        PluginCache cache = PluginCache.Load(GetCacheDirectory());
+        string binDir = cache.BinDirectory;
+        string dll = cache.DllFile;
+        string cacheHash = GetCacheHash(projectFiles, debug, assets);
+
+        if (cache.IsValid(cacheHash, ConfigManager.Instance.GameVersion))
+        {
+            namedAssets = cache.GetAssets();
+            return LoadAssembly(dll);
+        }
+
+        var lbl = SplashManager.Instance;
+        lbl?.SetText($"Compiling '{FriendlyName}'");
+        lbl?.SetBarValue(0);
+
+        cache.Clear();
+        Directory.CreateDirectory(binDir);
+
         ICompiler compiler = Tools.Compiler.Create(debug);
-        bool hasFile = false;
-
-        if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
-            InstallDependencies(compiler);
-
         StringBuilder sb = new();
         sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
 
-        IEnumerable<string> projectFiles = Tools.IsNative() ? GetProjectFilesGit(Folder) : null;
-        projectFiles ??= GetProjectFilesFallback(Folder);
-
-        foreach (var file in projectFiles)
+        int filesLoaded = 0;
+        foreach (string file in projectFiles)
         {
             using FileStream fileStream = File.OpenRead(file);
-            hasFile = true;
-            string name = file.Substring(Folder.Length + 1, file.Length - (Folder.Length + 1));
-            sb.Append(name).Append(", ");
-            string relFile = file.Replace(Folder, "").TrimStart('\\');
+            string relFile = GetRelativePath(file);
+            sb.Append(relFile).Append(", ");
             compiler.Load(fileStream, relFile, debug ? file : null);
+            lbl?.SetBarValue(filesLoaded++ / (float)projectFiles.Length);
         }
 
-        if (hasFile)
-        {
-            sb.Length -= 2;
-            LogFile.WriteLine(sb.ToString());
-        }
-        else
-        {
-            throw new IOException("No files were found in the directory specified.");
-        }
+        sb.Length -= 2;
+        LogFile.WriteLine(sb.ToString());
 
+        if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
+            InstallDependencies(compiler, binDir);
+
+        AssetResolver rebuildResolver = new(cache);
+        AssetResolution resolution = rebuildResolver.Resolve(assets, anchor: Folder);
+        foreach (string reference in resolution.References)
+            compiler.TryAddDependency(reference);
+
+        lbl?.SetBarValue(1);
         string assemblyName = FriendlyName + '_' + Path.GetRandomFileName();
         byte[] data = compiler.Compile(assemblyName, out byte[] symbols);
-        resolver?.AddAllowedAssemblyName(assemblyName);
-        Assembly a = Assembly.Load(data, symbols);
+        File.WriteAllBytes(dll, data);
+
+        if (symbols is not null)
+        {
+            string pdbFile = Path.Combine(binDir, Path.ChangeExtension(assemblyName, "pdb"));
+            File.WriteAllBytes(pdbFile, symbols);
+        }
+
+        cache.SetAssets(resolution.Assets);
+        cache.Save(cacheHash, ConfigManager.Instance.GameVersion);
+        lbl?.SetText($"Compiled '{FriendlyName}'");
+        namedAssets = resolution.Assets;
+        return LoadAssembly(dll);
+    }
+
+    private string GetCacheDirectory()
+    {
+        string folderHash = Tools.GetStringHash(Path.GetFullPath(Folder));
+        string cacheName = $"{Tools.CleanFileName(Id)}-{folderHash.Substring(0, 8)}";
+        return Path.Combine(ConfigManager.Instance.PulsarDir, "DevFolder", cacheName);
+    }
+
+    private string GetCacheHash(IEnumerable<string> projectFiles, bool debug, PluginAsset[] assets)
+    {
+        string sources = string.Join(
+            "\n",
+            projectFiles
+                .OrderBy(GetRelativePath, StringComparer.Ordinal)
+                .Select(file => GetRelativePath(file) + ":" + Tools.GetFileHash(file))
+        );
+
+        string context = string.Join(
+            "\n",
+            sources,
+            FriendlyName,
+            debug,
+            github?.NuGetReferences?.GetFingerprint(),
+            AssetResolver.GetDevfolderFingerprint(assets, Folder)
+        );
+
+        return Tools.GetStringHash(context);
+    }
+
+    private Assembly LoadAssembly(string dll)
+    {
+        Assembly a = Assembly.LoadFrom(dll);
         Version = a.GetName().Version;
         return a;
     }
 
-    private void InstallDependencies(ICompiler compiler)
+    private void InstallDependencies(ICompiler compiler, string binDir)
     {
         NuGetPackageList packageList = github.NuGetReferences;
-        NuGetClient nuget = new();
+        NuGetRestoreResult restore = NuGetRestore.Run(packageList);
 
-        string binDir = Path.Combine(
-            ConfigManager.Instance.PulsarDir,
-            "NuGet",
-            "bin",
-            Tools.GetStringHash(Path.GetFullPath(Folder))
-        );
-        if (Directory.Exists(binDir))
-            Directory.Delete(binDir, true);
-        Directory.CreateDirectory(binDir);
+        foreach (string file in restore.CompileFiles)
+            compiler.TryAddDependency(file);
 
-        if (!string.IsNullOrWhiteSpace(packageList.Config))
+        foreach (NuGetRestoreFile file in restore.RuntimeFiles)
         {
-            string nugetFile = Path.GetFullPath(Path.Combine(Folder, packageList.Config));
-            if (File.Exists(nugetFile))
-            {
-                NuGetPackage[] packages;
-                using (FileStream fileStream = File.OpenRead(nugetFile))
-                {
-                    packages = nuget.DownloadFromConfig(fileStream);
-                }
-                foreach (NuGetPackage package in packages)
-                    InstallPackage(package, compiler, binDir);
-            }
-        }
-
-        if (packageList.PackageIds is not null)
-        {
-            foreach (NuGetPackage package in nuget.DownloadPackages(packageList.PackageIds))
-                InstallPackage(package, compiler, binDir);
-        }
-
-        resolver = new AssemblyResolver();
-        resolver.AddSourceFolder(binDir);
-    }
-
-    private static void InstallPackage(NuGetPackage package, ICompiler compiler, string binDir)
-    {
-        foreach (NuGetPackage.Item file in package.LibFiles)
-        {
-            string newFile = Path.Combine(binDir, file.FilePath);
+            string newFile = Path.Combine(binDir, file.OutputPath);
             Directory.CreateDirectory(Path.GetDirectoryName(newFile));
-            File.Copy(file.FullPath, newFile);
-            if (Path.GetDirectoryName(newFile) == binDir)
-                compiler.TryAddDependency(newFile);
-        }
-
-        foreach (NuGetPackage.Item file in package.ContentFiles)
-        {
-            string newFile = Path.Combine(binDir, file.FilePath);
-            Directory.CreateDirectory(Path.GetDirectoryName(newFile));
-            File.Copy(file.FullPath, newFile);
+            File.Copy(file.SourcePath, newFile);
         }
     }
 
@@ -264,34 +293,27 @@ public class LocalFolderPlugin : PluginData
             draft.DevFolder.Add(new() { Id = Id });
     }
 
-    public void LoadNewDataFile(Action<string> onComplete = null)
+    public override void InvalidateCache()
     {
-        Tools.OpenFileDialog(
-            "Open an xml data file",
-            Folder,
-            Tools.XmlDataType,
-            (file) =>
-            {
-                DeserializeFile(file);
-                onComplete?.Invoke(settings.DataFile);
-            }
-        );
+        try
+        {
+            string cacheDirectory = GetCacheDirectory();
+            if (Directory.Exists(cacheDirectory))
+                PluginCache.Load(cacheDirectory).Invalidate();
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Failed to invalidate dev folder cache: " + e);
+        }
     }
 
-    public void DeserializeFile(string file)
+    private void TryLoadDataFile(string file)
     {
         if (file is null)
-        {
-            github = null;
-            FriendlyName = Id;
-            settings.DataFile = null;
-            Tooltip = null;
-            Author = null;
-            Description = null;
-            Runtimes = null;
-            DependencyIds = null;
             return;
-        }
+
+        if (!Path.IsPathRooted(file))
+            file = Path.Combine(Folder, file);
 
         if (!File.Exists(file))
             return;
@@ -308,22 +330,19 @@ public class LocalFolderPlugin : PluginData
             }
 
             GitHubPlugin github = (GitHubPlugin)resultObj;
-            github.InitPaths();
+            Id = github.Id ?? Id;
             FriendlyName = github.FriendlyName;
             Tooltip = github.Tooltip;
             Author = github.Author;
             Description = github.Description;
             Runtimes = github.Runtimes;
+            Platforms = github.Platforms;
             DependencyIds = github.DependencyIds;
-
             sourceDirectories = github
-                .SourceDirectories?.Select(x => Path.Combine(Folder, x).Replace('\\', '/'))
+                .SourceDirectories?.Select(path =>
+                    Path.Combine(Folder, path).Replace('\\', '/').TrimEnd('/') + "/"
+                )
                 .ToArray();
-
-            if (file.Contains(Folder))
-                settings.DataFile = file.Replace(Folder, "").TrimStart('\\');
-            else
-                settings.DataFile = file;
 
             this.github = github;
         }
@@ -333,11 +352,5 @@ public class LocalFolderPlugin : PluginData
         }
     }
 
-    public override string GetAssetPath()
-    {
-        if (string.IsNullOrEmpty(github?.AssetFolder))
-            return null;
-
-        return Path.GetFullPath(Path.Combine(Folder, github.AssetFolder));
-    }
+    private string GetRelativePath(string file) => Tools.GetRelativePath(Folder, file) ?? file;
 }

@@ -2,53 +2,50 @@
   <PropertyGroup>
     <Version>1.0.0</Version>
     <Product>Pulsar</Product>
-    <Copyright>© 2025 SpaceGT</Copyright>
+    <Copyright>© 2026 SpaceGT</Copyright>
   </PropertyGroup>
   <PropertyGroup>
     <AssemblyName>Pulsar.Shared</AssemblyName>
     <RootNamespace>Pulsar.Shared</RootNamespace>
   </PropertyGroup>
   <PropertyGroup>
-    <OutputType>Library</OutputType>
-    <TargetFrameworks>net48;net8.0-windows;net10.0-windows</TargetFrameworks>
-    <UseWindowsForms>true</UseWindowsForms>
+    <TargetFrameworks>net48;net10.0</TargetFrameworks>
     <Nullable>disable</Nullable>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <PropertyGroup>
-    <Platforms>x64</Platforms>
-    <PlatformTarget>x64</PlatformTarget>
-    <Configurations>Debug;Release</Configurations>
+    <!-- Ensure different SteamWorks versions don't overwrite. -->
+    <SteamFlavour Condition="'$(Steamworks)' == '$(Bin64)'">Legacy</SteamFlavour>
+    <SteamFlavour Condition="'$(Steamworks)' == '$(Game2)'">Modern</SteamFlavour>
+    <SteamFlavour Condition="'$(TargetPlatform)' == 'Linux'">Linux</SteamFlavour>
+    <OutputPath>bin/$(SteamFlavour)/$(Configuration)/</OutputPath>
+    <IntermediateOutputPath>obj/$(SteamFlavour)/$(Configuration)/</IntermediateOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <LangVersion>latest</LangVersion>
-    <ErrorReport>prompt</ErrorReport>
-  </PropertyGroup>
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Steamworks)' == ''" Text="Specify Steamworks path!" />
+    <Error Condition="!Exists('$(Steamworks)/Steamworks.NET.dll')" Text="Steamworks.NET.dll not found!" />
+  </Target>
   <ItemGroup>
-    <ProjectReference Include="..\Compiler\Compiler.csproj" />
+    <ProjectReference Include="../Protocol/Protocol.csproj" GlobalPropertiesToRemove="Steamworks" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)" Private="False" />
+    <Reference Include="Steamworks.NET" HintPath="$(Steamworks)/Steamworks.NET.dll" Private="False" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="FuzzySharp" Version="2.0.2" />
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
+    <PackageReference Include="Microsoft.Win32.Registry" Version="5.0.0" />
     <PackageReference Include="Mono.Cecil" Version="0.11.6" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="NLog" Version="6.0.3" />
-    <PackageReference Include="NuGet.Resolver" Version="6.7.1" />
+    <PackageReference Include="NuGet.Commands" Version="6.7.1" />
     <PackageReference Include="protobuf-net" Version="2.4.9" />
+    <PackageReference Include="SharpCompress" Version="0.50.4" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="5.1.0" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="System.Buffers" Version="4.6.1" />
+    <PackageReference Include="System.Memory" Version="4.6.3" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />
   </ItemGroup>
 </Project>

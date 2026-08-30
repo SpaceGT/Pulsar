@@ -1,14 +1,20 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
-using System.Windows.Forms;
+using System.Threading.Tasks;
+using Mono.Cecil;
 using Newtonsoft.Json;
 using Pulsar.Compiler;
+using Pulsar.Interface;
+using Pulsar.Protocol.Interface;
+#if NETCOREAPP
+using System.Runtime.Versioning;
+#endif
 
 namespace Pulsar.Shared;
 
@@ -19,14 +25,36 @@ public interface IExternalTools
 
 public static class Tools
 {
-    public const string XmlDataType = "Xml files (*.xml)|*.xml|All files (*.*)|*.*";
     public static IExternalTools External { get; private set; }
     public static ICompilerFactory Compiler { get; private set; }
+    public static InterfaceClient Interface { get; private set; }
+
+    public static void EarlyInit(InterfaceClient interfaceClient)
+    {
+        Interface = interfaceClient;
+    }
 
     public static void Init(IExternalTools external, ICompilerFactory compiler)
     {
         External = external;
         Compiler = compiler;
+    }
+
+    public static bool IsManagedDll(string file)
+    {
+        bool isDll = Path.GetExtension(file).Equals(".dll", StringComparison.OrdinalIgnoreCase);
+        if (!File.Exists(file) || !isDll)
+            return false;
+
+        try
+        {
+            using var _ = AssemblyDefinition.ReadAssembly(file);
+            return true;
+        }
+        catch (BadImageFormatException)
+        {
+            return false;
+        }
     }
 
     public static string GetFileHash(string file)
@@ -70,14 +98,15 @@ public static class Tools
 
     public static string GetClipboard()
     {
-        string cliptext = string.Empty;
-
-        Thread thread = new(new ThreadStart(() => cliptext = Clipboard.GetText()));
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.Start();
-        thread.Join();
-
-        return cliptext;
+        try
+        {
+            return Interface.GetClipboard();
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Error while reading clipboard: " + e);
+            return string.Empty;
+        }
     }
 
     public static string DateToString(DateTime? lastCheck)
@@ -108,140 +137,57 @@ public static class Tools
     public static void OpenFileDialog(
         string title,
         string directory,
-        string filter,
+        FilePickerFilter[] filters,
         Action<string> onOk
     )
     {
-        Thread t = new(new ThreadStart(() => OpenFileDialogThread(title, directory, filter, onOk)));
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
+        Task.Run(() =>
+        {
+            try
+            {
+                string file = Interface.OpenFile(title, directory, filters);
+                if (!string.IsNullOrWhiteSpace(file))
+                    External.OnMainThread(() => onOk(file));
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening file dialog: " + e);
+            }
+        });
     }
 
-    private static void OpenFileDialogThread(
-        string title,
-        string directory,
-        string filter,
-        Action<string> onOk
+    public static void OpenFolderDialog(string title, Action<string> onOk)
+    {
+        Task.Run(() =>
+        {
+            try
+            {
+                string folder = Interface.OpenFolder(title);
+                if (!string.IsNullOrWhiteSpace(folder))
+                    External.OnMainThread(() => onOk(folder));
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while opening folder dialog: " + e);
+            }
+        });
+    }
+
+    public static PromptResult ShowMessageBox(
+        string message,
+        PromptButtons buttons,
+        PromptIcon icon
     )
     {
-        // Prompt the user to select a file.
         try
         {
-            using OpenFileDialog openFileDialog = new();
-            if (Directory.Exists(directory))
-                openFileDialog.InitialDirectory = directory;
-            openFileDialog.Title = title;
-            openFileDialog.Filter = filter;
-            openFileDialog.RestoreDirectory = true;
-
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string fileName = openFileDialog.FileName;
-
-            form.Close();
-
-            if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(fileName))
-            {
-                // Move back to the main thread so that we can interact with keen code again
-                External.OnMainThread(() => onOk(fileName));
-            }
+            return Interface.ShowPrompt(message, buttons, icon);
         }
         catch (Exception e)
         {
-            LogFile.Error("Error while opening file dialog: " + e);
+            LogFile.Error("Error while opening message box: " + e);
+            return buttons == PromptButtons.Ok ? PromptResult.Ok : PromptResult.Cancel;
         }
-    }
-
-    public static void OpenFolderDialog(Action<string> onOk)
-    {
-        Thread t = new(new ThreadStart(() => OpenFolderDialogThread(onOk)));
-        t.SetApartmentState(ApartmentState.STA);
-        t.Start();
-    }
-
-    private static void OpenFolderDialogThread(Action<string> onOk)
-    {
-        // Prompt the user to select a folder.
-        // Net Core - FolderBrowserDialog supports the modern Vista-style dialog.
-        // Net Framework - We must hack OpenFileDialog to set some internal flags.
-
-        try
-        {
-#if NETCOREAPP
-            using FolderBrowserDialog openFolderDialog = new();
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFolderDialog.ShowDialog(form);
-            string selectedPath = openFolderDialog.SelectedPath;
-
-            form.Close();
-#else
-            using OpenFileDialog openFileDialog = new();
-            openFileDialog.CheckFileExists = false;
-            openFileDialog.CheckPathExists = true;
-            openFileDialog.RestoreDirectory = true;
-            openFileDialog.Filter = "Folders (*.*)|*.*";
-
-            Form form = new() { TopMost = true, TopLevel = true };
-
-            DialogResult dialogResult = openFileDialog.ShowDialog(form);
-            string selectedPath = openFileDialog.FileName;
-
-            form.Close();
-#endif
-
-            if (dialogResult == DialogResult.OK && !string.IsNullOrWhiteSpace(selectedPath))
-            {
-                // Move back to the main thread so that we can interact with keen code again
-                External.OnMainThread(() => onOk(selectedPath));
-            }
-        }
-        catch (Exception e)
-        {
-            LogFile.Error("Error while opening file dialog: " + e);
-        }
-    }
-
-    public static DialogResult ShowMessageBox(
-        string msg,
-        MessageBoxButtons buttons = MessageBoxButtons.OK,
-        MessageBoxIcon icon = MessageBoxIcon.None,
-        MessageBoxDefaultButton defaultButton = MessageBoxDefaultButton.Button1
-    )
-    {
-        if (Application.OpenForms.Count > 0)
-        {
-            Form form = Application.OpenForms[0];
-            if (form.InvokeRequired)
-            {
-                // Form is on a different thread
-                try
-                {
-                    object result = form.Invoke(() =>
-                        MessageBox.Show(form, msg, "Pulsar", buttons, icon, defaultButton)
-                    );
-                    if (result is DialogResult dialogResult)
-                        return dialogResult;
-                }
-                catch (Exception) { }
-            }
-            else
-            {
-                // Form is on the same thread
-                return MessageBox.Show(form, msg, "Pulsar", buttons, icon, defaultButton);
-            }
-        }
-
-        // No form
-        return MessageBox.Show(
-            msg,
-            "Pulsar",
-            buttons,
-            icon,
-            defaultButton,
-            MessageBoxOptions.DefaultDesktopOnly
-        );
     }
 
     public static IEnumerable<string> GetFiles(
@@ -279,10 +225,79 @@ public static class Tools
         return newName.ToString();
     }
 
+    public static string GetRelativePath(string folder, string path)
+    {
+        if (string.IsNullOrEmpty(folder) || string.IsNullOrEmpty(path))
+            return null;
+
+#if NETFRAMEWORK
+        string fullFolder = Path.GetFullPath(folder).TrimEnd('\\', '/');
+        string fullPath = Path.GetFullPath(path);
+        if (fullPath.Equals(fullFolder, StringComparison.OrdinalIgnoreCase))
+            return string.Empty;
+
+        fullFolder += '\\';
+        if (!fullPath.StartsWith(fullFolder, StringComparison.OrdinalIgnoreCase))
+            return null;
+
+        return fullPath.Substring(fullFolder.Length);
+#else
+        string relativePath = Path.GetRelativePath(folder, path);
+        if (relativePath == ".")
+            return string.Empty;
+
+        string parent = ".." + Path.DirectorySeparatorChar;
+        if (
+            Path.IsPathRooted(relativePath)
+            || relativePath == ".."
+            || relativePath.StartsWith(parent)
+        )
+            return null;
+
+        return relativePath;
+#endif
+    }
+
+    public static bool PathsEqual(string first, string second)
+    {
+        StringComparer comparer = IsWindows()
+            ? StringComparer.OrdinalIgnoreCase
+            : StringComparer.Ordinal;
+        return comparer.Equals(Path.GetFullPath(first), Path.GetFullPath(second));
+    }
+
+    public static void ShowInFileManager(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return;
+
+        if (IsWindows())
+        {
+            string arguments = File.Exists(path) ? $"/select, \"{path}\"" : $"\"{path}\"";
+            Process.Start(
+                new ProcessStartInfo("explorer.exe", arguments) { UseShellExecute = false }
+            );
+        }
+        else
+        {
+            if (File.Exists(path))
+                path = Path.GetDirectoryName(path);
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+        }
+    }
+
     public static T DeepCopy<T>(T obj)
     {
         string json = JsonConvert.SerializeObject(obj);
         return JsonConvert.DeserializeObject<T>(json);
+    }
+
+    public static void Shuffle<T>(IList<T> items)
+    {
+        T[] shuffled = [.. items.OrderBy(_ => Guid.NewGuid())];
+        for (int i = 0; i < items.Count; i++)
+            items[i] = shuffled[i];
     }
 
     public static string RemoveAll(string text, IEnumerable<string> tokens)
@@ -292,11 +307,73 @@ public static class Tools
         return text;
     }
 
-    public static bool IsNative() =>
-        Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is null;
+    public static List<string> GetRestartArgs(string executable)
+    {
+        List<string> args = [.. Environment.GetCommandLineArgs()];
+        string originalName = Path.GetFileNameWithoutExtension(args[0]);
+        string executableName = Path.GetFileNameWithoutExtension(executable);
 
-    [DllImport("user32.dll")]
-    private static extern short GetAsyncKeyState(int vKey);
+        // First "argument" is the invoked executable
+        // Preserve if invoked via `dotnet` or drop if invoking directly.
+        if (originalName.Equals(executableName, StringComparison.OrdinalIgnoreCase))
+            args.RemoveAt(0);
 
-    public static bool IsKeyPressed(Keys key) => GetAsyncKeyState((int)key) < 0;
+        return args;
+    }
+
+#if NETCOREAPP
+    [SupportedOSPlatformGuard("windows")]
+#endif
+    public static bool IsWindows() => RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+
+    public static bool IsMono() => Type.GetType("Mono.Runtime") is not null;
+
+    public static string RuntimeIdentifier =>
+        (IsWindows() ? "win-" : "linux-")
+        + RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant();
+
+    public static string Platform =>
+        IsProton() ? "Proton"
+        : IsWindows() ? "Windows"
+        : "Linux";
+
+    public static string Runtime => IsMono() ? "Mono"
+#if NETFRAMEWORK
+            : "CLR";
+#else
+            : "CoreCLR";
+#endif
+
+    public static IEnumerable<string> GetCompilationSymbols(bool trusted)
+    {
+#if NETCOREAPP
+        yield return "NETCOREAPP";
+#endif
+
+        if (!IsWindows())
+            yield return "LINUX";
+
+        if (!trusted)
+            yield break;
+
+#if NETFRAMEWORK
+        yield return "NETFRAMEWORK";
+#endif
+
+        yield return "PULSAR";
+    }
+
+    public static bool IsSupportedEnvironment(string runtimes, string platforms) =>
+        IsSupportedValue(runtimes, Runtime) && IsSupportedValue(platforms, Platform);
+
+    private static bool IsSupportedValue(string supportedValues, string value) =>
+        string.IsNullOrWhiteSpace(supportedValues)
+        || supportedValues
+            .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
+            .Any(x => x.Trim().Equals(value, StringComparison.OrdinalIgnoreCase));
+
+    public static bool IsProton() =>
+        IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
+
+    public static string ExecutableExtension => IsWindows() ? ".exe" : ".bin";
 }

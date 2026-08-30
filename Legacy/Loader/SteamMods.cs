@@ -19,6 +19,9 @@ public static class SteamMods
 
     public static void Update(IEnumerable<ulong> ids)
     {
+        if (!Steam.IsInitialized)
+            return;
+
         var modItems = new List<MyObjectBuilder_Checkpoint.ModItem>(
             ids.Select(x => new MyObjectBuilder_Checkpoint.ModItem(x, "Steam"))
         );
@@ -59,7 +62,9 @@ public static class SteamMods
     }
 
     public static bool IsModUntrusted(MyObjectBuilder_Checkpoint.ModItem mod) =>
-        mod.PublishedServiceName != "Steam" || !Steam.IsSubscribed(mod.PublishedFileId);
+        mod.PublishedServiceName != "Steam"
+        || !Steam.IsInitialized
+        || !Steam.IsSubscribed(mod.PublishedFileId);
 
     public static MyWorkshop.ResultData UpdateInternal(
         List<MyObjectBuilder_Checkpoint.ModItem> mods

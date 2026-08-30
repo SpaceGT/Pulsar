@@ -7,6 +7,7 @@ using Gameloop.Vdf;
 using Gameloop.Vdf.Linq;
 using Microsoft.Win32;
 using Pulsar.Shared;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Modern.Launcher;
 
@@ -46,13 +47,16 @@ internal class Folder
         // Windows can handle forward slashes in paths so all we need to
         // do is point it to where the system root is mounted under.
 
-        if (!Tools.IsNative() && path.StartsWith('/'))
+        if (Tools.IsProton() && path.StartsWith('/'))
             return "Z:" + path;
         return path;
     }
 
     private static string FromRegistry()
     {
+        if (!Tools.IsWindows())
+            return null;
+
         using var baseKey = RegistryKey.OpenBaseKey(
             RegistryHive.LocalMachine,
             RegistryView.Registry64
@@ -75,16 +79,9 @@ internal class Folder
 
     private static string FromOverride()
     {
-        string[] args = Environment.GetCommandLineArgs();
-        int index = Array.FindIndex(
-            args,
-            arg => arg.Equals("-game2", StringComparison.OrdinalIgnoreCase)
-        );
-
-        if (index < 0 || index >= args.Length - 1)
+        if (Flags.Current.Game2 is not string path)
             return null;
 
-        string path = args[index + 1];
         if (!Path.IsPathRooted(path))
         {
             string currentPath = Assembly.GetExecutingAssembly().Location;
@@ -121,7 +118,7 @@ internal class Folder
     private static string FromSteamFiles()
     {
         // VDF files within Proton prefixes are unreliable.
-        if (!Tools.IsNative())
+        if (Tools.IsProton())
             return null;
 
         string steamPath = Steam.GetSteamPath();

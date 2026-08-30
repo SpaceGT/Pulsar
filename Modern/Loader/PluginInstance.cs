@@ -1,12 +1,14 @@
 ﻿using System;
-using System.IO;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
 using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using NLog;
+using Pulsar.Modern.Patch;
 using Pulsar.Shared;
+using Pulsar.Shared.Assets;
 using Pulsar.Shared.Data;
 using Tools = Pulsar.Shared.Tools;
 
@@ -75,6 +77,9 @@ internal class PluginInstance
     {
         // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
 
+        if (AccessTools.DeclaredMethod(mainType, "Rewrite") is MethodInfo rewriteFunc)
+            Patch_Rewriter.Methods.TryAdd(this, rewriteFunc);
+
         try
         {
             FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "GetConfigPath");
@@ -88,7 +93,7 @@ internal class PluginInstance
         try
         {
             FieldInfo nativeFunc = AccessTools.DeclaredField(mainType, "IsNative");
-            nativeFunc?.SetValue(null, Tools.IsNative());
+            nativeFunc?.SetValue(null, !Tools.IsProton());
         }
         catch (Exception e)
         {
@@ -117,17 +122,19 @@ internal class PluginInstance
 
     private void LoadAssets()
     {
-        string assetFolder = data.GetAssetPath();
-        if (string.IsNullOrEmpty(assetFolder) || !Directory.Exists(assetFolder))
+        IReadOnlyDictionary<string, string> assets = data.GetNamedAssets();
+        if (assets.Count == 0)
             return;
 
         LogFile.WriteLine($"Loading assets for {data}");
-        MethodInfo loadAssets = AccessTools.DeclaredMethod(
-            mainType,
-            "LoadAssets",
-            [typeof(string)]
-        );
-        loadAssets?.Invoke(plugin, [assetFolder]);
+        if (assets.TryGetValue(PluginAsset.ReservedAssetFolder, out string assetFolder))
+            AccessTools
+                .DeclaredMethod(mainType, "LoadAssets", [typeof(string)])
+                ?.Invoke(plugin, [assetFolder]);
+
+        AccessTools
+            .DeclaredMethod(mainType, "LoadAssets", [typeof(IReadOnlyDictionary<string, string>)])
+            ?.Invoke(plugin, [assets]);
     }
 
     public void OpenConfig()
@@ -147,6 +154,8 @@ internal class PluginInstance
 
     public void Dispose()
     {
+        Patch_Rewriter.Methods.TryRemove(this, out _);
+
         if (plugin is null)
             return;
 
@@ -165,7 +174,7 @@ internal class PluginInstance
         }
     }
 
-    private void ThrowError(string error)
+    internal void ThrowError(string error)
     {
         LogFile.Error(error);
         data.Error();

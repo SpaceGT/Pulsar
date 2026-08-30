@@ -56,7 +56,7 @@ internal static class PluginDataExtensions
             foreach (
                 Match m in Regex.Matches(
                     text,
-                    @"https?:\/\/(www\.)?[\w-.]{2,256}\.[a-z]{2,4}\b[\w-.@:%\+~#?&//=]*"
+                    @"https?://(www\.)?[\w-.]{2,256}\.[a-z]{2,4}\b[\w-.@:%\+~#?&//=]*"
                 )
             )
             {

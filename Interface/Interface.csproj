@@ -1,0 +1,107 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Version>1.0.0</Version>
+    <Product>Pulsar</Product>
+    <Copyright>© 2026 SpaceGT</Copyright>
+  </PropertyGroup>
+  <PropertyGroup>
+    <AssemblyName>Interface</AssemblyName>
+    <RootNamespace>Pulsar.Interface</RootNamespace>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <Nullable>disable</Nullable>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Windows'">
+    <TargetFramework>net48</TargetFramework>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetPlatform)' == 'Linux'">
+    <TargetFramework>net10.0</TargetFramework>
+    <RuntimeIdentifier>linux-x64</RuntimeIdentifier>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PlatformTarget>x64</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>Assets/icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+  <Target Name="Deploy" AfterTargets="Build">
+    <PropertyGroup>
+      <DeployDirectory>$(Pulsar)/Libraries/Interface</DeployDirectory>
+      <LicensePath>$(MSBuildProjectDirectory)/../LICENSE</LicensePath>
+      <SourceExecutable>$(TargetDir)$(AssemblyName)$(_NativeExecutableExtension)</SourceExecutable>
+      <DestinationExecutable>$(DeployDirectory)/$(AssemblyName)$(ExecutableExtension)</DestinationExecutable>
+    </PropertyGroup>
+    <ItemGroup>
+      <DeployFile Include="$(TargetDir)Pulsar.Protocol.dll" />
+      <DeployFile Include="$(TargetDir)Newtonsoft.Json.dll" />
+      <DeployFile Include="$(TargetDir)MicroCom.Runtime.dll" />
+      <DeployFile Include="$(TargetDir)HarfBuzzSharp.dll" />
+      <DeployFile Include="$(TargetDir)SkiaSharp.dll" />
+      <DeployFile Include="$(TargetDir)AnimatedImage.dll" />
+      <DeployFile Include="$(TargetDir)AnimatedImage.Avalonia.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Base.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Controls.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Dialogs.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Markup.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Markup.Xaml.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.MicroCom.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.OpenGL.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Remote.Protocol.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Skia.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Themes.Fluent.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Metal.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+      <DeployFile Include="$(TargetDir)$(AssemblyName).exe.config" />
+      <DeployFile Include="$(TargetDir)x64/libHarfBuzzSharp.dll" />
+      <DeployFile Include="$(TargetDir)x64/libSkiaSharp.dll" />
+      <DeployFile Include="$(TargetDir)av_libglesv2.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Win32.dll" />
+      <DeployFile Include="$(TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" />
+      <DeployFile Include="$(TargetDir)System.Buffers.dll" />
+      <DeployFile Include="$(TargetDir)System.Memory.dll" />
+      <DeployFile Include="$(TargetDir)System.ValueTuple.dll" />
+      <DeployFile Include="$(TargetDir)System.ComponentModel.Annotations.dll" />
+      <DeployFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
+      <DeployFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
+      <DeployFile Include="$(TargetDir)System.Threading.Tasks.Extensions.dll" />
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETCoreApp'">
+      <DeployFile Include="$(TargetDir)$(AssemblyName).dll" />
+      <DeployFile Include="$(TargetDir)$(AssemblyName).runtimeconfig.json" />
+      <DeployFile Include="$(TargetDir)$(AssemblyName).deps.json" />
+      <DeployFile Include="$(TargetDir)libHarfBuzzSharp.so" />
+      <DeployFile Include="$(TargetDir)libSkiaSharp.so" />
+      <DeployFile Include="$(TargetDir)Avalonia.FreeDesktop.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.X11.dll" />
+      <DeployFile Include="$(TargetDir)Tmds.DBus.Protocol.dll" />
+    </ItemGroup>
+    <Error Condition="!Exists('$(LicensePath)')" Text="License file not found!" />
+    <RemoveDir Directories="$(DeployDirectory)" />
+    <Copy SourceFiles="@(DeployFile)" DestinationFolder="$(DeployDirectory)" />
+    <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
+    <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
+  </Target>
+  <Target Name="Verify" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />
+    <Error Condition="$(Pulsar.Contains(';'))" Text="Pulsar directory is not unique!" />
+  </Target>
+  <ItemGroup>
+    <ProjectReference Include="../Protocol/Protocol.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
+    <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+</Project>

@@ -2,13 +2,17 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 using Newtonsoft.Json.Linq;
-using Pulsar.Shared.Config;
+using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Data;
 using Pulsar.Shared.Network;
+#if NETCOREAPP
+using System.Formats.Tar;
+#endif
 
 namespace Pulsar.Shared;
 
@@ -25,32 +29,53 @@ public class Updater(string repoName)
         Assembly entryAssembly = Assembly.GetEntryAssembly();
         Version localPulsarVer = entryAssembly.GetName().Version;
 
-        bool preRelease = Flags.UpdateType == UpdateType.Tester;
+        bool preRelease = Flags.Current.UpdateType == UpdateType.Tester;
 
         if (
-            Flags.UpdateType != UpdateType.None
-            && GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
-            && localPulsarVer < remotePulsarVer
+            Flags.Current.UpdateType == UpdateType.None
+            || !GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
+            || localPulsarVer >= remotePulsarVer
         )
-        {
-            LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
+            return;
 
-            DialogResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
-            if (result == DialogResult.Yes)
-                Update();
-            else if (result == DialogResult.Cancel)
-                Environment.Exit(0);
+        LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");
+
+        if (!IsWritable(Path.GetDirectoryName(entryAssembly.Location)))
+        {
+            LogFile.Warn("Skipping update due to read-only Pulsar install!");
+            return;
         }
+
+        PromptResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
+        if (result == PromptResult.Yes)
+            Update();
+        else if (result == PromptResult.Cancel)
+            Environment.Exit(0);
     }
 
-    private static DialogResult ShowUpdatePrompt(Version localVer, Version remoteVer)
+    private static bool IsWritable(string directory)
+    {
+        string path = Path.Combine(directory, Path.GetRandomFileName());
+
+        try
+        {
+            using (File.Create(path, 1, FileOptions.DeleteOnClose)) { }
+            return true;
+        }
+        catch (UnauthorizedAccessException) { }
+        catch (IOException) { }
+
+        return false;
+    }
+
+    private static PromptResult ShowUpdatePrompt(Version localVer, Version remoteVer)
     {
         string prompt =
             $"An update is available for {PulsarName}:\n"
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        return Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNoCancel);
+        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel, PromptIcon.Question);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -70,33 +95,34 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        DialogResult result = Tools.ShowMessageBox(prompt, MessageBoxButtons.YesNo);
+        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Warning);
 
-        if (result == DialogResult.No)
+        if (result != PromptResult.Yes)
             Environment.Exit(0);
 
         GitHubPlugin.ClearGitHubCache();
+        LocalFolderPlugin.ClearDevFolderCache();
     }
 
     public void ShowBitrotPrompt()
     {
-        MessageBoxButtons buttons;
+        PromptButtons buttons;
         string message = "You have a broken Pulsar insallation!\n";
 
-        if (Flags.UpdateType == UpdateType.None)
+        if (Flags.Current.UpdateType == UpdateType.None)
         {
             message += "Please rebuild or manually redownload.";
-            buttons = MessageBoxButtons.OK;
+            buttons = PromptButtons.Ok;
         }
         else
         {
             message += "Attempt to download the latest version?";
-            buttons = MessageBoxButtons.YesNo;
+            buttons = PromptButtons.YesNo;
         }
 
-        DialogResult result = Tools.ShowMessageBox(message, buttons);
+        PromptResult result = Tools.ShowMessageBox(message, buttons, PromptIcon.Error);
 
-        if (result == DialogResult.Yes)
+        if (result == PromptResult.Yes)
             Update();
 
         Environment.Exit(1);
@@ -108,7 +134,7 @@ public class Updater(string repoName)
             $"An error occurred while updating {PulsarName}!\n"
             + "Please check the log for more information!";
 
-        Tools.ShowMessageBox(prompt, MessageBoxButtons.OK);
+        Tools.ShowMessageBox(prompt, PromptButtons.Ok, PromptIcon.Error);
     }
 
     private void Update()
@@ -125,23 +151,38 @@ public class Updater(string repoName)
             return;
         }
 
-        if (
-            !TryGetUpdaterInfo(json, out Version rUpdaterVer, out string rUpdaterPath)
-            || !TryGetPulsarPath(json, out string rPulsarPath)
-        )
+        if (!TryGetPulsarPath(json, out string rPulsarPath))
         {
             ShowUpdateError();
             return;
         }
 
-        string lPulsarPath = Path.Combine(ConfigManager.Instance.PulsarDir, "..");
+        string lPulsarPath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+
+        GitHubPlugin.ClearGitHubCache();
+        LocalFolderPlugin.ClearDevFolderCache();
+
+#if NETCOREAPP
+        if (!Tools.IsWindows())
+        {
+            LinuxUpdater.Update(rPulsarPath, lPulsarPath);
+            return;
+        }
+#endif
+
+        if (!TryGetUpdaterInfo(json, out Version rUpdaterVer, out string rUpdaterPath))
+        {
+            ShowUpdateError();
+            return;
+        }
+
         string lUpdaterPath = Path.Combine(lPulsarPath, UpdaterName + ".exe");
         Version lUpdaterVer = GetLocalUpdaterVersion(lUpdaterPath);
 
         if (lUpdaterVer is null || lUpdaterVer < rUpdaterVer)
             DownloadUpdater(rUpdaterPath, lUpdaterPath);
 
-        GitHubPlugin.ClearGitHubCache();
+        Tools.Interface.Dispose();
         StartUpdater(lUpdaterPath, rPulsarPath, lPulsarPath);
     }
 
@@ -185,23 +226,21 @@ public class Updater(string repoName)
         if (json["assets"] is not JArray assets)
             return false;
 
-        foreach (JToken item in assets)
+        // The first character of PulsarName is ignored (hence "ulsar")
+        // Temporary workaround to prevent pre-v2.4 Pulsar versions from updating to a Linux
+        // build (and bricking) by separating their releases based on first character's case.
+        JToken asset = assets.FirstOrDefault(item =>
         {
             string name = item["name"].ToString();
-            if (!name.Contains(PulsarName))
-                continue;
+            return name.Contains("ulsar") && name.Contains(Tools.RuntimeIdentifier);
+        });
 
-            remotePath = item["browser_download_url"].ToString();
-            break;
-        }
+        remotePath = asset?["browser_download_url"]?.ToString();
+        if (remotePath is not null)
+            return true;
 
-        if (remotePath is null)
-        {
-            LogFile.Error($"Cannot find {PulsarName} in assets.");
-            return false;
-        }
-
-        return true;
+        LogFile.Error($"Updater cannot find {PulsarName} for {Tools.RuntimeIdentifier}.");
+        return false;
     }
 
     private static Version GetLocalUpdaterVersion(string updaterPath)
@@ -216,17 +255,18 @@ public class Updater(string repoName)
     private static void DownloadUpdater(string remotePath, string localPath)
     {
         Uri uri = new(remotePath, UriKind.Absolute);
-        using var stream = GitHub.GetStream(uri);
-        using var file = File.Create(localPath);
-        stream.CopyTo(file);
+        using Stream input = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
+        using FileStream output = File.Create(localPath);
+        input.CopyTo(output);
     }
 
     private static void StartUpdater(string updaterPath, string remotePath, string localPath)
     {
-        string caller = Assembly.GetEntryAssembly().Location;
+        string caller = Process.GetCurrentProcess().MainModule.FileName;
+        List<string> originalArgs = Tools.GetRestartArgs(caller);
 
         List<string> args = ["-caller", caller, "-remote", remotePath, "-local", localPath];
-        args.AddRange(Environment.GetCommandLineArgs().Skip(1));
+        args.AddRange(originalArgs);
 
         args.Remove(DebugArg);
         if (Debugger.IsAttached)
@@ -245,3 +285,99 @@ public class Updater(string repoName)
         Environment.Exit(0);
     }
 }
+
+#if NETCOREAPP
+file static class LinuxUpdater
+{
+    private const string Pulsar = "Pulsar";
+    private const string DebugArg = "-debug";
+    private const int MaxEntries = 15;
+
+    private static readonly HashSet<string> Preserve = ["Legacy", "Interim", "Modern", "NuGet"];
+    private static readonly HashSet<string> Check = ["Interim.bin", "Modern.bin", "LICENSE"];
+
+    public static void Update(string remote, string destination)
+    {
+        Uri uri = new(remote, UriKind.Absolute);
+        using Stream stream = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
+        using GZipStream gzip = new(stream, CompressionMode.Decompress);
+        string caller = Process.GetCurrentProcess().MainModule.FileName;
+
+        if (!Validate(destination))
+            Environment.Exit(1);
+
+        Tools.Interface.Dispose();
+        CleanFolder(destination, Preserve);
+        TarFile.ExtractToDirectory(gzip, destination, overwriteFiles: true);
+
+        Launcher.ReleaseInstanceLock();
+        Start(caller);
+        Environment.Exit(0);
+    }
+
+    private static void CleanFolder(string folder, HashSet<string> exclude)
+    {
+        foreach (string file in Directory.EnumerateFiles(folder))
+            if (!exclude.Contains(Path.GetFileName(file)))
+                File.Delete(file);
+
+        foreach (string dir in Directory.EnumerateDirectories(folder))
+            if (!exclude.Contains(Path.GetFileName(dir)))
+                Directory.Delete(dir, recursive: true);
+    }
+
+    private static bool Validate(string folder)
+    {
+        if (!Directory.Exists(folder))
+            return false;
+
+        folder = Path.GetFullPath(folder);
+
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string defaultPath = Path.Combine(appData, Pulsar);
+
+        if (folder == defaultPath)
+            return true;
+
+        bool isPulsarInstall = Check.All(name => File.Exists(Path.Combine(folder, name)));
+        bool hasOtherFiles = Directory.GetFileSystemEntries(folder).Length > MaxEntries;
+        if (isPulsarInstall && !hasOtherFiles)
+            return true;
+
+        return ContinuePrompt(folder);
+    }
+
+    private static bool ContinuePrompt(string folder)
+    {
+        string message =
+            "The installation folder could not be validated!\n"
+            + "Is this your Pulsar install folder?\n"
+            + "It WILL BE CLEANED if you update!\n\n"
+            + folder;
+
+        return Tools.ShowMessageBox(message, PromptButtons.YesNo, PromptIcon.Warning)
+            == PromptResult.Yes;
+    }
+
+    private static void Start(string exe)
+    {
+        List<string> originalArgs = Tools.GetRestartArgs(exe);
+
+        originalArgs.Remove(DebugArg);
+        if (Debugger.IsAttached)
+            originalArgs.Add(DebugArg);
+
+        string cmdArgs = string.Join(" ", originalArgs.Select(a => $"\"{a}\""));
+
+        ProcessStartInfo startInfo = new()
+        {
+            FileName = exe,
+            Arguments = cmdArgs,
+            UseShellExecute = false,
+        };
+
+        if (File.Exists(exe))
+            Process.Start(startInfo);
+    }
+}
+#endif

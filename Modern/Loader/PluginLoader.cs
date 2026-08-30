@@ -3,15 +3,15 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.ExceptionServices;
 using System.Text;
-using System.Windows.Forms;
 using HarmonyLib;
 using Keen.VRage.Core.Plugins;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Extensions;
+using Pulsar.Protocol.Interface;
 using Pulsar.Shared;
-using Pulsar.Shared.Config;
-using Pulsar.Shared.Splash;
+using Pulsar.Shared.Arguments;
 using SharedLoader = Pulsar.Shared.Loader;
+using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Loader;
 
@@ -33,15 +33,7 @@ internal class PluginLoader : IPlugin, IDisposable
         Assembly currentAssembly = Assembly.GetExecutingAssembly();
         new Harmony(currentAssembly.GetName().Name + ".Late").PatchCategory("Late");
 
-        if (ConfigManager.Instance.SafeMode)
-        {
-            plugins.Clear();
-            LogFile.Warn("Skipping plugin instantiation");
-        }
-        else
-        {
-            InstantiatePlugins(host);
-        }
+        InstantiatePlugins(host);
 
         init = true;
     }
@@ -97,11 +89,11 @@ internal class PluginLoader : IPlugin, IDisposable
     {
         StringBuilder debugCompileResults = new();
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to Init:").AppendLine();
 
-        foreach (var (data, assembly) in SharedLoader.Instance.Plugins)
-            if (PluginInstance.TryGet(data, assembly, out PluginInstance instance))
+        foreach (var plugin in SharedLoader.Instance.Plugins)
+            if (PluginInstance.TryGet(plugin.Key, plugin.Value, out PluginInstance instance))
                 plugins.Add(instance);
 
         LogFile.WriteLine($"Initializing {plugins.Count} plugins");
@@ -110,12 +102,11 @@ internal class PluginLoader : IPlugin, IDisposable
 
         for (int i = plugins.Count - 1; i >= 0; i--)
         {
-            SplashManager.Instance?.SetText($"Loading {i + 1} of {totalPlugins} plugins");
             PluginInstance p = plugins[i];
             if (!p.Instantiate(host))
                 plugins.RemoveAtFast(i);
 
-            if (Flags.CheckAllPlugins)
+            if (Flags.Current.CheckAllPlugins)
                 debugCompileResults
                     .Append(p.FriendlyName ?? "(null)")
                     .Append(" - ")
@@ -126,11 +117,11 @@ internal class PluginLoader : IPlugin, IDisposable
         }
 
         LogFile.WriteLine($"Initialized {plugins.Count} of {totalPlugins} plugins");
-        SplashManager.Instance?.SetText($"Launching Space Engineers 2...");
 
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
         {
-            MessageBox.Show("All plugins compiled, log file will now open");
+            string message = "All plugins compiled, log file will now open";
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Information);
             LogFile.WriteLine(debugCompileResults.ToString());
             LogFile.Open();
         }

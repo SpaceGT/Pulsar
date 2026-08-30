@@ -4,11 +4,11 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 using HarmonyLib;
+using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
-using Pulsar.Shared.Network;
 using Pulsar.Shared.Splash;
 using Pulsar.Shared.Stats;
 
@@ -17,7 +17,7 @@ namespace Pulsar.Shared;
 public class Loader
 {
     public static Loader Instance;
-    public readonly List<(PluginData, Assembly)> Plugins = [];
+    public readonly List<KeyValuePair<PluginData, Assembly>> Plugins = [];
 
     private readonly CoreConfig config;
     private readonly SplashManager splash;
@@ -31,22 +31,6 @@ public class Loader
 
         splash = SplashManager.Instance;
 
-        if (Tools.IsKeyPressed(Keys.Escape))
-        {
-            DialogResult result = Tools.ShowMessageBox(
-                "Escape pressed. Start the game with all plugins disabled?",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question
-            );
-
-            if (result == DialogResult.Yes)
-            {
-                LogFile.Warn("Safe mode active. No plugins will be loaded!");
-                ConfigManager.Instance.SafeMode = true;
-            }
-        }
-
-        GitHub.Init();
         LogEnabledPlugins();
 
         StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;
@@ -64,18 +48,19 @@ public class Loader
         LogFile.WriteLine("Instantiating plugins");
 
         StringBuilder debugCompileResults = new();
-        if (Flags.CheckAllPlugins)
+        if (Flags.Current.CheckAllPlugins)
             debugCompileResults.Append("Plugins that failed to compile:").AppendLine();
 
         // FIXME: Treat as a plugin dependency in the future.
-        foreach (string id in forceEnable ?? [])
+        forceEnable = Flags.Current.Bare ? [] : forceEnable ?? [];
+        foreach (string id in forceEnable)
         {
             if (
                 ConfigManager.Instance.List.TryGetPlugin(id, out PluginData data)
                 && data.TryLoadAssembly(out Assembly plugin)
             )
             {
-                Plugins.Add((data, plugin));
+                Plugins.Add(new(data, plugin));
                 continue;
             }
 
@@ -83,7 +68,7 @@ public class Loader
             LogFile.Error(message);
 
             string fullMessage = $"{message}\nPulsar cannot continue loading!";
-            Tools.ShowMessageBox(fullMessage, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Tools.ShowMessageBox(fullMessage, PromptButtons.Ok, PromptIcon.Error);
 
             Environment.Exit(1);
         }
@@ -91,16 +76,23 @@ public class Loader
         //TODO: Compile in parallel
         foreach (PluginData data in GetEnabledPlugins())
         {
+            if (VerifySafeMode())
+                break;
+
             if (forceEnable.Contains(data.Id))
                 continue;
 
             if (data.TryLoadAssembly(out Assembly plugin))
             {
-                Plugins.Add((data, plugin));
+                Plugins.Add(new(data, plugin));
                 if (data.IsLocal)
                     ConfigManager.Instance.HasLocal = true;
             }
-            else if (Flags.CheckAllPlugins && data is not ModPlugin && data.IsSupportedRuntime())
+            else if (
+                Flags.Current.CheckAllPlugins
+                && data is not ModPlugin
+                && data.IsSupportedEnvironment()
+            )
             {
                 debugCompileResults
                     .Append(data.FriendlyName ?? "(null)")
@@ -112,15 +104,37 @@ public class Loader
             }
         }
 
-        if (Flags.CheckAllPlugins)
+        if (VerifySafeMode())
+            Plugins.RemoveAll(plugin => !forceEnable.Contains(plugin.Key.Id));
+
+        if (Flags.Current.CheckAllPlugins)
             LogFile.WriteLine(debugCompileResults.ToString());
 
         Task.Run(ReportEnabledPlugins);
     }
 
+    private static bool VerifySafeMode()
+    {
+        ConfigManager manager = ConfigManager.Instance;
+        if (manager.SafeMode || !Tools.Interface.TakeEscapePressed())
+            return manager.SafeMode;
+
+        PromptResult result = Tools.ShowMessageBox(
+            "Escape pressed: Start the game with user plugins disabled?",
+            PromptButtons.YesNo,
+            PromptIcon.Question
+        );
+        manager.SafeMode = result == PromptResult.Yes;
+
+        if (manager.SafeMode)
+            LogFile.Warn("Safe mode active. No user plugins will be loaded!");
+
+        return manager.SafeMode;
+    }
+
     private void ReportEnabledPlugins()
     {
-        if (!ConfigManager.Instance.Core.DataHandlingConsent)
+        if (!Steam.IsInitialized || !ConfigManager.Instance.Core.DataHandlingConsent)
             return;
 
         splash?.SetText("Reporting plugin usage...");
@@ -144,21 +158,28 @@ public class Loader
             string id = plugin.Id;
             bool enabled = profiles.Current.Contains(id);
 
-            if (enabled || (Flags.CheckAllPlugins && !plugin.IsLocal && plugin.IsCompiled))
+            if (enabled || (Flags.Current.CheckAllPlugins && !plugin.IsLocal && plugin.IsCompiled))
                 yield return plugin;
         }
     }
 
     private void LogEnabledPlugins()
     {
-        StringBuilder sb = new("Enabled plugins: ");
-        string[] plugins = [.. GetEnabledPlugins().Select(x => x.Id)];
+        List<string> plugins = [];
+        List<string> mods = [];
 
-        if (plugins.Length > 0)
-            sb.Append(string.Join(", ", plugins));
-        else
-            sb.Append("None");
+        foreach (PluginData p in GetEnabledPlugins())
+        {
+            bool hasName =
+                !string.IsNullOrWhiteSpace(p.FriendlyName)
+                && p.FriendlyName != "Unknown"
+                && p.FriendlyName != p.Id;
 
-        LogFile.WriteLine(sb.ToString());
+            List<string> list = p is ModPlugin ? mods : plugins;
+            list.Add(hasName ? $"{p.FriendlyName} ({p.Id})" : p.Id);
+        }
+
+        LogFile.WriteLine("Enabled Plugins: " + string.Join(", ", plugins.DefaultIfEmpty("None")));
+        LogFile.WriteLine("Enabled Mods: " + string.Join(", ", mods.DefaultIfEmpty("None")));
     }
 }

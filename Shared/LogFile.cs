@@ -22,6 +22,8 @@ public static class LogFile
     private static LogFactory logFactory;
     private static string file;
 
+    public static string FilePath => file;
+
     public static void Init(string mainPath)
     {
         file = Path.Combine(mainPath, fileName);

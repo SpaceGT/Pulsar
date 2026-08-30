@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
 using HarmonyLib;
 using Mono.Cecil;
+using Pulsar.Protocol.Interface;
+using Pulsar.Shared.Arguments;
 
 namespace Pulsar.Shared;
 
@@ -53,10 +54,18 @@ public class Preloader
         {
             string dll = kvp.Key;
             string seDll = Path.Combine(gameDir, dll);
+            string newDll = Path.Combine(cacheDir, dll);
             HashSet<MethodInfo> patchMethods = kvp.Value;
 
-            if (EnsureNotLoaded(dll))
+            if (EnsureNotLoaded(Path.GetFileNameWithoutExtension(dll)))
                 continue;
+
+            // Can skip non-deterministic Preloaders: use with caution!
+            if (Flags.Current.LazyPreload && File.Exists(newDll))
+            {
+                Assembly.LoadFrom(newDll);
+                continue;
+            }
 
             if (TryReadAssembly(seDll, readerParams, patchMethods, out var asmDef))
                 continue;
@@ -69,7 +78,6 @@ public class Preloader
             asmDef.MainModule.Attributes |= ModuleAttributes.ILOnly;
 
             // CLR does not respect pure in-memory references when resolving
-            string newDll = Path.Combine(cacheDir, dll);
             asmDef.Write(newDll);
             Assembly.LoadFrom(newDll);
         }
@@ -98,7 +106,7 @@ public class Preloader
 
         string message = $"Failed to patch '{simpleName}' as it is loaded into memory!";
         LogFile.Error(message);
-        Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+        Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
 
         return true;
     }
@@ -123,7 +131,7 @@ public class Preloader
                 + " could not be found";
 
             LogFile.Error(message);
-            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
 
             assemblyDefinition = null;
             return true;
@@ -155,7 +163,7 @@ public class Preloader
             string name = type.Assembly.GetName().Name;
             string message = $"Preloader plugin '{name}' does not define a Patch method";
             LogFile.Error(message);
-            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return;
         }
 
@@ -211,7 +219,7 @@ public class Preloader
             string name = GetAssemblyName(method);
             var message = $"Preloader plugin {name} had an exception:\n" + tie.InnerException;
             LogFile.Error(message);
-            Tools.ShowMessageBox(message, MessageBoxButtons.OK, MessageBoxIcon.Error);
+            Tools.ShowMessageBox(message, PromptButtons.Ok, PromptIcon.Error);
             return false;
         }
 

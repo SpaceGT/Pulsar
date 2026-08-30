@@ -133,6 +133,7 @@ internal class ViewSourceMenu(object source, Action<object> onRemove)
     {
         AddRow(list, "Name", localPlugin.Name);
         AddRow(list, "Folder", localPlugin.Folder);
+        AddRow(list, "File", localPlugin.File ?? "None");
         AddRow(list, "Enabled", localPlugin.Enabled.ToString());
     }
 

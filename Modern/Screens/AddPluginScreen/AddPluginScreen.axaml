@@ -67,7 +67,7 @@
                           HorizontalAlignment="Stretch" 
                           Height="55" 
                           SelectionChanged="SortButton_SelectionChanged" 
-                          PlaceholderText="Sort by"/>
+                          PlaceholderText="Sort By"/>
             </Grid>
             <ScrollViewer Margin="0,16,0,16" 
                           Height="765" 

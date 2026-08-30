@@ -19,8 +19,6 @@ public static class Patch_MyScriptManager
 {
     private static readonly Action<MyScriptManager, string, MyModContext> loadScripts;
     private static readonly FieldInfo conditionalSymbols;
-    private const string ConditionalSymbol = "PULSAR";
-
     private static HashSet<string> ConditionalSymbols =>
         (HashSet<string>)conditionalSymbols.GetValue(MyScriptCompiler.Static);
 
@@ -51,23 +49,31 @@ public static class Patch_MyScriptManager
             else
                 currentMods = [];
 
-            HashSet<string> conditionalSymbols = ConditionalSymbols;
-            conditionalSymbols.Add(ConditionalSymbol);
-
             PluginList list = ConfigManager.Instance.List;
             Profile current = ConfigManager.Instance.Profiles.Current;
 
-            Patch_MyDefinitionErrors.RedirectModLogging(true);
+            HashSet<string> conditionalSymbols = ConditionalSymbols;
+            string[] addedSymbols =
+            [
+                .. Tools.GetCompilationSymbols(trusted: true).Where(conditionalSymbols.Add),
+            ];
 
-            foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
+            try
             {
-                LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
-                loadScripts(__instance, mod.ModLocation, mod.GetModContext());
+                Patch_MyDefinitionErrors.RedirectModLogging(true);
+
+                foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
+                {
+                    LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
+                    loadScripts(__instance, mod.ModLocation, mod.GetModContext());
+                }
             }
-
-            Patch_MyDefinitionErrors.RedirectModLogging(false);
-
-            conditionalSymbols.Remove(ConditionalSymbol);
+            finally
+            {
+                Patch_MyDefinitionErrors.RedirectModLogging(false);
+                foreach (string symbol in addedSymbols)
+                    conditionalSymbols.Remove(symbol);
+            }
         }
         catch (Exception e)
         {

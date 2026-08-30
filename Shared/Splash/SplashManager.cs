@@ -1,41 +1,42 @@
-﻿using System.Threading;
-using System.Windows.Forms;
+﻿using System;
 
 namespace Pulsar.Shared.Splash;
 
 public class SplashManager
 {
     public static SplashManager Instance = null;
-    public float BarValue => splash.BarValue;
+    private bool available = true;
 
-    private readonly ManualResetEventSlim ready = new();
-    private readonly Thread thread;
-    private SplashScreen splash;
+    public SplashManager() => TrySend(Tools.Interface.ShowSplash);
 
-    public SplashManager()
-    {
-        thread = new Thread(() =>
-        {
-            splash = new SplashScreen();
-            ready.Set();
-            Application.Run(splash);
-        });
-        thread.SetApartmentState(ApartmentState.STA);
-        thread.IsBackground = true;
-        thread.Start();
-        ready.Wait();
-    }
+    public void SetText(string msg) => TrySend(() => Tools.Interface.SetSplashText(msg));
 
-    public void SetText(string msg) => splash.Invoke(() => splash.SetText(msg));
+    public void SetBarValue(float ratio) => TrySend(() => Tools.Interface.SetSplashProgress(ratio));
 
-    public void SetBarValue(float ratio = float.NaN) =>
-        splash.Invoke(() => splash.SetBarValue(ratio));
-
-    public void SetTitle(string title) => splash.Invoke(() => splash.Text = title);
+    public void SetTitle(string title) => TrySend(() => Tools.Interface.SetSplashTitle(title));
 
     public void Delete()
     {
+        ProgressTracker.ClearActive();
         Instance = null;
-        splash.Invoke(splash.Delete);
+        TrySend(Tools.Interface.CloseSplash);
+    }
+
+    private void TrySend(Action action)
+    {
+        if (!available)
+            return;
+
+        try
+        {
+            action();
+        }
+        catch (Exception e)
+        {
+            available = false;
+            ProgressTracker.ClearActive();
+            LogFile.Error("Pulsar interface failed: " + e);
+            Tools.Interface.Dispose();
+        }
     }
 }
