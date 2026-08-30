@@ -65,6 +65,13 @@ public static class Parser
 
     private static string Normalize(string arg)
     {
+        // Only option-style tokens are normalized. Values and other bare
+        // tokens pass through untouched, so an argument value that happens
+        // to match a flag name (e.g. a folder called "debug") is not
+        // rewritten into that flag.
+        if (string.IsNullOrEmpty(arg) || (arg[0] != '-' && arg[0] != '/'))
+            return arg;
+
         string trimmed = arg.Replace("/", "").Replace("-", "");
 
         if (trimmed is "h" or "H" or "?")
