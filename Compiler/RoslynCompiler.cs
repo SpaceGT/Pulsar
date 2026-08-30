@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
@@ -14,7 +15,9 @@ internal class RoslynCompiler(CompileRequest request)
 {
     private readonly List<Source> source = [];
     private readonly PublicizedAssemblies publicizedAssemblies = new();
-    private readonly List<MetadataReference> customReferences = [];
+    private readonly Dictionary<string, MetadataReference> customReferences = new(
+        StringComparer.OrdinalIgnoreCase
+    );
 
     public CompileResponse Compile()
     {
@@ -22,14 +25,15 @@ internal class RoslynCompiler(CompileRequest request)
         LoadReferences();
 
         var references = RoslynReferences
-            .Instance.AllReferences.Select(kv =>
+            .Instance.AllReferences.Where(kv => !customReferences.ContainsKey(kv.Key))
+            .Select(kv =>
                 publicizedAssemblies.PublicizeReferenceIfRequired(
                     request.AssemblyName,
                     kv.Key,
                     kv.Value
                 )
             )
-            .Concat(customReferences);
+            .Concat(customReferences.Values);
 
         CSharpCompilation compilation = CSharpCompilation.Create(
             request.AssemblyName,
@@ -111,7 +115,8 @@ internal class RoslynCompiler(CompileRequest request)
                 if (reference is not null)
                 {
                     LogFile.WriteLine($"Custom compiler reference: {Path.GetFileName(dll)}");
-                    customReferences.Add(reference);
+                    string assemblyName = AssemblyName.GetAssemblyName(dll).Name;
+                    customReferences[assemblyName] = reference;
                 }
             }
             catch { }
