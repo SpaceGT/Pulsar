@@ -6,6 +6,19 @@ namespace Pulsar.Shared.Network;
 
 public static class GitHub
 {
+    /// <summary>
+    /// Optional personal access token sent with requests to GitHub hosts to
+    /// lift the anonymous API rate limit (60 requests/hour per IP, which
+    /// shared or heavily automated machines exhaust quickly). Defaults to the
+    /// PULSAR_GITHUB_TOKEN environment variable; hosts embedding Pulsar can
+    /// set it directly. Never sent to non-GitHub hosts.
+    /// </summary>
+    public static string Token { get; set; } =
+        Environment.GetEnvironmentVariable("PULSAR_GITHUB_TOKEN");
+
+    internal static bool IsTokenHost(Uri uri) =>
+        uri.Host is "api.github.com" or "github.com" or "raw.githubusercontent.com";
+
     private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
     private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases";
     private const string FetchRepo = "https://github.com/{0}/archive/{1}.zip";
