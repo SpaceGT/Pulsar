@@ -52,9 +52,12 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
 
         var references = RoslynReferences
             .Instance.AllReferences.Select(kv =>
-                publicizedAssemblies.PublicizeReferenceIfRequired(assemblyName, kv.Key, kv.Value)
+                (kv.Key, publicizedAssemblies.PublicizeReferenceIfRequired(assemblyName, kv.Key, kv.Value))
             )
-            .Concat(customReferences);
+            .Concat(customReferences.Select(i => (TryGetModuleName(i), i)))
+            .GroupBy(i => i.Item1)
+            .Select(g => g.OrderByDescending(i => TryGetAssemblyVersion(i.Item2) ?? new(0, 0, 0, 0)).First().Item2)
+            .ToList();
 
         CSharpCompilation compilation = CSharpCompilation.Create(
             assemblyName,
@@ -143,6 +146,26 @@ public class RoslynCompiler : MarshalByRefObject, ICompiler
             }
             catch { }
         }
+    }
+
+    private static string TryGetModuleName(MetadataReference reference)
+    {
+        return Path.GetFileNameWithoutExtension(reference.Display);
+    }
+
+    public static Version TryGetAssemblyVersion(MetadataReference reference)
+    {
+        Version version = null;
+        if (reference is PortableExecutableReference peReference)
+        {
+            var metadata = peReference.GetMetadata();
+            if (metadata is AssemblyMetadata assemblyMetadata)
+            {
+                var metadataReader = assemblyMetadata.GetModules().FirstOrDefault()?.GetMetadataReader();
+                version = metadataReader?.GetAssemblyDefinition().Version;
+            }
+        }
+        return version;
     }
 
     private class Source
