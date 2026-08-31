@@ -45,6 +45,10 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
             Buttons = buttons,
             Icon = icon,
         };
+
+        if (Flags.Current.NoPrompt)
+            LogFile.Warn($"Prompt cancelled: {message}");
+
         return Send(InterfaceOperation.PromptShow, prompt: request).PromptResult;
     }
 

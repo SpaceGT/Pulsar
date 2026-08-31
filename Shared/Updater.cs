@@ -49,8 +49,6 @@ public class Updater(string repoName)
         PromptResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
         if (result == PromptResult.Yes)
             Update();
-        else if (result == PromptResult.Cancel)
-            Environment.Exit(0);
     }
 
     private static bool IsWritable(string directory)
@@ -75,14 +73,7 @@ public class Updater(string repoName)
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        // Unattended machines skip the update and keep launching; the Cancel
-        // fallback would exit the process instead.
-        return Tools.ShowMessageBox(
-            prompt,
-            PromptButtons.YesNoCancel,
-            PromptIcon.Question,
-            PromptResult.No
-        );
+        return Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Question);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -102,17 +93,9 @@ public class Updater(string repoName)
             + "Snapshots of the Plugin Hub are available if you choose to revert.\n"
             + "Do you wish to continue?";
 
-        // Unattended machines must continue: any other fallback would exit
-        // on every launch after a game update, boot-looping hosts that
-        // restart the process automatically.
-        PromptResult result = Tools.ShowMessageBox(
-            prompt,
-            PromptButtons.YesNo,
-            PromptIcon.Warning,
-            PromptResult.Yes
-        );
+        PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Warning);
 
-        if (result != PromptResult.Yes)
+        if (result == PromptResult.No)
             Environment.Exit(0);
 
         GitHubPlugin.ClearGitHubCache();

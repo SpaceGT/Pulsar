@@ -89,9 +89,7 @@ internal static class NetworkClient
         HttpRequestMessage request = new(method, uri);
         request.Headers.UserAgent.ParseAdd(ConfigManager.Instance.Core.UserAgent);
 
-        // HttpClient drops the Authorization header on cross-host redirects
-        // (e.g. github.com -> codeload.github.com), so the token never leaks
-        // beyond the hosts checked here.
+        // Note HttpClient drops the Authorization header on redirects
         if (!string.IsNullOrWhiteSpace(GitHub.Token) && GitHub.IsTokenHost(uri))
             request.Headers.Authorization = new("Bearer", GitHub.Token);
 

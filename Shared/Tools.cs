@@ -12,7 +12,6 @@ using Newtonsoft.Json;
 using Pulsar.Compiler;
 using Pulsar.Interface;
 using Pulsar.Protocol.Interface;
-using Pulsar.Shared.Arguments;
 #if NETCOREAPP
 using System.Runtime.Versioning;
 #endif
@@ -174,29 +173,12 @@ public static class Tools
         });
     }
 
-    /// <param name="unattendedResult">
-    /// The result to report when the prompt cannot be shown (suppressed by
-    /// -noPrompt, or the interface process is unavailable). Defaults to Ok
-    /// for Ok-only prompts and Cancel otherwise. The message is logged so
-    /// unattended machines keep a trace of what was auto-answered.
-    /// </param>
     public static PromptResult ShowMessageBox(
         string message,
         PromptButtons buttons,
-        PromptIcon icon,
-        PromptResult? unattendedResult = null
+        PromptIcon icon
     )
     {
-        PromptResult fallback =
-            unattendedResult
-            ?? (buttons == PromptButtons.Ok ? PromptResult.Ok : PromptResult.Cancel);
-
-        if (Flags.Current?.NoPrompt ?? false)
-        {
-            LogPrompt(message, icon, fallback);
-            return fallback;
-        }
-
         try
         {
             return Interface.ShowPrompt(message, buttons, icon);
@@ -204,21 +186,8 @@ public static class Tools
         catch (Exception e)
         {
             LogFile.Error("Error while opening message box: " + e);
-            LogPrompt(message, icon, fallback);
-            return fallback;
+            return buttons == PromptButtons.Ok ? PromptResult.Ok : PromptResult.Cancel;
         }
-    }
-
-    private static void LogPrompt(string message, PromptIcon icon, PromptResult result)
-    {
-        string line = $"Prompt auto-answered '{result}': {message}";
-
-        if (icon == PromptIcon.Error)
-            LogFile.Error(line);
-        else if (icon == PromptIcon.Warning)
-            LogFile.Warn(line);
-        else
-            LogFile.WriteLine(line);
     }
 
     public static IEnumerable<string> GetFiles(
