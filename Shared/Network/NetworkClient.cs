@@ -32,10 +32,14 @@ internal static class NetworkClient
         return await SendStringRequestAsync(request).ConfigureAwait(false);
     }
 
-    public static async Task<Stream> GetStreamAsync(Uri uri)
+    public static async Task<Stream> GetStreamAsync(Uri uri, string accept = null)
     {
         using CancellationTokenSource timeout = ResponseTimeout();
         using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
+
+        if (accept is not null)
+            request.Headers.Accept.ParseAdd(accept);
+
         using HttpResponseMessage response = await Client
             .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
             .ConfigureAwait(false);
@@ -88,6 +92,11 @@ internal static class NetworkClient
     {
         HttpRequestMessage request = new(method, uri);
         request.Headers.UserAgent.ParseAdd(ConfigManager.Instance.Core.UserAgent);
+
+        // Note HttpClient drops the Authorization header on redirects
+        if (!string.IsNullOrWhiteSpace(GitHub.Token) && GitHub.IsTokenHost(uri))
+            request.Headers.Authorization = new("Bearer", GitHub.Token);
+
         return request;
     }
 

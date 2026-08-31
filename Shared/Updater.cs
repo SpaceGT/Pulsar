@@ -49,8 +49,6 @@ public class Updater(string repoName)
         PromptResult result = ShowUpdatePrompt(localPulsarVer, remotePulsarVer);
         if (result == PromptResult.Yes)
             Update();
-        else if (result == PromptResult.Cancel)
-            Environment.Exit(0);
     }
 
     private static bool IsWritable(string directory)
@@ -75,7 +73,7 @@ public class Updater(string repoName)
             + $"{localVer.ToString(3)} -> {remoteVer.ToString(3)}\n"
             + "Would you like to update now?";
 
-        return Tools.ShowMessageBox(prompt, PromptButtons.YesNoCancel, PromptIcon.Question);
+        return Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Question);
     }
 
     public static void GameUpdatePrompt(Version oldVersion, Version newVersion, int fieldCount)
@@ -97,7 +95,7 @@ public class Updater(string repoName)
 
         PromptResult result = Tools.ShowMessageBox(prompt, PromptButtons.YesNo, PromptIcon.Warning);
 
-        if (result != PromptResult.Yes)
+        if (result == PromptResult.No)
             Environment.Exit(0);
 
         GitHubPlugin.ClearGitHubCache();
