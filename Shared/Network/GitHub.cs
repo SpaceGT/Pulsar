@@ -11,15 +11,18 @@ public static class GitHub
         Environment.GetEnvironmentVariable("PULSAR_GITHUB_TOKEN");
 
     internal static bool IsTokenHost(Uri uri) =>
-        uri.Host is "api.github.com" or "github.com" or "raw.githubusercontent.com";
+        uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
+        && uri.Host.Equals("api.github.com", StringComparison.OrdinalIgnoreCase);
 
     private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
     private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases";
-    private const string FetchRepo = "https://github.com/{0}/archive/{1}.zip";
-    private const string FetchFile = "https://raw.githubusercontent.com/{0}/{1}/";
+    private const string FetchRepo = "https://api.github.com/repos/{0}/zipball/{1}";
+    private const string FetchFile = "https://api.github.com/repos/{0}/contents/{1}?ref={2}";
+    private const string RawContent = "application/vnd.github.raw+json";
 
     public static Stream GetRepoArchive(string repo, string reference)
     {
+        reference = Uri.EscapeDataString(reference);
         Uri uri = new(string.Format(FetchRepo, repo, reference), UriKind.Absolute);
         LogFile.WriteLine("Downloading " + uri);
         return NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
@@ -27,12 +30,11 @@ public static class GitHub
 
     public static Stream GetRepoFile(string repo, string reference, string file)
     {
-        Uri uri = new(
-            string.Format(FetchFile, repo, reference) + file.TrimStart('/'),
-            UriKind.Absolute
-        );
+        reference = Uri.EscapeDataString(reference);
+        file = Uri.EscapeDataString(file.TrimStart('/')).Replace("%2F", "/");
+        Uri uri = new(string.Format(FetchFile, repo, file, reference), UriKind.Absolute);
         LogFile.WriteLine("Downloading " + uri);
-        return NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
+        return NetworkClient.GetStreamAsync(uri, RawContent).GetAwaiter().GetResult();
     }
 
     public static bool GetRepoHash(string repo, string reference, out string hash)
