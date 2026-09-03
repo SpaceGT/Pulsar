@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Input;
+using Avalonia.Input.Platform;
 using Avalonia.Platform.Storage;
 using Pulsar.Protocol.Interface;
 
@@ -127,7 +128,7 @@ internal sealed class WindowManager(IClassicDesktopStyleApplicationLifetime desk
     public async Task<string> GetClipboard()
     {
         using FallbackOwner owner = new(dialog: false);
-        return await owner.Clipboard.GetTextAsync() ?? string.Empty;
+        return await owner.Clipboard.TryGetTextAsync() ?? string.Empty;
     }
 
     public void Shutdown()
