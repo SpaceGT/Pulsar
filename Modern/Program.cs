@@ -303,7 +303,7 @@ static class Program
 
         Game.RegisterPlugin(typeof(PluginLoader));
 
-        SplashManager.Instance?.SetText("Launching Space Engineers...");
+        SplashManager.Instance?.SetText("Launching Space Engineers 2...");
         SplashManager.Instance?.SetBarValue(0);
         Game.StartSpaceEngineers2(args);
     }
