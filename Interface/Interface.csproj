@@ -57,6 +57,7 @@
       <DeployFile Include="$(TargetDir)Avalonia.Skia.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Themes.Fluent.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Metal.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Vulkan.dll" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
       <DeployFile Include="$(TargetDir)$(AssemblyName).exe.config" />
@@ -64,10 +65,11 @@
       <DeployFile Include="$(TargetDir)x64/libSkiaSharp.dll" />
       <DeployFile Include="$(TargetDir)av_libglesv2.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Win32.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Win32.Automation.dll" />
       <DeployFile Include="$(TargetDir)Microsoft.Bcl.AsyncInterfaces.dll" />
       <DeployFile Include="$(TargetDir)System.Buffers.dll" />
       <DeployFile Include="$(TargetDir)System.Memory.dll" />
-      <DeployFile Include="$(TargetDir)System.ValueTuple.dll" />
+      <DeployFile Include="$(TargetDir)System.Diagnostics.DiagnosticSource.dll" />
       <DeployFile Include="$(TargetDir)System.ComponentModel.Annotations.dll" />
       <DeployFile Include="$(TargetDir)System.Numerics.Vectors.dll" />
       <DeployFile Include="$(TargetDir)System.Runtime.CompilerServices.Unsafe.dll" />
@@ -99,8 +101,8 @@
     <ProjectReference Include="../Protocol/Protocol.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="11.0.10" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.10" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.3.20" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.20" />
     <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
