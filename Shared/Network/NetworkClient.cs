@@ -11,6 +11,8 @@ namespace Pulsar.Shared.Network;
 internal static class NetworkClient
 {
     private const int CopyBufferSize = 80 * 1024;
+    private const int MaxRedirects = 10;
+    private const HttpStatusCode PermanentRedirect = (HttpStatusCode)308; // Missing on net48
     private static readonly HttpClient Client = CreateClient();
 
     private static CancellationTokenSource ResponseTimeout() =>
@@ -21,27 +23,24 @@ internal static class NetworkClient
 
     public static async Task<string> GetStringAsync(Uri uri)
     {
-        using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
-        return await SendStringRequestAsync(request).ConfigureAwait(false);
+        return await SendStringRequestAsync(HttpMethod.Get, uri, null).ConfigureAwait(false);
     }
 
     public static async Task<string> PostStringAsync(Uri uri, HttpContent content)
     {
-        using HttpRequestMessage request = CreateRequest(HttpMethod.Post, uri);
-        request.Content = content;
-        return await SendStringRequestAsync(request).ConfigureAwait(false);
+        return await SendStringRequestAsync(HttpMethod.Post, uri, content).ConfigureAwait(false);
     }
 
     public static async Task<Stream> GetStreamAsync(Uri uri, string accept = null)
     {
         using CancellationTokenSource timeout = ResponseTimeout();
-        using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
-
-        if (accept is not null)
-            request.Headers.Accept.ParseAdd(accept);
-
-        using HttpResponseMessage response = await Client
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+        using HttpResponseMessage response = await SendAsync(
+                HttpMethod.Get,
+                uri,
+                accept,
+                null,
+                timeout.Token
+            )
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
@@ -55,9 +54,13 @@ internal static class NetworkClient
     public static async Task DownloadAsync(Uri uri, string destination)
     {
         using CancellationTokenSource timeout = ResponseTimeout();
-        using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
-        using HttpResponseMessage response = await Client
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+        using HttpResponseMessage response = await SendAsync(
+                HttpMethod.Get,
+                uri,
+                null,
+                null,
+                timeout.Token
+            )
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
@@ -72,11 +75,20 @@ internal static class NetworkClient
         await input.CopyToAsync(output, CopyBufferSize, timeout.Token).ConfigureAwait(false);
     }
 
-    private static async Task<string> SendStringRequestAsync(HttpRequestMessage request)
+    private static async Task<string> SendStringRequestAsync(
+        HttpMethod method,
+        Uri uri,
+        HttpContent content
+    )
     {
         using CancellationTokenSource timeout = ResponseTimeout();
-        using HttpResponseMessage response = await Client
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
+        using HttpResponseMessage response = await SendAsync(
+                method,
+                uri,
+                null,
+                content,
+                timeout.Token
+            )
             .ConfigureAwait(false);
 
         response.EnsureSuccessStatusCode();
@@ -88,12 +100,86 @@ internal static class NetworkClient
         return reader.ReadToEnd();
     }
 
-    private static HttpRequestMessage CreateRequest(HttpMethod method, Uri uri)
+    // Redirects are followed manually because HttpClient drops the Authorization
+    // header when the host changes. GitHub serves archives via a redirect from
+    // api.github.com to codeload.github.com so the token must be re-applied.
+    private static async Task<HttpResponseMessage> SendAsync(
+        HttpMethod method,
+        Uri uri,
+        string accept,
+        HttpContent content,
+        CancellationToken cancellationToken
+    )
+    {
+        for (int hop = 0; ; hop++)
+        {
+            HttpResponseMessage response;
+            using (HttpRequestMessage request = CreateRequest(method, uri, accept))
+            {
+                request.Content = content;
+                try
+                {
+                    response = await Client
+                        .SendAsync(
+                            request,
+                            HttpCompletionOption.ResponseHeadersRead,
+                            cancellationToken
+                        )
+                        .ConfigureAwait(false);
+                }
+                finally
+                {
+                    // The content is owned by the caller and may be re-sent
+                    request.Content = null;
+                }
+            }
+
+            HttpStatusCode status = response.StatusCode;
+            Uri location = response.Headers.Location;
+
+            if (!IsRedirect(status) || location is null)
+                return response;
+
+            response.Dispose();
+
+            if (hop >= MaxRedirects)
+                throw new HttpRequestException(
+                    $"Too many redirects ({MaxRedirects}) while requesting {uri}"
+                );
+
+            if (!location.IsAbsoluteUri)
+                location = new Uri(uri, location);
+
+            if (!location.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase))
+                throw new HttpRequestException($"Refusing insecure redirect to {location}");
+
+            // Per RFC 9110 only 307/308 preserve the method and body
+            if (status != HttpStatusCode.TemporaryRedirect && status != PermanentRedirect)
+            {
+                method = HttpMethod.Get;
+                content = null;
+            }
+
+            uri = location;
+        }
+    }
+
+    private static bool IsRedirect(HttpStatusCode status) =>
+        status
+            is HttpStatusCode.MovedPermanently
+                or HttpStatusCode.Found
+                or HttpStatusCode.SeeOther
+                or HttpStatusCode.TemporaryRedirect
+                or PermanentRedirect;
+
+    private static HttpRequestMessage CreateRequest(HttpMethod method, Uri uri, string accept)
     {
         HttpRequestMessage request = new(method, uri);
         request.Headers.UserAgent.ParseAdd(ConfigManager.Instance.Core.UserAgent);
 
-        // Note HttpClient drops the Authorization header on redirects
+        if (accept is not null)
+            request.Headers.Accept.ParseAdd(accept);
+
         if (!string.IsNullOrWhiteSpace(GitHub.Token) && GitHub.IsTokenHost(uri))
             request.Headers.Authorization = new("Bearer", GitHub.Token);
 
@@ -104,6 +190,7 @@ internal static class NetworkClient
     {
         HttpClientHandler handler = new()
         {
+            AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
         };
         return new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
