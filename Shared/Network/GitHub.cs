@@ -10,9 +10,15 @@ public static class GitHub
     public static string Token { get; set; } =
         Environment.GetEnvironmentVariable("PULSAR_GITHUB_TOKEN");
 
+    // Archive downloads redirect from api.github.com to codeload.github.com
+    private static readonly string[] TokenHosts = ["api.github.com", "codeload.github.com"];
+
     internal static bool IsTokenHost(Uri uri) =>
         uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
-        && uri.Host.Equals("api.github.com", StringComparison.OrdinalIgnoreCase);
+        && Array.Exists(
+            TokenHosts,
+            host => uri.Host.Equals(host, StringComparison.OrdinalIgnoreCase)
+        );
 
     private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
     private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases";
