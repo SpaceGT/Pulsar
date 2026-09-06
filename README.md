@@ -48,11 +48,11 @@ and choose the [executable for your game](#executables).
 
 ### Native Linux
 
-**For Space Engineers 1, use the [standalone Linux setup tool][linux-setup].**
+**For Space Engineers 1 or 2, use the [standalone Linux setup tool][linux-setup].**
 It provides a terminal UI for installing, updating, uninstalling, and migrating
 an older native LinuxCompat installation.
 
-1. Install Steam and Space Engineers, the [.NET 10 runtime][net-10], and working
+1. Install Steam and your chosen Space Engineers game, the [.NET 10 runtime][net-10], and working
    graphics drivers. The setup tool also requires **Linux x64, Python 3.10+,
    `curses`, and `curl`** for the download command below. It does not install
    system prerequisites.
@@ -63,20 +63,29 @@ an older native LinuxCompat installation.
    python3 pulsar-linux.py
    ```
 
-3. Choose **Install**, confirm the destination and release, and complete setup.
+3. Use **Game** to select SE1 (`Interim.bin`) or SE2 (`Modern.bin`), then choose
+   **Install**, confirm the destination and release, and complete setup.
+   The shared package installs both launchers; this selection chooses the Steam
+   shortcut and displayed launch command. Updates remember your choice.
    If replacing a native LinuxCompat 1.0.x installation, choose **Migrate** instead.
-4. In Steam, open **Space Engineers → Properties → General → Launch Options**
-   and paste the exact command printed by the tool. For example:
+4. In Steam, open **your chosen game → Properties → General → Launch Options**
+   and paste the exact command printed by the tool. For SE1:
 
    ```text
    /path/to/your/Interim.bin %command%
+   ```
+
+   For SE2:
+
+   ```text
+   /path/to/your/Modern.bin %command%
    ```
 
    Replace `/path/to/your/` with the Pulsar installation folder you chose.
    Keep `%command%` exactly as written. If the path contains spaces, put the
    entire executable path in double quotes.
 
-5. Start Space Engineers from Steam to launch through Pulsar. The displayed
+5. Start the selected game from Steam to launch through Pulsar. The displayed
    command launches the native runtime; it does not run the game through Proton.
 
 The tool is maintained in **[CometWorks/config-tools][linux-setup]**, not bundled
@@ -84,11 +93,11 @@ with Pulsar. Keep the downloaded script outside the Pulsar installation folder.
 See the [Linux setup guide][linux-setup-guide] for backups, custom locations,
 offline installs, updates, and migration details.
 
-**Manual install / Space Engineers 2:** download and extract the Linux x64
+**Manual install:** download and extract the Linux x64
 package from the [latest release][pulsar-latest] into a dedicated folder. Use
 `Interim.bin` for SE1 or `Modern.bin` for SE2, with the [.NET 10 runtime][net-10]
 installed. Configure that game's [Steam launch options](#steam) with the chosen
-executable. The setup tool above currently targets SE1.
+executable. Both games can use the same Pulsar installation.
 
 > Use a dedicated Pulsar folder, separate from your game files and other data.
 > Pulsar's updater cleans its deployment directory; do not store unrelated
