@@ -362,3 +362,6 @@ MigrationBackup/
 .idea/
 
 .editorconfig
+
+# Python installer test caches
+__pycache__/
