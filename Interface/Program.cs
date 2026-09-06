@@ -22,8 +22,8 @@ internal static class Program
 
     public static AppBuilder BuildAvaloniaApp() =>
 #if NETFRAMEWORK
-        AppBuilder.Configure<App>().UseWin32().UseSkia().LogToTrace();
+        AppBuilder.Configure<App>().UseWin32().UseSkia().WithInterFont().LogToTrace();
 #else
-        AppBuilder.Configure<App>().UseX11().UseSkia().LogToTrace();
+        AppBuilder.Configure<App>().UseX11().UseSkia().WithInterFont().LogToTrace();
 #endif
 }

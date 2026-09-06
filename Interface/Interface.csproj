@@ -53,6 +53,7 @@
       <DeployFile Include="$(TargetDir)Avalonia.OpenGL.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Remote.Protocol.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Skia.dll" />
+      <DeployFile Include="$(TargetDir)Avalonia.Fonts.Inter.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Themes.Fluent.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Metal.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Vulkan.dll" />
@@ -100,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="11.3.20" />
+    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.20" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.20" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>

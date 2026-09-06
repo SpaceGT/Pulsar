@@ -19,7 +19,8 @@
                VerticalAlignment="Center"
                HorizontalAlignment="Center"
                Foreground="White"
-               FontSize="16" />
+               FontSize="16"
+               FontWeight="Normal" />
     <ProgressBar Name="ProgressBar"
                  Grid.Row="2"
                  Minimum="0"

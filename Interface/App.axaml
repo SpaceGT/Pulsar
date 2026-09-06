@@ -4,6 +4,7 @@
   <Application.Styles>
     <FluentTheme />
     <Style Selector="Window">
+      <Setter Property="FontFamily" Value="fonts:Inter#Inter" />
       <Setter Property="Icon" Value="avares://Interface/Assets/icon.ico" />
     </Style>
   </Application.Styles>
