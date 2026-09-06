@@ -142,6 +142,8 @@ public sealed class InterfaceClient(string interfacePath) : IDisposable
             CreateNoWindow = true,
         };
 
+        SteamOverlay.DisableForHelper(startInfo);
+
         try
         {
             process = new Process { StartInfo = startInfo };
