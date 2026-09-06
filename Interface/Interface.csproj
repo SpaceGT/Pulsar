@@ -43,8 +43,6 @@
       <DeployFile Include="$(TargetDir)MicroCom.Runtime.dll" />
       <DeployFile Include="$(TargetDir)HarfBuzzSharp.dll" />
       <DeployFile Include="$(TargetDir)SkiaSharp.dll" />
-      <DeployFile Include="$(TargetDir)AnimatedImage.dll" />
-      <DeployFile Include="$(TargetDir)AnimatedImage.Avalonia.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Base.dll" />
       <DeployFile Include="$(TargetDir)Avalonia.Controls.dll" />
@@ -103,7 +101,6 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="11.3.20" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.20" />
-    <PackageReference Include="AnimatedImage.Avalonia" Version="2.1.4" />
     <PackageReference Include="Tmds.DBus.Protocol" Version="0.21.3" />
   </ItemGroup>
   <ItemGroup>
