@@ -20,10 +20,18 @@ internal static class Program
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
     }
 
-    public static AppBuilder BuildAvaloniaApp() =>
+    public static AppBuilder BuildAvaloniaApp()
+    {
+        AppBuilder builder = AppBuilder.Configure<App>();
 #if NETFRAMEWORK
-        AppBuilder.Configure<App>().UseWin32().UseSkia().WithInterFont().LogToTrace();
+        Win32PlatformOptions options = new();
+        if (Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null)
+            options.RenderingMode = [Win32RenderingMode.Software];
+
+        builder.UseWin32().With(options);
 #else
-        AppBuilder.Configure<App>().UseX11().UseSkia().WithInterFont().LogToTrace();
+        builder.UseX11();
 #endif
+        return builder.UseSkia().WithInterFont().LogToTrace();
+    }
 }

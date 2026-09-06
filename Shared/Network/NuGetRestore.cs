@@ -149,6 +149,10 @@ internal static class NuGetRestore
         PackageSourceMapping mapping = new(mappings);
         LockFileBuilderCache builderCache = new();
 
+        // Proton cannot validate NuGet timestamp certificates.
+        if (Tools.IsProton())
+            policy = null;
+
         RestoreRequest request = new(
             project,
             providers,
