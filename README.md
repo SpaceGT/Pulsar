@@ -24,9 +24,11 @@
 <!-- Main Content -->
 # Pulsar
 
-A plugin and mod loader for **Space Engineers 1 and 2**, with **Windows and native Linux support**.
+Pulsar is a plugin and mod loader for **Space Engineers 1 and 2** that also lets
+you **run both games natively on Linux—without Wine or Proton**. It supports
+Windows too, with a choice of game runtimes and community plugins.
 
-On Linux, Pulsar runs the games **without Wine or Proton**, using .NET 10 and the
+Native Linux support uses .NET 10 and the
 [SE1][linux-compat] / [SE2][linux-compat2] compatibility plugins. Native Linux is
 part of Pulsar's unified releases—not a separate legacy LinuxCompat installation.
 Individual plugins may still have platform or runtime restrictions.
@@ -67,8 +69,12 @@ an older native LinuxCompat installation.
    and paste the exact command printed by the tool. For example:
 
    ```text
-   /home/yourname/.local/share/Pulsar/Interim.bin %command%
+   /path/to/your/Interim.bin %command%
    ```
+
+   Replace `/path/to/your/` with the Pulsar installation folder you chose.
+   Keep `%command%` exactly as written. If the path contains spaces, put the
+   entire executable path in double quotes.
 
 5. Start Space Engineers from Steam to launch through Pulsar. The displayed
    command launches the native runtime; it does not run the game through Proton.
@@ -106,18 +112,27 @@ You can pass `-h` for a list of command line arguments.<br>
 ## Steam
 
 Set the game's [launch options][steam-launch] so Steam starts Pulsar automatically.
-For **Windows or native Linux**:
+For **native Linux / Space Engineers 1**:
 
 ```text
-"[PulsarPath]" %command% [Args]
+/path/to/your/Interim.bin %command%
 ```
 
-Replace `[PulsarPath]` with the full path to the executable, not its folder.
-Replace `[Args]` with optional Pulsar arguments, or remove it. Keep `%command%`.
-For example, native SE1 with a custom installation path:
+Use `Modern.bin` instead for Space Engineers 2. On **Windows**, use the chosen
+`.exe`, for example:
 
 ```text
-"/home/yourname/Games/Pulsar/Interim.bin" %command% -nosplash
+"C:\path\to\your\Interim.exe" %command%
+```
+
+Replace the example folder with your actual Pulsar installation folder, keeping
+the executable filename at the end. Keep `%command%` exactly as written—it is
+a Steam placeholder, not something to replace yourself. Quote the full
+executable path if it contains spaces. Optional Pulsar arguments go after
+`%command%`, for example:
+
+```text
+"/path/to/your/Pulsar Folder/Interim.bin" %command% -nosplash
 ```
 
 <details>
@@ -126,7 +141,7 @@ For example, native SE1 with a custom installation path:
 This is separate from native Linux support and is **not required** for the Linux build:
 
 ```text
-bash -c 'exec "${@:0:$#}" [PulsarPath] "${@:$#}" [Args]' %command%
+bash -c 'exec "${@:0:$#}" "/path/to/your/Interim.exe" "${@:$#}"' %command%
 ```
 
 </details>
