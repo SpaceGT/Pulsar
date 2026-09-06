@@ -109,9 +109,6 @@
     <Copy SourceFiles="$(SourceExecutable)" DestinationFiles="$(DestinationExecutable)" />
     <Copy SourceFiles="$(LicensePath)" DestinationFolder="$(Pulsar)" />
     <Copy SourceFiles="$(ReadmePath)" DestinationFolder="$(Pulsar)" />
-    <Copy SourceFiles="$(MSBuildProjectDirectory)/../Scripts/pulsar-linux.py"
-          DestinationFolder="$(Pulsar)"
-          Condition="'$(TargetPlatform)' == 'Linux'" />
   </Target>
   <Target Name="Verify" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(Pulsar)' == ''" Text="Specify Pulsar's deployment location!" />

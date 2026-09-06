@@ -29,7 +29,7 @@ Pulsar is portable: simply download the [latest release][pulsar-latest] into a f
 This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!<br>
 If you are building from source, the deployment targets will copy all files to their required location.<br>
 A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.<br>
-On Linux, run [`Scripts/pulsar-linux.py`](Scripts/pulsar-linux.py) for a terminal UI that installs, updates, uninstalls, or migrates an older LinuxCompat native installation. See the [Linux setup guide](Scripts/README.md).<br>
+On Linux, use the standalone [Pulsar setup tool](https://github.com/CometWorks/config-tools#pulsar-linux-setup) for a terminal UI that installs, updates, uninstalls, or migrates an older LinuxCompat native installation. See the [Linux setup guide](https://github.com/CometWorks/config-tools/blob/main/Scripts/README.md).<br>
 
 ## Executables
 `Legacy` runs [Space Engineers 1][se1] on [.NET Framework][net-framework]<br>
