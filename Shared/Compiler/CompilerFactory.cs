@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Pulsar.Protocol;
 using Pulsar.Protocol.Compiler;
 using Pulsar.Shared;
+using Pulsar.Shared.Config;
 
 namespace Pulsar.Compiler;
 
@@ -20,7 +21,6 @@ public class CompilerFactory(
 ) : ICompilerFactory
 {
     private const int ExitTimeout = 2000;
-    private const int RequestTimeout = 10000;
 
     private readonly object processLock = new();
 
@@ -218,9 +218,8 @@ public class CompilerFactory(
             return connection.Read<TResponse>();
         });
 
-        Task completed = Task.WhenAny(exchange, Task.Delay(RequestTimeout))
-            .GetAwaiter()
-            .GetResult();
+        int timeout = ConfigManager.Instance.Core.CompilerTimeout;
+        Task completed = Task.WhenAny(exchange, Task.Delay(timeout)).GetAwaiter().GetResult();
 
         if (completed != exchange)
         {

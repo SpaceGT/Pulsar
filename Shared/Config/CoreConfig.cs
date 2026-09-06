@@ -13,6 +13,7 @@ public class CoreConfig
     public string StatsServerBaseUrl { get; }
     public bool DataHandlingConsent { get; set; }
     public string DataHandlingConsentDate { get; set; }
+    public int CompilerTimeout { get; set; } = 30000;
     public int NetworkTimeout { get; set; } = 5000;
     public int DownloadTimeout { get; set; } = 30000;
     public string UserAgent { get; set; } = "Pulsar";
