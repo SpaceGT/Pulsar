@@ -43,7 +43,12 @@ internal static class NuGetRestore
     {
         Dictionary<string, PackageIdentity> packages = GetPackages(packageList);
         if (packages.Count == 0)
-            return new NuGetRestoreResult { CompileFiles = [], RuntimeFiles = [] };
+            return new NuGetRestoreResult
+            {
+                CompileFiles = [],
+                SourceFiles = [],
+                RuntimeFiles = [],
+            };
 
         ISettings settings = Settings.LoadDefaultSettings(root: null);
         string dataDir = Path.GetDirectoryName(ConfigManager.Instance.PulsarDir);
@@ -183,6 +188,7 @@ internal static class NuGetRestore
         return new NuGetRestoreResult
         {
             CompileFiles = GetCompileFiles(lockFile, compileTarget, packageFolder),
+            SourceFiles = GetSourceFiles(lockFile, compileTarget, packageFolder),
             RuntimeFiles = GetRuntimeFiles(lockFile, runtimeTarget, packageFolder),
         };
     }
@@ -202,6 +208,31 @@ internal static class NuGetRestore
                 string file = FindPackageFile(root, item.Path);
                 if (file is not null)
                     files.Add(file);
+            }
+        }
+        return [.. files];
+    }
+
+    private static NuGetRestoreFile[] GetSourceFiles(
+        LockFile lockFile,
+        LockFileTarget target,
+        string packageFolder
+    )
+    {
+        List<NuGetRestoreFile> files = [];
+        foreach (LockFileTargetLibrary library in target.Libraries)
+        {
+            string root = GetPackageRoot(lockFile, library, packageFolder);
+
+            foreach (LockFileContentFile item in library.ContentFiles)
+            {
+                bool isCompile = item.BuildAction == BuildAction.Compile;
+                bool isCSharp = item.Path.EndsWith(".cs", StringComparison.OrdinalIgnoreCase);
+                if (!isCompile || !isCSharp)
+                    continue;
+
+                if (FindPackageFile(root, item.Path) is string file)
+                    files.Add(new NuGetRestoreFile { OutputPath = item.Path, SourcePath = file });
             }
         }
         return [.. files];
@@ -246,6 +277,10 @@ internal static class NuGetRestore
 
             foreach (LockFileItem item in library.NativeLibraries)
                 AddRuntimeFile(runtimeFiles, root, item.Path, Path.GetFileName(item.Path));
+
+            foreach (LockFileContentFile item in library.ContentFiles)
+                if (item.CopyToOutput)
+                    AddRuntimeFile(runtimeFiles, root, item.Path, item.OutputPath);
         }
 
         StringComparer pathComparer = Tools.IsWindows()
@@ -353,6 +388,7 @@ internal static class NuGetRestore
 internal sealed class NuGetRestoreResult
 {
     public string[] CompileFiles { get; set; }
+    public NuGetRestoreFile[] SourceFiles { get; set; }
     public NuGetRestoreFile[] RuntimeFiles { get; set; }
 }
 

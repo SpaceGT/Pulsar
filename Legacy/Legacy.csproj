@@ -72,6 +72,9 @@
       <DeployLibraryFile Include="$(TargetDir)SharpCompress.dll" />
       <DeployLibraryFile Include="$(TargetDir)McMaster.Extensions.CommandLineUtils.dll" />
       <DeployLibraryFile Include="$(TargetDir)FuzzySharp.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Extensions.FileProviders.Abstractions.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Extensions.FileSystemGlobbing.dll" />
+      <DeployLibraryFile Include="$(TargetDir)Microsoft.Extensions.Primitives.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Commands.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Common.dll" />
       <DeployLibraryFile Include="$(TargetDir)NuGet.Configuration.dll" />

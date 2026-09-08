@@ -179,6 +179,12 @@ public class LocalFolderPlugin : PluginData
         foreach (string file in restore.CompileFiles)
             compiler.TryAddDependency(file);
 
+        foreach (NuGetRestoreFile file in restore.SourceFiles)
+        {
+            using FileStream stream = File.OpenRead(file.SourcePath);
+            compiler.Load(stream, file.OutputPath);
+        }
+
         foreach (NuGetRestoreFile file in restore.RuntimeFiles)
         {
             string newFile = Path.Combine(binDir, file.OutputPath);
