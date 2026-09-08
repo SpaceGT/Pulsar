@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using DiscordRPC;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Pulsar.Shared;
@@ -45,6 +46,22 @@ internal class GameLog : IGameLog
 internal static class Game
 {
     public const uint SteamId = 244850u;
+    private const string DiscordId = "359508404034600990";
+
+    public static DiscordRpcClient DiscordRpc { get; private set; }
+
+    public static void InitDiscord()
+    {
+        if (Flags.Current.NoDiscord)
+        {
+            LogFile.Warn("Plugins will receive a null Discord RPC client!");
+            return;
+        }
+
+        DiscordRpc = new(DiscordId);
+        DiscordRpc.Initialize();
+        DiscordRpc.SetPresence(new RichPresence());
+    }
 
     public static void RegisterPlugin(IHandleInputPlugin plugin)
     {

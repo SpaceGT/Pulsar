@@ -77,6 +77,7 @@ internal static class LoaderTools
     public static void Restart(bool autoRejoin = false, bool? debugger = null)
     {
         Shared.Launcher.ReleaseInstanceLock();
+        Launcher.Game.DiscordRpc?.Dispose();
         Start(autoRejoin, debugger ?? Debugger.IsAttached);
         Process.GetCurrentProcess().Kill();
     }

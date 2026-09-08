@@ -102,6 +102,16 @@ public class PluginInstance
 
         try
         {
+            FieldInfo discordFunc = AccessTools.DeclaredField(mainType, "Discord");
+            discordFunc?.SetValue(null, Launcher.Game.DiscordRpc);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Unable to find Discord in {data} due to an error: {e}");
+        }
+
+        try
+        {
             FieldInfo pluginFunc = AccessTools.DeclaredField(mainType, "PulsarLog");
             pluginFunc?.SetValue(null, new Action<string, LogLevel>(LogFile.WriteLine));
         }

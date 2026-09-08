@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Loader;
+using DiscordRPC;
 using Keen.VRage.Core;
 using Keen.VRage.Library.Diagnostics;
 using Keen.VRage.Library.Utils;
@@ -45,6 +46,22 @@ internal class GameLog : IGameLog
 internal static class Game
 {
     public const uint SteamId = 1133870u;
+    private const string DiscordId = "1333527081505783838";
+
+    public static DiscordRpcClient DiscordRpc { get; private set; }
+
+    public static void InitDiscord()
+    {
+        if (Flags.Current.NoDiscord)
+        {
+            LogFile.Warn("Plugins will receive a null Discord RPC client!");
+            return;
+        }
+
+        DiscordRpc = new(DiscordId);
+        DiscordRpc.Initialize();
+        DiscordRpc.SetPresence(new RichPresence());
+    }
 
     public static void RegisterPlugin(Type plugin)
     {

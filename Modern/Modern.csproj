@@ -59,6 +59,7 @@
       <DeployLibraryFile Include="$(TargetDir)Pulsar.Shared.dll" />
       <DeployLibraryFile Include="$(TargetDir)Pulsar.Protocol.dll" />
       <DeployLibraryFile Include="$(TargetDir)0Harmony.dll" />
+      <DeployLibraryFile Include="$(TargetDir)DiscordRPC.dll" />
       <DeployLibraryFile Include="$(TargetDir)Mono.Cecil.dll" />
       <DeployLibraryFile Include="$(TargetDir)Newtonsoft.Json.dll" />
       <DeployLibraryFile Include="$(TargetDir)Gameloop.Vdf.dll" />
@@ -146,6 +147,7 @@
   <ItemGroup>
     <PackageReference Include="Lib.Harmony" Version="2.4.2" />
     <PackageReference Include="Gameloop.Vdf" Version="0.6.2" />
+    <PackageReference Include="DiscordRichPresence" Version="1.6.1.70" />
   </ItemGroup>
   <ItemGroup>
     <!-- Required by Avalonia's Visual Designer; SpaceEngineers2 uses the Keen Assemblies. -->

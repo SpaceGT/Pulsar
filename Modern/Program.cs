@@ -296,6 +296,7 @@ static class Program
         LogFile.GameLog = new GameLog();
 
         Game.SetMainAssembly(originalLoaderPath, ref args);
+        Game.InitDiscord();
 
         string assemblyName = Assembly.GetExecutingAssembly().GetName().Name;
         new Harmony(assemblyName + ".Early").PatchCategory("Early");

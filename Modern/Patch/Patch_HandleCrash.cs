@@ -45,6 +45,7 @@ internal class Patch_HandleCrash
             LogFile.Open();
         }
 
+        Launcher.Game.DiscordRpc?.Dispose();
         Environment.Exit(-1);
         return false;
     }

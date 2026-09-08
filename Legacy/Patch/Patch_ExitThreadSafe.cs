@@ -10,6 +10,7 @@ public class Patch_ExitThreadSafe
 {
     public static bool Prefix()
     {
+        Launcher.Game.DiscordRpc?.Dispose();
         Process.GetCurrentProcess().Kill();
         return false;
     }

@@ -9,6 +9,7 @@ internal static class References
     [
         "Microsoft.CSharp",
         "0Harmony",
+        "DiscordRPC",
         "Newtonsoft.Json",
         "Mono.Cecil",
         "NLog",

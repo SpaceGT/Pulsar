@@ -10,6 +10,7 @@ internal class Patch_ExitGame
 {
     private static bool Prefix()
     {
+        Launcher.Game.DiscordRpc?.Dispose();
         Process.GetCurrentProcess().Kill();
         return false;
     }

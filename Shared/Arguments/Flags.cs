@@ -117,6 +117,9 @@ public sealed class Flags
     [Option("-lazyPreload", Description = "Reuse existing preloader assemblies.")]
     public bool LazyPreload { get; internal set; }
 
+    [Option("-noDiscord", Description = "Disable Discord RPC integration.")]
+    public bool NoDiscord { get; internal set; }
+
     [Option("-profile <name>", Description = "Force a specific plugin profile.")]
     public string Profile { get; internal set; }
 
