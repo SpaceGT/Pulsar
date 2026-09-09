@@ -62,7 +62,7 @@ internal class Folder
             RegistryView.Registry64
         );
 
-        using var key = baseKey.OpenSubKey(string.Format(registryKey, Steam.AppIdSe2));
+        using var key = baseKey.OpenSubKey(string.Format(registryKey, Game.SteamId));
         if (key is null)
             return null;
 
@@ -134,7 +134,7 @@ internal class Folder
             var data = (VObject)library.Value;
             var apps = (VObject)data["apps"];
 
-            if (!apps.ContainsKey(Steam.AppIdSe2.ToString()))
+            if (!apps.ContainsKey(Game.SteamId.ToString()))
                 continue;
 
             string targetPath = data.Value<string>("path");

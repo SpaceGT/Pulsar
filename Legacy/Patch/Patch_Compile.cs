@@ -6,6 +6,7 @@ using System.Linq;
 using HarmonyLib;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using Pulsar.Legacy.Launcher;
 using Pulsar.Shared;
 using VRage.Scripting;
 
@@ -50,10 +51,10 @@ public static class Patch_Compile
 
     private static string CleanFilePath(string path)
     {
-        if (path is null || !path.Contains($"{Steam.AppIdSe1}"))
+        if (path is null || !path.Contains($"{Game.SteamId}"))
             return path;
 
-        path = path.Substring(path.IndexOf($"{Steam.AppIdSe1}"));
+        path = path.Substring(path.IndexOf($"{Game.SteamId}"));
         path = Path.Combine([.. path.Split('\\').Skip(5)]);
 
         return path;

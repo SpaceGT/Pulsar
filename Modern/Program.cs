@@ -151,7 +151,7 @@ static class Program
             "..",
             "workshop",
             "content",
-            Steam.AppIdSe2.ToString()
+            Game.SteamId.ToString()
         );
 
         Version se2Version = Game.GetGameVersion(game2Dir);
@@ -199,7 +199,7 @@ static class Program
     private static void SetupSteam()
     {
         SplashManager.Instance?.SetText("Starting Steam...");
-        Steam.Init(Steam.AppIdSe2);
+        Steam.Init(Game.SteamId);
     }
 
     private static void SetupPlugins(string baseDir)

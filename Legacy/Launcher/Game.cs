@@ -44,6 +44,8 @@ internal class GameLog : IGameLog
 
 internal static class Game
 {
+    public const uint SteamId = 244850u;
+
     public static void RegisterPlugin(IHandleInputPlugin plugin)
     {
         FieldInfo m_pluginsField = typeof(MyPlugins).GetField(

@@ -44,6 +44,8 @@ internal class GameLog : IGameLog
 
 internal static class Game
 {
+    public const uint SteamId = 1133870u;
+
     public static void RegisterPlugin(Type plugin)
     {
         Patch_LoadPlugin.PluginsToLoad.Add(plugin);

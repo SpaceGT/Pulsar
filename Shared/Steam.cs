@@ -13,8 +13,6 @@ namespace Pulsar.Shared;
 
 public static class Steam
 {
-    public const uint AppIdSe1 = 244850u;
-    public const uint AppIdSe2 = 1133870u;
     private const int SteamTimeout = 60; // seconds
     private const string registryKey = @"SOFTWARE\Valve\Steam";
     private const string registryName = "SteamPath";
@@ -35,9 +33,9 @@ public static class Steam
 
     public static ulong GetSteamId() => SteamUser.GetSteamID().m_SteamID;
 
-    public static void Init(uint AppId)
+    public static void Init(uint steamId)
     {
-        string appId = AppId.ToString();
+        string appId = steamId.ToString();
         Environment.SetEnvironmentVariable("SteamAppId", appId);
         if (!Tools.IsWindows()) // Unmanaged Linux assemblies bypass .NET env cache
             SetEnvLinux("SteamAppId", appId, 1);
