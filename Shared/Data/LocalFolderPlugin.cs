@@ -54,8 +54,6 @@ public class LocalFolderPlugin : PluginData
         }
     }
 
-    public override string ToString() => Id;
-
     public override void LoadData(PluginDataConfig config)
     {
         if (config is not LocalFolderConfig folderConfig)

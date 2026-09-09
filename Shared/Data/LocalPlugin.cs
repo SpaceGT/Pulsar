@@ -130,6 +130,4 @@ public class LocalPlugin : PluginData
         if (enabled)
             draft.Local.Add(Id);
     }
-
-    public override string ToString() => Id;
 }

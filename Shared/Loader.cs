@@ -168,16 +168,8 @@ public class Loader
         List<string> plugins = [];
         List<string> mods = [];
 
-        foreach (PluginData p in GetEnabledPlugins())
-        {
-            bool hasName =
-                !string.IsNullOrWhiteSpace(p.FriendlyName)
-                && p.FriendlyName != "Unknown"
-                && p.FriendlyName != p.Id;
-
-            List<string> list = p is ModPlugin ? mods : plugins;
-            list.Add(hasName ? $"{p.FriendlyName} ({p.Id})" : p.Id);
-        }
+        foreach (PluginData plugin in GetEnabledPlugins())
+            (plugin is ModPlugin ? mods : plugins).Add(plugin.ToString());
 
         LogFile.WriteLine("Enabled Plugins: " + string.Join(", ", plugins.DefaultIfEmpty("None")));
         LogFile.WriteLine("Enabled Mods: " + string.Join(", ", mods.DefaultIfEmpty("None")));

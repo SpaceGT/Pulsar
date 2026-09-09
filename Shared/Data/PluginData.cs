@@ -204,7 +204,12 @@ public abstract class PluginData : IEquatable<PluginData>
 
     public override string ToString()
     {
-        return Id + '|' + FriendlyName;
+        bool hasName =
+            !string.IsNullOrWhiteSpace(FriendlyName)
+            && FriendlyName != "Unknown"
+            && FriendlyName != Id;
+
+        return hasName ? $"{FriendlyName} ({Id})" : Id;
     }
 
     public void Error(string msg = null)
