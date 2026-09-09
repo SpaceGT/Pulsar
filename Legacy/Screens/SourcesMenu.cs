@@ -611,7 +611,7 @@ internal class SourcesMenu(SourcesConfig sources) : PluginScreen(size: new Vecto
 
         LocalPluginConfig plugin = new()
         {
-            Name = Path.GetFileName(folder),
+            Name = new DirectoryInfo(folder).Name,
             Folder = folder,
             File = file,
             Enabled = true,

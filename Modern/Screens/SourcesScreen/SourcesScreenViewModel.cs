@@ -322,7 +322,7 @@ internal class SourcesScreenViewModel : ScreenViewModel
 
         LocalPluginConfig plugin = new()
         {
-            Name = Path.GetFileName(folder),
+            Name = new DirectoryInfo(folder).Name,
             Folder = folder,
             File = file,
             Enabled = true,
