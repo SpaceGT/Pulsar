@@ -117,7 +117,7 @@ public class PluginDetailMenu : PluginScreen
         enabledCheckbox.IsCheckedChanged += OnEnabledChanged;
         layout.Add(enabledCheckbox, MyAlignH.Right, MyAlignV.Top, 0, 1);
 
-        if (!plugin.IsLocal)
+        if (StatsClient.Enabled && !plugin.IsLocal)
         {
             layout.Add(
                 new MyGuiControlLabel(text: stats.Players + " users"),
@@ -141,7 +141,7 @@ public class PluginDetailMenu : PluginScreen
 
     private void CreateVotingPanel(MyGuiControlParent parent)
     {
-        bool canVote = Steam.IsInitialized && (plugin.Enabled || stats.Tried);
+        bool canVote = StatsClient.CanSend && (plugin.Enabled || stats.Tried);
 
         MyLayoutHorizontal layout = new(parent, 0);
 
@@ -205,7 +205,17 @@ public class PluginDetailMenu : PluginScreen
 
         PluginStat updatedStat = StatsClient.Vote(plugin.Id, vote);
         if (updatedStat is null)
+        {
+            const string message = "Could not contact statistics server.\nPlease try again later!";
+
+            MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
+                MyMessageBoxStyleEnum.Error,
+                messageText: new StringBuilder(message),
+                messageCaption: new StringBuilder("Vote Failed")
+            );
+            MyGuiSandbox.AddScreen(dialog);
             return;
+        }
 
         PluginStats allStats = ConfigManager.Instance.Stats;
         if (allStats is not null)

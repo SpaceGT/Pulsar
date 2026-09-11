@@ -9,8 +9,19 @@ using Pulsar.Shared.Stats.Model;
 
 namespace Pulsar.Shared.Stats;
 
+public enum StatsMode
+{
+    Full,
+    Anonymous,
+    Disabled,
+}
+
 public static class StatsClient
 {
+    public static volatile StatsMode Mode = StatsMode.Full;
+    public static bool Enabled => Mode != StatsMode.Disabled;
+    public static bool CanSend => Mode == StatsMode.Full;
+
     // API address
     public static string BaseUrl { get; set; }
 
@@ -30,6 +41,9 @@ public static class StatsClient
 
     public static bool Consent(bool consent)
     {
+        if (!CanSend)
+            return false;
+
         if (consent)
             LogFile.WriteLine($"Registering player consent on the statistics server");
         else
@@ -45,7 +59,10 @@ public static class StatsClient
     // This function may be called from another thread.
     public static PluginStats DownloadStats()
     {
-        if (!Steam.IsInitialized || !ConfigManager.Instance.Core.DataHandlingConsent)
+        if (!Enabled)
+            return null;
+
+        if (Mode == StatsMode.Anonymous || !ConfigManager.Instance.Core.DataHandlingConsent)
         {
             LogFile.WriteLine("Downloading plugin statistics anonymously...");
             votingToken = null;
@@ -63,6 +80,9 @@ public static class StatsClient
 
     public static bool Track(string[] pluginIds)
     {
+        if (!CanSend)
+            return false;
+
         var trackRequest = new TrackRequest
         {
             PlayerHash = PlayerHash,
@@ -74,6 +94,9 @@ public static class StatsClient
 
     public static PluginStat Vote(string pluginId, int vote)
     {
+        if (!CanSend)
+            return null;
+
         if (votingToken is null)
         {
             LogFile.Error($"Voting token is not available, cannot vote");
@@ -105,7 +128,9 @@ public static class StatsClient
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
         {
-            LogFile.Error($"REST API request failed: GET {url} [{e.Message}]");
+            LogFile.Error($"Downloading plugin statistics from {url} caused an exception:\n{e}");
+            Mode = StatsMode.Disabled;
+            LogFile.Warn("Disabled plugin statistics for this session!");
             return null;
         }
     }
@@ -126,7 +151,7 @@ public static class StatsClient
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
         {
-            LogFile.Error($"REST API request failed: POST {url} [{e.Message}]");
+            LogFile.Error($"Sending plugin statistics to {url} caused an exception:\n{e}");
             return null;
         }
     }

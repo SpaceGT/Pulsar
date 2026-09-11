@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
@@ -87,8 +88,8 @@ internal class PluginViewModel : AttachedViewModel
             return "You have downvoted this.";
         }
     }
-    public bool CanVote => Steam.IsInitialized && (PluginData.Enabled || PluginStat.Tried);
-    public bool ShowStatElements => !PluginData.IsLocal;
+    public bool CanVote => StatsClient.CanSend && (PluginData.Enabled || PluginStat.Tried);
+    public bool ShowStatElements => StatsClient.Enabled && !PluginData.IsLocal;
 
     // Setter is used from Avalonia axaml, so those references don't show up.
     public bool DraftEnabled
@@ -206,7 +207,16 @@ internal class PluginViewModel : AttachedViewModel
 
         PluginStat updatedStat = StatsClient.Vote(PluginData.Id, vote);
         if (updatedStat is null)
+        {
+            const string message = "Could not contact statistics server.\nPlease try again later!";
+
+            var definition = ScreenTools.GetDefaultOkDialog();
+            definition.Title = ScreenTools.GetKeyFromString("Vote Failed");
+            definition.Content = ScreenTools.GetKeyFromString(message);
+            definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
+            ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
             return;
+        }
 
         PluginStats allStats = ConfigManager.Instance.Stats;
         if (allStats is not null)

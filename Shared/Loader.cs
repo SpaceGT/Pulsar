@@ -33,8 +33,13 @@ public class Loader
 
         LogEnabledPlugins();
 
-        StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;
-        Task.Run(ConfigManager.Instance.UpdatePlayerStats);
+        StatsClient.BaseUrl = statsServer;
+        StatsClient.Mode = (Flags.Current.NoStats, Steam.IsInitialized) switch
+        {
+            (true, _) => StatsMode.Disabled,
+            (_, true) => StatsMode.Full,
+            _ => StatsMode.Anonymous,
+        };
 
         // Check harmony version
         Version expectedHarmony = new(ConfigManager.HarmonyVersion);
@@ -110,7 +115,11 @@ public class Loader
         if (Flags.Current.CheckAllPlugins)
             LogFile.WriteLine(debugCompileResults.ToString());
 
-        Task.Run(ReportEnabledPlugins);
+        Task.Run(() =>
+        {
+            ConfigManager.Instance.UpdatePlayerStats();
+            ReportEnabledPlugins();
+        });
     }
 
     private static bool VerifySafeMode()
@@ -134,7 +143,7 @@ public class Loader
 
     private void ReportEnabledPlugins()
     {
-        if (!Steam.IsInitialized || !ConfigManager.Instance.Core.DataHandlingConsent)
+        if (!StatsClient.CanSend || !ConfigManager.Instance.Core.DataHandlingConsent)
             return;
 
         splash?.SetText("Reporting plugin usage...");
