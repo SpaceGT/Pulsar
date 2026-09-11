@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Stats;
 using Pulsar.Shared.Stats.Model;
@@ -54,9 +53,6 @@ public class ConfigManager
 
     public void UpdatePlayerStats()
     {
-        Task.Run(() =>
-        {
-            Stats = StatsClient.DownloadStats();
-        });
+        Stats = StatsClient.DownloadStats();
     }
 }

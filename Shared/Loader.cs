@@ -34,7 +34,7 @@ public class Loader
         LogEnabledPlugins();
 
         StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;
-        ConfigManager.Instance.UpdatePlayerStats();
+        Task.Run(ConfigManager.Instance.UpdatePlayerStats);
 
         // Check harmony version
         Version expectedHarmony = new(ConfigManager.HarmonyVersion);
