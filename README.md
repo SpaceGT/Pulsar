@@ -53,6 +53,12 @@ Pulsar officially endorses the [PluginHub][plugin-hub] for high-quality vetted p
 Further sources may be added in-game but make sure you fully understand the risks.<br>
 
 ## Development
+For SE1, static plugin `Rewrite` methods are registered when their `PluginInstance`
+owner is discovered, before the plugin constructor and `Init` run. Hosts that
+compile mods before plugin initialization must discover owners before that
+compilation. Failed rewriters remain disabled during later initialization.
+See [the lifecycle regression check](Tests/RewriterLifecycle/README.md).
+
 Fill in the required paths in `Directory.Build.props`.<br>
 You **must** use `dotnet build` due to a [Microsoft bug][msbuild-issue].<br>
 

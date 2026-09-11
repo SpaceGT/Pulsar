@@ -36,6 +36,10 @@ public class PluginInstance
         this.data = data;
         this.mainAssembly = mainAssembly;
         this.mainType = mainType;
+
+        // Hosts may discover plugins before constructing them so initial-world mods are rewritten.
+        if (AccessTools.DeclaredMethod(mainType, "Rewrite") is MethodInfo rewriteFunc)
+            Patch_Rewriter.Methods.TryAdd(this, rewriteFunc);
     }
 
     /// <summary>
@@ -56,6 +60,10 @@ public class PluginInstance
 
     public bool Instantiate()
     {
+        // An early rewriter failure may already have disabled this owner.
+        if (data.Status == PluginStatus.Error)
+            return false;
+
         DependencyInject();
 
         try
@@ -76,9 +84,6 @@ public class PluginInstance
     private void DependencyInject()
     {
         // FIXME: Plugins should use the (upcoming) Pulsar SDK in the future
-
-        if (AccessTools.DeclaredMethod(mainType, "Rewrite") is MethodInfo rewriteFunc)
-            Patch_Rewriter.Methods.TryAdd(this, rewriteFunc);
 
         try
         {
