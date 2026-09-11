@@ -116,6 +116,7 @@ public class PluginList : IEnumerable<PluginData>
     {
         Profile current = ProfilesConfig.Current;
         config ??= current.GetData(plugin.Id);
+        plugin.Description = Tools.RemoveIndent(plugin.Description);
         plugin.LoadData(config);
     }
 
@@ -459,6 +460,7 @@ public class PluginList : IEnumerable<PluginData>
         {
             string file = Path.GetFullPath(dll);
             LocalPlugin local = new(file, LocalPluginDir) { Source = "Local" };
+            LoadPluginData(local);
             localPlugins[file] = local;
         }
 
@@ -701,6 +703,7 @@ public class PluginList : IEnumerable<PluginData>
         {
             string file = Path.GetFullPath(dll);
             LocalPlugin local = new(file, LocalPluginDir) { Source = "Local" };
+            LoadPluginData(local);
             localPlugins[file] = local;
         }
 

@@ -307,6 +307,34 @@ public static class Tools
         return text;
     }
 
+    public static string RemoveIndent(string value)
+    {
+        if (string.IsNullOrEmpty(value))
+            return value;
+
+        string[] lines = value.Split(["\r\n", "\r", "\n"], StringSplitOptions.None);
+
+        // Ignore the first newline and its leading whitespace
+        if (string.IsNullOrWhiteSpace(lines[0]))
+            lines = [.. lines.Skip(1)];
+
+        int indent = lines
+            .Where(line => !string.IsNullOrWhiteSpace(line))
+            .Select(line => line.TakeWhile(char.IsWhiteSpace).Count())
+            .DefaultIfEmpty()
+            .Min();
+
+        for (int i = 0; i < lines.Length; i++)
+        {
+            if (string.IsNullOrWhiteSpace(lines[i]))
+                lines[i] = "";
+            else
+                lines[i] = lines[i].Substring(indent).TrimEnd();
+        }
+
+        return string.Join("\n", lines);
+    }
+
     public static List<string> GetRestartArgs(string executable)
     {
         List<string> args = [.. Environment.GetCommandLineArgs()];
