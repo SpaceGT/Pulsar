@@ -120,6 +120,9 @@ public sealed class Flags
     [Option("-noDiscord", Description = "Disable Discord RPC integration.")]
     public bool NoDiscord { get; internal set; }
 
+    [Option("-noStats", Description = "Disable plugin statistics.")]
+    public bool NoStats { get; internal set; }
+
     [Option("-profile <name>", Description = "Force a specific plugin profile.")]
     public string Profile { get; internal set; }
 

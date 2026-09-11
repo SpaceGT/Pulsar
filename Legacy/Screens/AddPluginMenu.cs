@@ -5,6 +5,7 @@ using Pulsar.Legacy.Screens.GuiControls;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
+using Pulsar.Shared.Stats;
 using Pulsar.Shared.Stats.Model;
 using Sandbox.Game.Screens.Helpers;
 using Sandbox.Graphics.GUI;
@@ -95,9 +96,12 @@ public class AddPluginMenu : PluginScreen
             originAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP
         );
         dropdown.AddItem(-1, "Sort By");
-        string[] sortMethods = Enum.GetNames(typeof(SortingMethod));
-        for (int i = 0; i < sortMethods.Length; i++)
-            dropdown.AddItem(i, sortMethods[i]);
+        foreach (SortingMethod sortMethod in Enum.GetValues(typeof(SortingMethod)))
+        {
+            bool usesStats = sortMethod is SortingMethod.Usage or SortingMethod.Rating;
+            if (StatsClient.Enabled || !usesStats)
+                dropdown.AddItem((int)sortMethod, sortMethod.ToString());
+        }
         dropdown.SelectItemByKey(-1);
         dropdown.ItemSelected += OnSortSelected;
         Controls.Add(dropdown);
@@ -316,7 +320,7 @@ public class AddPluginMenu : PluginScreen
             description.AppendText(plugin.Tooltip);
         }
 
-        if (!plugin.IsLocal)
+        if (StatsClient.Enabled && !plugin.IsLocal)
         {
             PluginStat stat = stats.GetStatsForPlugin(plugin);
             layout.Add(

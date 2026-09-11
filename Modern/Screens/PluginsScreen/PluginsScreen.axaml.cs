@@ -11,6 +11,7 @@ using Pulsar.Modern.Screens.SourcesScreen;
 using Pulsar.Modern.Screens.SourcesScreen.SourceWarningScreen;
 using Pulsar.Shared;
 using Pulsar.Shared.Arguments;
+using Pulsar.Shared.Stats;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -29,7 +30,7 @@ public partial class PluginsScreen : PluginScreenBase
         {
             SourcesButton.IsVisible = Flags.Current.CustomSources;
             RefreshButton.IsVisible = !Flags.Current.CustomSources;
-            ConsentBox.IsEnabled = Steam.IsInitialized;
+            ConsentBox.IsVisible = StatsClient.CanSend;
         }
         else
         {

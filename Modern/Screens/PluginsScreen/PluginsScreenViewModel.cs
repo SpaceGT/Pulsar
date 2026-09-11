@@ -7,6 +7,7 @@ using Keen.VRage.UI.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
+using Pulsar.Shared.Stats;
 
 namespace Pulsar.Modern.Screens.PluginsScreen;
 
@@ -51,7 +52,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public static void OpenMenu()
     {
-        if (Steam.IsInitialized && !PlayerConsent.ConsentRequested)
+        if (StatsClient.CanSend && !PlayerConsent.ConsentRequested)
         {
             PlayerConsent.ShowDialog(OpenMenu);
             return;

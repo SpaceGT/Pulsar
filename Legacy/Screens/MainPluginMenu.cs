@@ -8,6 +8,7 @@ using Pulsar.Shared;
 using Pulsar.Shared.Arguments;
 using Pulsar.Shared.Config;
 using Pulsar.Shared.Data;
+using Pulsar.Shared.Stats;
 using Sandbox.Graphics.GUI;
 using VRageMath;
 
@@ -27,7 +28,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     public static void Open()
     {
-        if (Steam.IsInitialized && !PlayerConsent.ConsentRequested)
+        if (StatsClient.CanSend && !PlayerConsent.ConsentRequested)
         {
             PlayerConsent.ShowDialog(Open);
             return;
@@ -327,11 +328,13 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         layout.Add(sourceButton, MyAlignH.Center);
         AdvanceLayout(ref layout);
 
+        if (!StatsClient.CanSend)
+            return;
+
         consentBox = new MyGuiControlCheckbox(
             toolTip: "Consent to use your data for usage tracking",
             isChecked: PlayerConsent.ConsentGiven
         );
-        consentBox.Enabled = Steam.IsInitialized;
         consentBox.IsCheckedChanged += OnConsentBoxChanged;
         PlayerConsent.OnConsentChanged += OnConsentChanged;
         layout.Add(consentBox, MyAlignH.Left);

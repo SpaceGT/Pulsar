@@ -10,6 +10,12 @@ public static class PlayerConsent
 {
     public static void ShowDialog(Action continuation = null)
     {
+        if (!StatsClient.CanSend)
+        {
+            continuation?.Invoke();
+            return;
+        }
+
         var definition = ScreenTools.GetDefaultYesNoCancelDialog();
         definition.Title = ScreenTools.GetKeyFromString("Consent");
         definition.Content = ScreenTools.GetKeyFromString(
@@ -88,6 +94,8 @@ public static class PlayerConsent
         if (!StatsClient.Consent(consent))
         {
             LogFile.Error("Failed to register player consent on statistics server");
+            if (!StatsClient.Enabled)
+                continuation?.Invoke();
             return;
         }
 

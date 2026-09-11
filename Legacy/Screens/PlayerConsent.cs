@@ -15,6 +15,12 @@ public static class PlayerConsent
 
     public static void ShowDialog(Action continuation = null)
     {
+        if (!StatsClient.CanSend)
+        {
+            continuation?.Invoke();
+            return;
+        }
+
         MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
             buttonType: MyMessageBoxButtonsType.YES_NO_CANCEL,
             messageText: new StringBuilder(
@@ -101,6 +107,8 @@ public static class PlayerConsent
         if (!StatsClient.Consent(consent))
         {
             LogFile.Error("Failed to register player consent on statistics server");
+            if (!StatsClient.Enabled)
+                continuation?.Invoke();
             return;
         }
 

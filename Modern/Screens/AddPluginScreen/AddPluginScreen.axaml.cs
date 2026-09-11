@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Avalonia.Controls;
 using Keen.VRage.UI.AvaloniaInterface.Services;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
+using Pulsar.Shared.Stats;
 using static Pulsar.Modern.Screens.AddPluginScreen.AddPluginScreenViewModel;
 
 namespace Pulsar.Modern.Screens.AddPluginScreen;
@@ -19,9 +20,12 @@ public partial class AddPluginScreen : PluginScreenBase
             if (((AddPluginScreenViewModel)DataContext).Mods)
                 TitleText.Text = "Mod List";
 
-            string[] sortMethods = Enum.GetNames<SortingMethod>();
-            for (int i = 0; i < sortMethods.Length; i++)
-                SortButton.Items.Add(sortMethods[i]);
+            foreach (SortingMethod sortMethod in Enum.GetValues<SortingMethod>())
+            {
+                bool usesStats = sortMethod is SortingMethod.Usage or SortingMethod.Rating;
+                if (StatsClient.Enabled || !usesStats)
+                    SortButton.Items.Add(sortMethod);
+            }
         }
         else
         {
@@ -46,7 +50,7 @@ public partial class AddPluginScreen : PluginScreenBase
         else
             SearchClearButton.IsVisible = false;
 
-        SortButton.SelectedIndex = (int)SortingMethod.Search;
+        SortButton.SelectedItem = SortingMethod.Search;
         ((AddPluginScreenViewModel)DataContext).Filter = SearchBox.Text;
         ((AddPluginScreenViewModel)DataContext).SortPlugins(SortingMethod.Search);
     }
@@ -58,9 +62,8 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void SortButton_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        ((AddPluginScreenViewModel)DataContext).SortPlugins(
-            (SortingMethod)SortButton.SelectedIndex
-        );
+        if (SortButton.SelectedItem is SortingMethod sortMethod)
+            ((AddPluginScreenViewModel)DataContext).SortPlugins(sortMethod);
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)

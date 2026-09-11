@@ -87,8 +87,8 @@ internal class PluginViewModel : AttachedViewModel
             return "You have downvoted this.";
         }
     }
-    public bool CanVote => Steam.IsInitialized && (PluginData.Enabled || PluginStat.Tried);
-    public bool ShowStatElements => !PluginData.IsLocal;
+    public bool CanVote => StatsClient.CanSend && (PluginData.Enabled || PluginStat.Tried);
+    public bool ShowStatElements => StatsClient.Enabled && !PluginData.IsLocal;
 
     // Setter is used from Avalonia axaml, so those references don't show up.
     public bool DraftEnabled
