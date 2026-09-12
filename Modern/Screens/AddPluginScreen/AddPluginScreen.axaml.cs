@@ -38,6 +38,9 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (PluginScrollViewer.Offset.Y != 0 && !string.IsNullOrEmpty(SearchBox.Text))
+            PluginScrollViewer.ScrollToHome();
+
         if (SearchBox.Text != string.Empty)
             SearchClearButton.IsVisible = true;
         else

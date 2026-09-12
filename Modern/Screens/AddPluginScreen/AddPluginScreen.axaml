@@ -69,7 +69,8 @@
                           SelectionChanged="SortButton_SelectionChanged" 
                           PlaceholderText="Sort By"/>
             </Grid>
-            <ScrollViewer Margin="0,16,0,16" 
+            <ScrollViewer Name="PluginScrollViewer"
+                          Margin="0,16,0,16"
                           Height="765" 
                           Background="rgba(41,54,62,96)" 
                           Grid.Row="3">
