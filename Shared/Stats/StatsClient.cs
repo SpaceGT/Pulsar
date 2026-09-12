@@ -128,8 +128,9 @@ public static class StatsClient
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
         {
+            LogFile.Error($"Downloading plugin statistics from {url} caused an exception:\n{e}");
             Mode = StatsMode.Disabled;
-            LogFile.Error($"REST API request failed: GET {url} [{e.Message}]");
+            LogFile.Warn("Disabled plugin statistics for this session!");
             return null;
         }
     }
@@ -150,8 +151,9 @@ public static class StatsClient
         }
         catch (Exception e) when (e is HttpRequestException or TaskCanceledException)
         {
-            Mode = StatsMode.Disabled;
-            LogFile.Error($"REST API request failed: POST {url} [{e.Message}]");
+            LogFile.Error($"Sending plugin statistics to {url} caused an exception:\n{e}");
+            Mode = StatsMode.Anonymous;
+            LogFile.Warn("Forcing anonymous plugin statistics for this session!");
             return null;
         }
     }
