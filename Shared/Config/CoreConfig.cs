@@ -10,7 +10,6 @@ public class CoreConfig
     private const string fileName = "config.xml";
     private string filePath;
 
-    public string StatsServerBaseUrl { get; }
     public bool DataHandlingConsent { get; set; }
     public string DataHandlingConsentDate { get; set; }
     public int CompilerTimeout { get; set; } = 30000;

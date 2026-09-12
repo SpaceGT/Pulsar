@@ -33,7 +33,7 @@ public class Loader
 
         LogEnabledPlugins();
 
-        StatsClient.BaseUrl = config.StatsServerBaseUrl ?? statsServer;
+        StatsClient.BaseUrl = statsServer;
         StatsClient.Mode = (Flags.Current.NoStats, Steam.IsInitialized) switch
         {
             (true, _) => StatsMode.Disabled,
