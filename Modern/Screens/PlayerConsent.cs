@@ -1,4 +1,5 @@
 ﻿using System;
+using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
 using Keen.Game2.Client.UI.Library.Dialogs.ThreeOptionsDialog;
 using Pulsar.Shared;
 using Pulsar.Shared.Config;
@@ -94,6 +95,17 @@ public static class PlayerConsent
         if (!StatsClient.Consent(consent))
         {
             LogFile.Error("Failed to register player consent on statistics server");
+
+            const string message =
+                "Could not contact statistics server.\n"
+                + "Voting has been disabled for this session.";
+
+            var definition = ScreenTools.GetDefaultOkDialog();
+            definition.Title = ScreenTools.GetKeyFromString("Consent Failed");
+            definition.Content = ScreenTools.GetKeyFromString(message);
+            definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
+            ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
+
             if (!StatsClient.Enabled)
                 continuation?.Invoke();
             return;

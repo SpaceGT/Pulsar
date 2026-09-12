@@ -205,7 +205,19 @@ public class PluginDetailMenu : PluginScreen
 
         PluginStat updatedStat = StatsClient.Vote(plugin.Id, vote);
         if (updatedStat is null)
+        {
+            const string message =
+                "Could not contact statistics server.\n"
+                + "Voting has been disabled for this session.";
+
+            MyGuiScreenMessageBox dialog = MyGuiSandbox.CreateMessageBox(
+                MyMessageBoxStyleEnum.Error,
+                messageText: new StringBuilder(message),
+                messageCaption: new StringBuilder("Vote Failed")
+            );
+            MyGuiSandbox.AddScreen(dialog);
             return;
+        }
 
         PluginStats allStats = ConfigManager.Instance.Stats;
         if (allStats is not null)

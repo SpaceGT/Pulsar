@@ -1,4 +1,5 @@
 ﻿using Avalonia.Controls;
+using Keen.Game2.Client.UI.Library.Dialogs.OneOptionDialog;
 using Keen.VRage.UI.Screens;
 using Pulsar.Modern.Loader;
 using Pulsar.Modern.Screens.PluginDetailsScreen;
@@ -206,7 +207,18 @@ internal class PluginViewModel : AttachedViewModel
 
         PluginStat updatedStat = StatsClient.Vote(PluginData.Id, vote);
         if (updatedStat is null)
+        {
+            const string message =
+                "Could not contact statistics server.\n"
+                + "Voting has been disabled for this session.";
+
+            var definition = ScreenTools.GetDefaultOkDialog();
+            definition.Title = ScreenTools.GetKeyFromString("Vote Failed");
+            definition.Content = ScreenTools.GetKeyFromString(message);
+            definition.ConfirmOption = ScreenTools.GetKeyFromString("Ok");
+            ScreenTools.GetSharedUIComponent().ShowDialog(new OneOptionDialogViewModel(definition));
             return;
+        }
 
         PluginStats allStats = ConfigManager.Instance.Stats;
         if (allStats is not null)
