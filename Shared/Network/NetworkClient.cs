@@ -92,11 +92,6 @@ internal static class NetworkClient
     {
         HttpRequestMessage request = new(method, uri);
         request.Headers.UserAgent.ParseAdd(ConfigManager.Instance.Core.UserAgent);
-
-        // Note HttpClient drops the Authorization header on redirects
-        if (!string.IsNullOrWhiteSpace(GitHub.Token) && GitHub.IsTokenHost(uri))
-            request.Headers.Authorization = new("Bearer", GitHub.Token);
-
         return request;
     }
 
@@ -104,8 +99,77 @@ internal static class NetworkClient
     {
         HttpClientHandler handler = new()
         {
+            AllowAutoRedirect = false,
             AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate,
         };
-        return new HttpClient(handler) { Timeout = Timeout.InfiniteTimeSpan };
+        HttpMessageHandler redirects = new RedirectHandler(handler);
+        return new HttpClient(redirects) { Timeout = Timeout.InfiniteTimeSpan };
+    }
+}
+
+file sealed class RedirectHandler(HttpMessageHandler innerHandler) : DelegatingHandler(innerHandler)
+{
+    private const int MaxRedirects = 10;
+    private const HttpStatusCode PermanentRedirect = (HttpStatusCode)308; // Missing on net48
+
+    protected override async Task<HttpResponseMessage> SendAsync(
+        HttpRequestMessage request,
+        CancellationToken cancellationToken
+    )
+    {
+        ApplyAuthorization(request);
+        Task<HttpResponseMessage> send = base.SendAsync(request, cancellationToken);
+        HttpResponseMessage response = await send.ConfigureAwait(false);
+
+        for (int redirects = 0; redirects < MaxRedirects; redirects++)
+        {
+            HttpStatusCode status = response.StatusCode;
+            Uri location = response.Headers.Location;
+            if (!IsRedirect(status) || location is null)
+                return response;
+
+            Uri currentUri = request.RequestUri;
+            Uri redirectUri = location.IsAbsoluteUri ? location : new Uri(currentUri, location);
+
+            bool isHttps = redirectUri.Scheme == Uri.UriSchemeHttps;
+            bool unsupported = !isHttps && redirectUri.Scheme != Uri.UriSchemeHttp;
+            bool isDowngrade = currentUri.Scheme == Uri.UriSchemeHttps && !isHttps;
+
+            if (unsupported || isDowngrade)
+                return response;
+
+            response.Dispose();
+            request.RequestUri = redirectUri;
+            ApplyAuthorization(request);
+
+            bool keepsPost = status is HttpStatusCode.TemporaryRedirect or PermanentRedirect;
+            if (request.Method == HttpMethod.Post && !keepsPost)
+            {
+                request.Method = HttpMethod.Get;
+                request.Content = null;
+                request.Headers.TransferEncodingChunked = false;
+            }
+
+            send = base.SendAsync(request, cancellationToken);
+            response = await send.ConfigureAwait(false);
+        }
+
+        return response;
+    }
+
+    private static void ApplyAuthorization(HttpRequestMessage request)
+    {
+        request.Headers.Authorization = null;
+        if (!string.IsNullOrWhiteSpace(GitHub.Token) && GitHub.IsTokenHost(request.RequestUri))
+            request.Headers.Authorization = new("Bearer", GitHub.Token);
+    }
+
+    private static bool IsRedirect(HttpStatusCode status)
+    {
+        return status
+            is >= HttpStatusCode.MultipleChoices
+                and <= HttpStatusCode.SeeOther
+                or HttpStatusCode.TemporaryRedirect
+                or PermanentRedirect;
     }
 }

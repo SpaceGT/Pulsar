@@ -11,8 +11,7 @@ public static class GitHub
         Environment.GetEnvironmentVariable("PULSAR_GITHUB_TOKEN");
 
     internal static bool IsTokenHost(Uri uri) =>
-        uri.Scheme.Equals(Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase)
-        && uri.Host.Equals("api.github.com", StringComparison.OrdinalIgnoreCase);
+        uri.Scheme == Uri.UriSchemeHttps && uri.Host is "api.github.com" or "codeload.github.com";
 
     private const string CommitInfo = "https://api.github.com/repos/{0}/commits/{1}";
     private const string ReleaseInfo = "https://api.github.com/repos/{0}/releases";
