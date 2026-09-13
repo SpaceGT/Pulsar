@@ -146,7 +146,9 @@ public class AddPluginMenu : PluginScreen
         if (scrollPanel.ScrollbarVPosition != 0 && !string.IsNullOrEmpty(newText))
             scrollPanel.SetVerticalScrollbarValue(0);
 
-        sortDropdown.SelectItemByKey((int)SortingMethod.Search);
+        if (!string.IsNullOrEmpty(newText))
+            sortDropdown.SelectItemByKey((int)SortingMethod.Search);
+
         SortPluginsBySearch();
         RefreshPluginList();
     }
@@ -165,6 +167,10 @@ public class AddPluginMenu : PluginScreen
                 sortDropdown.SelectItemByKey(selectedItem);
                 sortDropdown.ItemSelected += OnSortSelected;
             }
+
+            if ((SortingMethod)selectedItem != SortingMethod.Search)
+                Filter = string.Empty;
+
             SortPlugins((SortingMethod)selectedItem);
             RefreshPluginList();
         }

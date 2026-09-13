@@ -50,7 +50,9 @@ public partial class AddPluginScreen : PluginScreenBase
         else
             SearchClearButton.IsVisible = false;
 
-        SortButton.SelectedItem = SortingMethod.Search;
+        if (!string.IsNullOrEmpty(SearchBox.Text))
+            SortButton.SelectedItem = SortingMethod.Search;
+
         ((AddPluginScreenViewModel)DataContext).Filter = SearchBox.Text;
         ((AddPluginScreenViewModel)DataContext).SortPlugins(SortingMethod.Search);
     }
@@ -62,8 +64,13 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void SortButton_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (SortButton.SelectedItem is SortingMethod sortMethod)
-            ((AddPluginScreenViewModel)DataContext).SortPlugins(sortMethod);
+        if (SortButton.SelectedItem is not SortingMethod sortMethod)
+            return;
+
+        if (sortMethod != SortingMethod.Search)
+            SearchBox.Text = string.Empty;
+
+        ((AddPluginScreenViewModel)DataContext).SortPlugins(sortMethod);
     }
 
     private void CancelButton_Click(object sender, Avalonia.Interactivity.RoutedEventArgs e)
