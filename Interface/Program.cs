@@ -25,6 +25,10 @@ internal static class Program
         AppBuilder builder = AppBuilder.Configure<App>();
 #if NETFRAMEWORK
         Win32PlatformOptions options = new();
+
+        // Avoid WinUI compositor callbacks during .NET Framework shutdown.
+        options.CompositionMode = [Win32CompositionMode.RedirectionSurface];
+
         if (Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null)
             options.RenderingMode = [Win32RenderingMode.Software];
 
