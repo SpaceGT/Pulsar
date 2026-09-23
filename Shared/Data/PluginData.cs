@@ -123,7 +123,7 @@ public abstract class PluginData : IEquatable<PluginData>
 
             if (a is null)
             {
-                LogFile.Error("Failed to load " + ToString());
+                LogFile.Error($"Failed to load {this}");
                 Error();
                 return false;
             }
@@ -151,7 +151,7 @@ public abstract class PluginData : IEquatable<PluginData>
                 return false;
             }
 
-            LogFile.Error($"Failed to load {name} because of an error: " + e);
+            LogFile.Error($"Failed to load {name} because of an error: {e}");
             if (e is MemberAccessException)
             {
                 LogFile.Error($"Is {name} up to date?");

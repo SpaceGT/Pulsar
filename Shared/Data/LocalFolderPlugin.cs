@@ -92,21 +92,21 @@ public class LocalFolderPlugin : PluginData
         Directory.CreateDirectory(binDir);
 
         ICompiler compiler = Tools.Compiler.Create(debug);
-        StringBuilder sb = new();
-        sb.Append("Compiling files from ").Append(Folder).Append(':').AppendLine();
 
         int filesLoaded = 0;
         foreach (string file in projectFiles)
         {
             using FileStream fileStream = File.OpenRead(file);
             string relFile = GetRelativePath(file);
-            sb.Append(relFile).Append(", ");
             compiler.Load(fileStream, relFile, debug ? file : null);
             lbl?.SetBarValue(filesLoaded++ / (float)projectFiles.Length);
         }
 
-        sb.Length -= 2;
-        LogFile.WriteLine(sb.ToString());
+        string message =
+            $"Compiling files for {this} from {Folder}:\n"
+            + string.Join(", ", projectFiles.Select(GetRelativePath));
+
+        LogFile.WriteLine(message);
 
         if (github?.NuGetReferences is not null && github.NuGetReferences.HasPackages)
             InstallDependencies(compiler, binDir);
@@ -352,7 +352,7 @@ public class LocalFolderPlugin : PluginData
         }
         catch (Exception e)
         {
-            LogFile.Error($"Error while reading the xml file {file} for {Folder}: " + e);
+            LogFile.Error($"Error while reading the xml file {file} for {this}: {e}");
         }
     }
 

@@ -256,9 +256,10 @@ public class GitHubPlugin : PluginData
             if (cache is null)
                 InitPaths();
             cache.Invalidate();
-            LogFile.WriteLine(
-                $"Cache for GitHub plugin {RepoId} was invalidated, it will need to be compiled again at next game start"
-            );
+            string message =
+                $"Cache for GitHub plugin {this} was invalidated, "
+                + "it will need to be compiled again at next game start";
+            LogFile.WriteLine(message);
         }
         catch (Exception e)
         {

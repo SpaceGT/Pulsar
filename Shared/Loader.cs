@@ -69,7 +69,8 @@ public class Loader
                 continue;
             }
 
-            string message = $"Failed to load core plugin '{id}'";
+            string name = data?.ToString() ?? id;
+            string message = $"Failed to load core plugin {name}";
             LogFile.Error(message);
 
             string fullMessage = $"{message}\nPulsar cannot continue loading!";
@@ -180,7 +181,7 @@ public class Loader
         foreach (PluginData plugin in GetEnabledPlugins())
             (plugin is ModPlugin ? mods : plugins).Add(plugin.ToString());
 
-        LogFile.WriteLine("Enabled Plugins: " + string.Join(", ", plugins.DefaultIfEmpty("None")));
-        LogFile.WriteLine("Enabled Mods: " + string.Join(", ", mods.DefaultIfEmpty("None")));
+        LogFile.WriteLine($"Enabled Plugins: {string.Join(", ", plugins.DefaultIfEmpty("None"))}");
+        LogFile.WriteLine($"Enabled Mods: {string.Join(", ", mods.DefaultIfEmpty("None"))}");
     }
 }

@@ -119,7 +119,7 @@ public class LocalPlugin : PluginData
         }
         catch (Exception e)
         {
-            LogFile.Error($"Error while reading the xml file {file} for {Id}: " + e);
+            LogFile.Error($"Error while reading the xml file {file} for {this}: {e}");
         }
     }
 

@@ -64,7 +64,7 @@ public static class Patch_MyScriptManager
 
                 foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
                 {
-                    LogFile.WriteLine("Loading client mod scripts for " + mod.WorkshopId);
+                    LogFile.WriteLine($"Loading client mod scripts for {mod}");
                     loadScripts(__instance, mod.ModLocation, mod.GetModContext());
                 }
             }

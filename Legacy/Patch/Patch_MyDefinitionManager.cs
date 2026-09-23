@@ -27,7 +27,7 @@ public static class Patch_MyDefinitionManager
 
             foreach (ModPlugin mod in list.GetModPlugins(current, currentMods))
             {
-                LogFile.WriteLine("Loading client mod definitions for " + mod.WorkshopId);
+                LogFile.WriteLine($"Loading client mod definitions for {mod}");
                 newMods.Add(mod.GetModItem());
             }
 
