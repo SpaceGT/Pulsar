@@ -260,10 +260,16 @@ public static class Tools
 
     public static bool PathsEqual(string first, string second)
     {
+        char[] separators = [Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar];
+
         StringComparer comparer = IsWindows()
             ? StringComparer.OrdinalIgnoreCase
             : StringComparer.Ordinal;
-        return comparer.Equals(Path.GetFullPath(first), Path.GetFullPath(second));
+
+        string firstPath = Path.GetFullPath(first).TrimEnd(separators);
+        string secondPath = Path.GetFullPath(second).TrimEnd(separators);
+
+        return comparer.Equals(firstPath, secondPath);
     }
 
     public static void ShowInFileManager(string path)

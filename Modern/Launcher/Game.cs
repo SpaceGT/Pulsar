@@ -71,7 +71,7 @@ internal static class Game
     public static void SetMainAssembly(string assemblyPath, ref string[] args)
     {
         string asmFolder = Path.GetDirectoryName(assemblyPath);
-        string gameRoot = Directory.GetParent(ConfigManager.Instance.GameDir).FullName;
+        string gameRoot = new DirectoryInfo(ConfigManager.Instance.GameDir).Parent.FullName;
         string vanillaProject = Path.Combine(gameRoot, "GameData", "Vanilla", "Vanilla.vrgproj");
 
         Assembly.SetEntryAssembly(AssemblyLoadContext.Default.LoadFromAssemblyPath(assemblyPath));
