@@ -203,7 +203,7 @@ public class LocalFolderPlugin : PluginData
                 RedirectStandardError = true,
                 CreateNoWindow = true,
                 FileName = "git",
-                Arguments = "ls-files --cached --others --exclude-standard",
+                Arguments = "-c core.fsmonitor=false ls-files --cached --others --exclude-standard",
                 WorkingDirectory = folder,
             };
 
