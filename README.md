@@ -11,6 +11,7 @@
 
 [net-framework]: https://dotnet.microsoft.com/en-us/download/dotnet-framework
 [net-10]: https://dotnet.microsoft.com/en-us/download/dotnet/10.0
+[net-10-linux]: https://learn.microsoft.com/dotnet/core/install/linux
 
 [dotnet-compat]: https://github.com/CometWorks/dotnet-compat
 [linux-compat]: https://github.com/CometWorks/linux-compat
@@ -26,9 +27,16 @@ This is a hard fork of the discontinued [PluginLoader][plugin-loader].<br>
 
 ## Installation
 Pulsar is portable: simply download the [latest release][pulsar-latest] into a folder of choice.<br>
-This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!<br>
-If you are building from source, the deployment targets will copy all files to their required location.<br>
-A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.<br>
+This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!
+
+If you are building from source, the deployment targets will copy all files to their required location.
+
+A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.
+
+If you are on Linux, you will need .NET 10 [installed system-wide through your package manager][net-10-linux], or in your user folder [from the binaries package available from Microsoft's website][net-10].
+
+If you are on a Steam Deck, you will need to download and extract the [x64 runtime binaries][net-10] through Desktop Mode into your user folder, and tell Pulsar where to find it with the DOTNET_ROOT environment variable in Steam's launch options for the game(s):
+```DOTNET_ROOT=/home/deck/dotnet/ [PulsarPath] %command%```
 
 ## Executables
 `Legacy` runs [Space Engineers 1][se1] on [.NET Framework][net-framework]<br>
