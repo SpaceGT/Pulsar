@@ -17,7 +17,8 @@ public class CompilerFactory(
     string[] globalReferenceNames,
     string[] probeDirectories,
     string logFile,
-    string[] globalFlags = null
+    string[] globalFlags = null,
+    string[] excludedReferenceNames = null
 ) : ICompilerFactory
 {
     private const int ExitTimeout = 2000;
@@ -72,6 +73,7 @@ public class CompilerFactory(
                 InitializeCompilerRequest request = new()
                 {
                     References = globalReferenceNames,
+                    ExcludedReferences = excludedReferenceNames ?? [],
                     ProbeDirectories = probeDirectories,
                     LogFile = logFile,
                 };
