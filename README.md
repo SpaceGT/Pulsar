@@ -11,6 +11,7 @@
 
 [net-framework]: https://dotnet.microsoft.com/en-us/download/dotnet-framework
 [net-10]: https://dotnet.microsoft.com/en-us/download/dotnet/10.0
+[net-10-linux]: https://learn.microsoft.com/dotnet/core/install/linux
 
 [dotnet-compat]: https://github.com/CometWorks/dotnet-compat
 [linux-compat]: https://github.com/CometWorks/linux-compat
@@ -26,9 +27,17 @@ This is a hard fork of the discontinued [PluginLoader][plugin-loader].<br>
 
 ## Installation
 Pulsar is portable: simply download the [latest release][pulsar-latest] into a folder of choice.<br>
-This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!<br>
-If you are building from source, the deployment targets will copy all files to their required location.<br>
-A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.<br>
+This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!
+
+If you are building from source, the deployment targets will copy all files to their required location.
+
+A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.
+
+If you are on Linux, you need the .NET 10 Runtime (the SDK is not required). Either [install it system-wide through your package manager][net-10-linux], or extract the Linux x64 Runtime binaries [from Microsoft][net-10] into your home folder, for example `~/.dotnet`.<br>
+Pulsar finds a home-folder install only through the `DOTNET_ROOT` environment variable, so add it to the [Steam launch options](#steam): `DOTNET_ROOT=/home/<user>/.dotnet [PulsarPath] %command% [Args]`<br>
+On Linux, `[PulsarPath]` is `Interim.bin` (Space Engineers 1) or `Modern.bin` (Space Engineers 2) in the folder you extracted Pulsar into.
+
+On a Steam Deck, use the home-folder install from Desktop Mode, because SteamOS updates replace system packages. With the Runtime extracted to `/home/deck/.dotnet`, the launch options are: `DOTNET_ROOT=/home/deck/.dotnet [PulsarPath] %command% [Args]`
 
 ## Executables
 `Legacy` runs [Space Engineers 1][se1] on [.NET Framework][net-framework]<br>
