@@ -33,10 +33,11 @@ If you are building from source, the deployment targets will copy all files to t
 
 A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.
 
-If you are on Linux, you will need .NET 10 [installed system-wide through your package manager][net-10-linux], or in your user folder [from the binaries package available from Microsoft's website][net-10].
+If you are on Linux, you need the .NET 10 Runtime (the SDK is not required). Either [install it system-wide through your package manager][net-10-linux], or extract the Linux x64 Runtime binaries [from Microsoft][net-10] into your home folder, for example `~/.dotnet`.<br>
+Pulsar finds a home-folder install only through the `DOTNET_ROOT` environment variable, so add it to the [Steam launch options](#steam): `DOTNET_ROOT=/home/<user>/.dotnet [PulsarPath] %command% [Args]`<br>
+On Linux, `[PulsarPath]` is `Interim.bin` (Space Engineers 1) or `Modern.bin` (Space Engineers 2) in the folder you extracted Pulsar into.
 
-If you are on a Steam Deck, you will need to download and extract the [x64 runtime binaries][net-10] through Desktop Mode into your user folder, and tell Pulsar where to find it with the DOTNET_ROOT environment variable in Steam's launch options for the game(s):
-```DOTNET_ROOT=/home/deck/dotnet/ [PulsarPath] %command%```
+On a Steam Deck, use the home-folder install from Desktop Mode, because SteamOS updates replace system packages. With the Runtime extracted to `/home/deck/.dotnet`, the launch options are: `DOTNET_ROOT=/home/deck/.dotnet [PulsarPath] %command% [Args]`
 
 ## Executables
 `Legacy` runs [Space Engineers 1][se1] on [.NET Framework][net-framework]<br>
