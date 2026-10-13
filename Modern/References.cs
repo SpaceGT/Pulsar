@@ -38,6 +38,11 @@ internal static class References
 
     private static readonly string[] excludeGlobs = ["*.Generator.dll", "*.Native.dll"];
 
+    public static IEnumerable<string> GetExcludedReferences(string game2)
+    {
+        return Tools.GetFiles(game2, excludeGlobs, []);
+    }
+
     public static IEnumerable<string> GetReferences(string game2)
     {
         foreach (string name in Tools.GetFiles(game2, game, excludeGlobs))

@@ -48,7 +48,10 @@ static class Program
             LogFile.Init(request.LogFile);
 
             RoslynReferences.Instance.SetSearchDirectories(request.ProbeDirectories ?? []);
-            RoslynReferences.Instance.GenerateAssemblyList(request.References ?? []);
+            RoslynReferences.Instance.GenerateAssemblyList(
+                request.References ?? [],
+                request.ExcludedReferences ?? []
+            );
         }
         catch (Exception e)
         {
