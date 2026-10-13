@@ -5,6 +5,8 @@ using System.Reflection;
 using System.Text;
 using HarmonyLib;
 using Keen.VRage.Core.Plugins;
+using Keen.VRage.Library.Reflection;
+using Keen.VRage.Library.Utils;
 using NLog;
 using Pulsar.Modern.Patch;
 using Pulsar.Shared;
@@ -56,6 +58,8 @@ internal class PluginInstance
 
         try
         {
+            // Same as the game's PluginHost, needed to find the plugin's DCS components
+            Singleton<MetadataManager>.Instance.PushContext(mainAssembly);
             plugin = (IPlugin)Activator.CreateInstance(mainType, host);
             LoadAssets();
         }
