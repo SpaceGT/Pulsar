@@ -406,8 +406,24 @@ public static class Tools
             .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
             .Any(x => x.Trim().Equals(value, StringComparison.OrdinalIgnoreCase));
 
-    public static bool IsProton() =>
-        IsWindows() && Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null;
+    // Proton is Wine to us: the Windows build with Z: paths and no NuGet
+    // signature checks. A plain `proton run` or Wine leaves
+    // STEAM_COMPAT_PROTON unset, so also look for Wine's ntdll export.
+    public static bool IsProton() => isProton.Value;
+
+    private static readonly Lazy<bool> isProton = new(() =>
+        IsWindows()
+        && (
+            Environment.GetEnvironmentVariable("STEAM_COMPAT_PROTON") is not null
+            || GetProcAddress(GetModuleHandle("ntdll.dll"), "wine_get_version") != IntPtr.Zero
+        )
+    );
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
+    private static extern IntPtr GetModuleHandle(string moduleName);
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, ExactSpelling = true)]
+    private static extern IntPtr GetProcAddress(IntPtr module, string procName);
 
     public static string ExecutableExtension => IsWindows() ? ".exe" : ".bin";
 }
