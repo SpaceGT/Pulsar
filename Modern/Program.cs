@@ -98,6 +98,9 @@ static class Program
         LogFile.WriteLine($"Platform: {Tools.Platform}");
         LogFile.WriteLine($"Runtime: {Tools.Runtime}");
 
+        foreach (string warning in SystemLimits.Check())
+            LogFile.Warn(warning);
+
         Parser.LogChanged();
 
         if (Flags.Current.SplashType == SplashType.Pulsar)
