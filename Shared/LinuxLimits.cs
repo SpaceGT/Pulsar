@@ -6,7 +6,8 @@ using System.IO;
 namespace Pulsar.Shared;
 
 // Linux limits that make our programs fail in ways hard to trace back to the cause once
-// they run out. They count per user, so many servers or clients under one user share them.
+// they run out. The process and inotify limits count per user, so many servers or clients
+// under one user share them. The open file limit counts per process.
 // The checks only warn, a limit that is too low for a big setup may be fine for a small one.
 // Identical copies, apart from the namespace, are in Pulsar Shared/LinuxLimits.cs,
 // Quasar Shared/Diagnostics/LinuxLimits.cs and cluster ClusterRegistry/LinuxLimits.cs.
