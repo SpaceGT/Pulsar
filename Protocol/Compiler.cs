@@ -4,6 +4,8 @@ public class InitializeCompilerRequest
 {
     public string[] References { get; set; } = [];
 
+    public string[] ExcludedReferences { get; set; } = [];
+
     public string[] ProbeDirectories { get; set; } = [];
 
     public string LogFile { get; set; }

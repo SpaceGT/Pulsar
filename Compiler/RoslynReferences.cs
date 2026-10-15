@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -19,11 +20,14 @@ public class RoslynReferences
         Resolver = new ProbeAssemblyResolver(directories);
     }
 
-    public void GenerateAssemblyList(IReadOnlyCollection<string> assemblies)
+    public void GenerateAssemblyList(
+        IReadOnlyCollection<string> assemblies,
+        IReadOnlyCollection<string> excluded
+    )
     {
         AllReferences.Clear();
         LogFile.WriteLine($"Assembly References:\n{string.Join(", ", assemblies)}");
-        LoadAssemblies(assemblies);
+        LoadAssemblies(assemblies, new HashSet<string>(excluded, StringComparer.OrdinalIgnoreCase));
         HideAsyncInterfacesPolyfill();
     }
 
@@ -42,7 +46,11 @@ public class RoslynReferences
             AllReferences[polyfill] = reference.WithAliases([polyfill.Replace('.', '_')]);
     }
 
-    private void LoadAssemblies(IEnumerable<string> names, bool recuse = true)
+    private void LoadAssemblies(
+        IEnumerable<string> names,
+        HashSet<string> excluded,
+        bool recuse = true
+    )
     {
         HashSet<string> missing = [];
         Stack<string> toProcess = new(names);
@@ -51,7 +59,8 @@ public class RoslynReferences
         {
             string assembly = toProcess.Pop();
 
-            if (AllReferences.ContainsKey(assembly))
+            // Dependencies can pull excluded assemblies back in
+            if (AllReferences.ContainsKey(assembly) || excluded.Contains(assembly))
                 continue;
 
             if (!TryLoadAssembly(assembly, out var reference, out var dependencies))
