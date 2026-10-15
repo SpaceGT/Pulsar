@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using HarmonyLib;
@@ -283,28 +284,57 @@ static class Program
     private static void SetupGameResolver()
     {
         string bin64Dir = ConfigManager.Instance.GameDir;
-        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver([bin64Dir]);
+        AppDomain.CurrentDomain.AssemblyResolve += AssemblyResolver(
+            [bin64Dir],
+            allowDowngrade: false
+        );
     }
 
-    private static ResolveEventHandler AssemblyResolver(string[] probeDirs)
+    // With allowDowngrade false an older file is refused. Handing the game's System.Collections.Immutable 1.2.3.0
+    // to a plugin dependency that asked for 10.0.0.0 fails later with MissingMethodException. Returning null
+    // gives the resolvers registered after this one a chance. The Interim bootstrap resolver has to keep
+    // downgrading: its Linux Steamworks.NET is 1.0.0.0 and the game asks for 20.1.0.0.
+    private static ResolveEventHandler AssemblyResolver(
+        string[] probeDirs,
+        bool allowDowngrade = true
+    )
     {
         return (sender, args) =>
         {
-            string targetName = new AssemblyName(args.Name).Name;
+            AssemblyName target = new(args.Name);
 
             foreach (string probeDir in probeDirs)
             {
-                string targetPath = Path.Combine(probeDir, targetName);
+                string targetPath = Path.Combine(probeDir, target.Name);
+                string path =
+                    File.Exists(targetPath + ".dll") ? targetPath + ".dll"
+                    : File.Exists(targetPath + ".exe") ? targetPath + ".exe"
+                    : null;
 
-                if (File.Exists(targetPath + ".dll"))
-                    return Assembly.LoadFrom(targetPath + ".dll");
+                if (path is null)
+                    continue;
 
-                if (File.Exists(targetPath + ".exe"))
-                    return Assembly.LoadFrom(targetPath + ".exe");
+                if (!allowDowngrade && IsDowngrade(target, path))
+                    return null;
+
+                return Assembly.LoadFrom(path);
             }
 
             return null;
         };
+    }
+
+    // Kept out of the resolver lambda: LogFile lives in Pulsar.Shared, which the Interim bootstrap
+    // resolver loads. Referencing it there would recurse into that resolver while it is JIT compiled.
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static bool IsDowngrade(AssemblyName target, string path)
+    {
+        Version found = AssemblyName.GetAssemblyName(path).Version;
+        if (target.Version is null || found >= target.Version)
+            return false;
+
+        LogFile.Warn($"Not resolving {target.FullName} to the older {found} in {path}");
+        return true;
     }
 
     private static void SetupGame(string[] args)
