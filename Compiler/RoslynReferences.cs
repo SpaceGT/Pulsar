@@ -28,6 +28,22 @@ public class RoslynReferences
         AllReferences.Clear();
         LogFile.WriteLine($"Assembly References:\n{string.Join(", ", assemblies)}");
         LoadAssemblies(assemblies, new HashSet<string>(excluded, StringComparer.OrdinalIgnoreCase));
+        HideAsyncInterfacesPolyfill();
+    }
+
+    // RestSharp pulls in Microsoft.Bcl.AsyncInterfaces, a .NET Framework polyfill. On .NET 10
+    // its types are also in System.Private.CoreLib, so any use of them fails with CS0433.
+    // An extern alias hides the polyfill from plugin code, while RestSharp still binds to it.
+    // This is the only polyfill that clashes today; mask duplicates generically if more show up.
+    private void HideAsyncInterfacesPolyfill()
+    {
+        const string polyfill = "Microsoft.Bcl.AsyncInterfaces";
+
+        if (
+            AllReferences.ContainsKey("System.Private.CoreLib")
+            && AllReferences.TryGetValue(polyfill, out var reference)
+        )
+            AllReferences[polyfill] = reference.WithAliases([polyfill.Replace('.', '_')]);
     }
 
     private void LoadAssemblies(
