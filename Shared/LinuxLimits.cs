@@ -66,7 +66,7 @@ public static class LinuxLimits
             "inotify watch limit (fs.inotify.max_user_watches)",
             ParseNumber(Read(Path.Combine(procRoot, "sys", "fs", "inotify", "max_user_watches"))),
             MinInotifyWatches,
-            "File watchers miss changes once it runs out.",
+            "Watching more folders fails once it runs out.",
             Sysctl("fs.inotify.max_user_watches", MinInotifyWatches)
         );
 
