@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Microsoft.Win32;
 #if NETCOREAPP
 using System.Runtime.Versioning;
@@ -21,8 +22,11 @@ public static class SystemLimits
             if (warning is not null)
                 yield return warning;
         }
-
-        // Linux limits (open files, inotify, processes) will go here
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            foreach (string warning in LinuxLimits.Check())
+                yield return warning;
+        }
     }
 
     // .NET Framework builds are longPathAware, which works only if long paths are enabled.
