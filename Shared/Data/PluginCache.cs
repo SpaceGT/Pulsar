@@ -43,6 +43,10 @@ public sealed class PluginCache
     [XmlArrayItem("Asset")]
     public CachedAsset[] Assets { get; set; } = [];
 
+    // Every file written to Bin and Assets, checked on load to catch interrupted writes
+    [XmlArrayItem("File")]
+    public CachedFile[] Files { get; set; }
+
     public static PluginCache Load(string rootDirectory)
     {
         rootDirectory = Path.GetFullPath(rootDirectory);
@@ -86,7 +90,21 @@ public sealed class PluginCache
         if (gameVersion is not null && GameVersion != gameVersion.ToString())
             return false;
 
+        // Caches written before the file list existed are rebuilt once
+        if (Files is null || !Files.All(IsIntact))
+            return false;
+
         return Assets.All(asset => File.Exists(asset.Path) || Directory.Exists(asset.Path));
+    }
+
+    private bool IsIntact(CachedFile file)
+    {
+        FileInfo info = new(Path.Combine(RootDirectory, file.Path));
+        if (info.Exists && info.Length == file.Size)
+            return true;
+
+        LogFile.Warn($"Cached file {info.FullName} is missing or incomplete, rebuilding");
+        return false;
     }
 
     public void Clear()
@@ -110,10 +128,26 @@ public sealed class PluginCache
         Runtime = RuntimeInformation.FrameworkDescription;
         RuntimeIdentifier = Tools.RuntimeIdentifier;
         PulsarVersion = pulsarVersion.ToString();
+        Files = [.. GetFiles(BinDirectory).Concat(GetFiles(AssetsDirectory))];
 
         XmlSerializer serializer = new(typeof(PluginCache));
-        using Stream file = File.Create(ManifestPath);
-        serializer.Serialize(file, this);
+        using MemoryStream manifest = new();
+        serializer.Serialize(manifest, this);
+        Tools.WriteAllBytesAtomic(ManifestPath, manifest.ToArray());
+    }
+
+    private IEnumerable<CachedFile> GetFiles(string directory)
+    {
+        if (!Directory.Exists(directory))
+            return [];
+
+        return Directory
+            .EnumerateFiles(directory, "*", SearchOption.AllDirectories)
+            .Select(file => new CachedFile
+            {
+                Path = Tools.GetRelativePath(RootDirectory, file),
+                Size = new FileInfo(file).Length,
+            });
     }
 
     public void SetAssets(IReadOnlyDictionary<string, string> assets)
@@ -138,5 +172,14 @@ public sealed class PluginCache
     {
         public string Name { get; set; }
         public string Path { get; set; }
+    }
+
+    public sealed class CachedFile
+    {
+        [XmlAttribute]
+        public string Path { get; set; }
+
+        [XmlAttribute]
+        public long Size { get; set; }
     }
 }
