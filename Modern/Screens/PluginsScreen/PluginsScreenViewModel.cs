@@ -29,6 +29,12 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
     public bool ConsentGiven => configManager.Core.DataHandlingConsent;
 
+    public string VersionText => PulsarInfo.VersionText;
+    public string UpdateText => PulsarInfo.UpdateText;
+    public string ListCheckedText =>
+        PulsarInfo.ListCheckedLabel + " " + PulsarInfo.ListCheckedTime(Sources);
+    public string ListCheckedToolTip => PulsarInfo.ListCheckedToolTip(Sources);
+
     private readonly ConfigManager configManager;
     private readonly ProfilesConfig profiles;
 
@@ -84,6 +90,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
 
         EnabledModPlugins.AddRange([.. ModPlugins.Where(x => x.DraftEnabled)]);
         EnabledPlugins.AddRange([.. Plugins.Where(x => x.DraftEnabled)]);
+        OnPropertyChanged(nameof(ListCheckedText));
     }
 
     private int ComparePluginsByName(PluginViewModel x, PluginViewModel y)
@@ -104,6 +111,7 @@ internal class PluginsScreenViewModel : ScreenViewModel
         pluginlist.UpdateRemoteList();
         pluginlist.UpdateLocalList();
         configManager.Sources.Save();
+        OnPropertyChanged(nameof(ListCheckedText));
     }
 
     public void ShowConsentScreen() =>

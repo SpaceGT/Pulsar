@@ -24,6 +24,11 @@ public class Updater(string repoName)
 
     private Version remotePulsarVer;
 
+    /// <summary>
+    /// The newest release seen by this run's update check, or null if it didn't check.
+    /// </summary>
+    public static Version LatestVersion { get; private set; }
+
     public void TryUpdate()
     {
         Assembly entryAssembly = Assembly.GetEntryAssembly();
@@ -34,8 +39,11 @@ public class Updater(string repoName)
         if (
             Flags.Current.UpdateType == UpdateType.None
             || !GitHub.GetReleaseVersion(repoName, out remotePulsarVer, preRelease)
-            || localPulsarVer >= remotePulsarVer
         )
+            return;
+
+        LatestVersion = remotePulsarVer;
+        if (localPulsarVer >= remotePulsarVer)
             return;
 
         LogFile.WriteLine($"An update is available to {remotePulsarVer.ToString(3)}");

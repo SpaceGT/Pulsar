@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace Pulsar.Shared.Config;
@@ -82,6 +83,17 @@ public class SourcesConfig
         }
     }
     private readonly HashSet<ModConfig> modSources = [];
+
+    /// <summary>
+    /// When the enabled remote sources were last checked on GitHub, or null if never.
+    /// </summary>
+    [XmlIgnore]
+    public DateTime? LastRemoteCheck =>
+        RemoteHubSources
+            .Where(x => x.Enabled)
+            .Select(x => x.LastCheck)
+            .Concat(RemotePluginSources.Where(x => x.Enabled).Select(x => x.LastCheck))
+            .Max();
 
     public SourcesConfig() { }
 

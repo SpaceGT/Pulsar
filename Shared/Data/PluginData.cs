@@ -177,6 +177,49 @@ public abstract class PluginData : IEquatable<PluginData>
         return Tools.IsSupportedEnvironment(Runtimes, Platforms);
     }
 
+    /// <summary>
+    /// Why the plugin can't be used here and what it needs instead, or null if it can.
+    /// </summary>
+    public string UnavailableReason
+    {
+        get
+        {
+            List<string> needs = [];
+
+            if (!Tools.IsSupportedValue(Platforms, Tools.Platform))
+                needs.Add($"{JoinValues(Platforms, x => x)}, not {Tools.Platform}");
+
+            if (!Tools.IsSupportedValue(Runtimes, Tools.Runtime))
+            {
+                string flavours = JoinValues(Runtimes, FlavourOf);
+                needs.Add(
+                    flavours == Tools.Flavour // Legacy on Proton runs on Mono, not CLR
+                        ? $"{JoinValues(Runtimes, x => x)}, not {Tools.Runtime}"
+                        : $"Pulsar {flavours}, not {Tools.Flavour}"
+                );
+            }
+
+            return needs.Count == 0 ? null : "Unavailable: needs " + string.Join("; ", needs);
+        }
+    }
+
+    private static string JoinValues(string values, Func<string, string> describe) =>
+        string.Join(
+            " or ",
+            values
+                .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => describe(x.Trim()))
+                .Distinct()
+        );
+
+    private static string FlavourOf(string runtime) =>
+        runtime.ToUpperInvariant() switch
+        {
+            "CLR" or "MONO" or "NETFRAMEWORK" => "Legacy",
+            "CORECLR" or "NETCOREAPP" => Tools.Flavour == "Modern" ? "Modern" : "Interim",
+            _ => runtime,
+        };
+
     public override bool Equals(object obj)
     {
         return Equals(obj as PluginData);

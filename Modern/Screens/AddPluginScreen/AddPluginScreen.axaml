@@ -89,6 +89,7 @@
                                     Width="505" 
                                     Height="241" 
                                     Background="rgba(60,76,82,56)"
+                                    ToolTip.Tip="{Binding UnavailableReason}"
                                     PointerPressed="PluginItem_PointerPressed">
                                 <Border.Styles>
 								    <Style Selector="Border:pointerover">
@@ -104,17 +105,27 @@
                                     <Grid Grid.Row="0">
                                         <StackPanel>
 									        <TextBlock Text="{Binding FriendlyName}" 
+                                                    Opacity="{Binding ContentOpacity}"
 							                        FontSize="23"
 							                        FontWeight="Normal"
                                                     Foreground="White"
                                                     HorizontalAlignment="Left"
                                                     MaxWidth="420"/>
                                             <TextBlock Text="{Binding Author}" 
+                                                       Opacity="{Binding ContentOpacity}"
                                                        Margin="0,4,0,0" FontSize="19" 
                                                        FontWeight="Normal"
                                                        Foreground="White"
                                                        HorizontalAlignment="Left"/>
+                                            <TextBlock Text="{Binding UnavailableReason}"
+                                                       IsVisible="{Binding !IsSupportedEnvironment}"
+                                                       Margin="0,4,0,0"
+                                                       TextWrapping="Wrap"
+                                                       FontWeight="Normal"
+                                                       Foreground="#FF9966"
+                                                       HorizontalAlignment="Left"/>
                                             <TextBlock Text="{Binding ShortDescription}" 
+                                                       Opacity="{Binding ContentOpacity}"
                                                        Margin="0,4,0,0"
                                                        TextWrapping="Wrap" 
                                                        MaxHeight="90" 
@@ -126,9 +137,10 @@
                                                   Grid.Column="1" 
                                                   VerticalAlignment="Top" 
                                                   HorizontalAlignment="Right" 
+                                                  IsEnabled="{Binding CanToggle}"
                                                   IsChecked="{Binding DraftEnabled}"/>
                                     </Grid>
-                                    <Grid Grid.Row="1">
+                                    <Grid Grid.Row="1" Opacity="{Binding ContentOpacity}">
                                         <StackPanel VerticalAlignment="Bottom">
                                             <TextBlock Name="UsersText" 
                                                        IsVisible="{Binding ShowStatElements}" 
