@@ -24,29 +24,58 @@
 A plugin and mod loader for Space Engineers.<br>
 This is a hard fork of the discontinued [PluginLoader][plugin-loader].<br>
 
-## Installation
+## Windows
+
+### Installation
 Pulsar is portable: simply download the [latest release][pulsar-latest] into a folder of choice.<br>
 This folder **must not** contain important data; It **will be cleaned** during a Pulsar update!<br>
 If you are building from source, the deployment targets will copy all files to their required location.<br>
 A windows-only [installer][pulsar-installer] exists which can do all the work (including Steam configuration) for you.<br>
 
-## Executables
+### Executables
 `Legacy` runs [Space Engineers 1][se1] on [.NET Framework][net-framework]<br>
 `Interim` runs [Space Engineers 1][se1] on [.NET 10][net-10] (via [dotnet-compat][dotnet-compat])<br>
 `Modern` runs [Space Engineers 2][se2] on [.NET 10][net-10]<br>
 
-## Usage
+### Usage
 Run the appropriate executable for your game and runtime.<br>
 You can pass `-h` for a list of command line arguments.<br>
-Linux builds run Space Engineers natively **(without Wine)** using [linux-compat][linux-compat] and [linux-compat2][linux-compat2].<br>
 
-## Steam
+### Steam
 The Space Engineers [launch options][steam-launch] may be modified so Steam starts Pulsar automatically.<br>
 Replace `[PulsarPath]` with a path to the desired Pulsar executable.<br>
 Replace `[Args]` with the desired Pulsar arguments (leave blank for default).<br>
-For Windows and Linux: `[PulsarPath] %command% [Args]`<br>
+For Windows (and Linux): `[PulsarPath] %command% [Args]`<br>
 For Proton: `bash -c 'exec "${@:0:$#}" [PulsarPath] "${@:$#}" [Args]' %command%`<br>
 Starting Space Engineers from Steam will now open Pulsar as well!<br>
+
+## Linux
+
+Linux builds run Space Engineers natively **(without Wine)** using [linux-compat][linux-compat] and [linux-compat2][linux-compat2].<br>
+
+On Linux, Pulsar can installed as a compatiibility tool directly registered with Steam or used in the same as [Windows section above](#Windows).
+
+### Installation as a compatibility tool on Linux
+
+1. Download the `pulsar-installer.sh` from [github-repo](linux-utils/pulsar-installer.sh)
+2. Run the script `~/Downloads/pulsar-installer.sh`.
+3. Restart Steam.
+4. In `Space Engineers` and/or `Space Engineers 2` properies:
+    4.1. enable `force compatibility tool`
+    4.2. Set pulsar as the compatibility tool to use.
+5. Launch Space Engineers
+
+You can customise how pulsar is run via [launch options][steam-launch] setting it to `%command% [Args]`. <br>
+Replace `[Args]` with the desired Pulsar arguments (leave blank for default).<br>
+
+#### Vompatibility Tool Installation Notes
+- The installer will download the release tarball and dotnet runtime.
+- When there's a new update, run the installer again to get the new version.
+- The compat-tool launch script will:
+    - Launch Space Engineers with `Interim` executable
+    - Launch Space Engineers 2 with `Modern` executable
+    - All other games will fail
+- For [Steam in a Flatpak](https://flathub.org/en/apps/com.valvesoftware.Steam) you can experiment with https://github.com/IdrisTheDragon/pulsar-flatpak-extension (Will hopefully be published on flathub eventually)
 
 ## Plugins
 Pulsar officially endorses the [PluginHub][plugin-hub] for high-quality vetted plugins.<br>
