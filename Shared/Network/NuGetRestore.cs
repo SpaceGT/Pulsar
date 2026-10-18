@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Threading.Tasks;
 using NuGet.Commands;
@@ -8,6 +9,7 @@ using NuGet.Common;
 using NuGet.Configuration;
 using NuGet.Frameworks;
 using NuGet.LibraryModel;
+using NuGet.Packaging;
 using NuGet.Packaging.Core;
 using NuGet.Packaging.Signing;
 using NuGet.ProjectModel;
@@ -56,7 +58,67 @@ internal static class NuGetRestore
         PackageSpec project = CreateProject(packages.Values);
         LockFile lockFile = await RestoreAsync(project, settings, packageFolder);
 
+        // NuGet trusts a package folder once its .nupkg.metadata exists, even if files are
+        // missing or truncated since (crash, power loss, cleanup), so check and download again
+        if (DeleteBrokenPackages(lockFile, packageFolder))
+        {
+            lockFile = await RestoreAsync(project, settings, packageFolder);
+            if (DeleteBrokenPackages(lockFile, packageFolder))
+                throw new InvalidDataException("NuGet packages are incomplete after downloading.");
+        }
+
         return CreateResult(lockFile, packageFolder);
+    }
+
+    private static bool DeleteBrokenPackages(LockFile lockFile, string packageFolder)
+    {
+        VersionFolderPathResolver resolver = new(packageFolder);
+        bool broken = false;
+
+        foreach (LockFileLibrary library in lockFile.Libraries)
+        {
+            if (library.Type != LibraryType.Package)
+                continue;
+
+            string root = resolver.GetInstallPath(library.Name, library.Version);
+            string nupkg = resolver.GetPackageFilePath(library.Name, library.Version);
+            if (IsIntact(root, nupkg))
+                continue;
+
+            LogFile.Warn($"NuGet package {library.Name} {library.Version} is incomplete");
+            Directory.Delete(root, true);
+            broken = true;
+        }
+
+        return broken;
+    }
+
+    // Compares the extracted files Pulsar uses with the entries of the package
+    private static bool IsIntact(string root, string nupkg)
+    {
+        string[] folders = ["lib/", "ref/", "runtimes/", "contentFiles/"];
+
+        try
+        {
+            using ZipArchive zip = new(File.OpenRead(nupkg));
+            foreach (ZipArchiveEntry entry in zip.Entries)
+            {
+                string path = Uri.UnescapeDataString(entry.FullName);
+                bool used = folders.Any(x => path.StartsWith(x, StringComparison.Ordinal));
+                bool isDoc = path.EndsWith(".xml", StringComparison.OrdinalIgnoreCase);
+                if (!used || isDoc || entry.Name.Length == 0)
+                    continue;
+
+                FileInfo file = new(Path.Combine(root, path));
+                if (!file.Exists || file.Length != entry.Length)
+                    return false;
+            }
+            return true;
+        }
+        catch (Exception e) when (e is IOException or InvalidDataException)
+        {
+            return false;
+        }
     }
 
     private static Dictionary<string, PackageIdentity> GetPackages(NuGetPackageList packageList)

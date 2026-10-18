@@ -604,8 +604,7 @@ public class PluginList : IEnumerable<PluginData>
             using (MemoryStream mem = new())
             {
                 Serializer.Serialize(mem, list);
-                using Stream binFile = File.Create(file);
-                mem.WriteTo(binFile);
+                Tools.WriteAllBytesAtomic(file, mem.ToArray());
             }
 
             LogFile.WriteLine("Whitelist updated");

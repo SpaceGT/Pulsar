@@ -64,6 +64,28 @@ public static class Tools
         return GetHash(fileStream, sha);
     }
 
+    // Goes through a temporary file, so an interrupted write never leaves a partial file
+    public static void WriteAllBytesAtomic(string path, byte[] data)
+    {
+        string temp = path + ".tmp";
+        using (FileStream file = File.Create(temp))
+        {
+            file.Write(data, 0, data.Length);
+            file.Flush(flushToDisk: true);
+        }
+
+#if NETFRAMEWORK
+        if (File.Exists(path))
+        {
+            File.Replace(temp, path, null);
+            return;
+        }
+        File.Move(temp, path);
+#else
+        File.Move(temp, path, overwrite: true);
+#endif
+    }
+
     public static string GetStringHash(string text)
     {
         using var sha = SHA256.Create();
