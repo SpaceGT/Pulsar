@@ -20,6 +20,7 @@ public class AddPluginMenu : PluginScreen
     const int ListItemsHorizontal = 2;
     const int ListItemsVertical = 3;
     const float PercentSearchBox = 0.8f;
+    static readonly Vector4 UnavailableColor = new(1f, 0.6f, 0.4f, 1f);
 
     private readonly List<PluginData> plugins;
     private readonly List<PluginData> hidden;
@@ -49,9 +50,9 @@ public class AddPluginMenu : PluginScreen
     public AddPluginMenu(IEnumerable<PluginData> plugins, bool mods, Profile draft)
         : base(size: new Vector2(0.8f, 0.9f))
     {
-        var supported = plugins.Where(x => (x is ModPlugin) == mods && x.IsSupportedEnvironment());
-        this.plugins = [.. supported.Where(x => !x.Hidden)];
-        hidden = [.. supported.Where(x => x.Hidden)];
+        var matching = plugins.Where(x => (x is ModPlugin) == mods);
+        this.plugins = [.. matching.Where(x => !x.Hidden)];
+        hidden = [.. matching.Where(x => x.Hidden && x.IsSupportedEnvironment())];
 
         stats = ConfigManager.Instance.Stats ?? new PluginStats();
         this.mods = mods;
@@ -149,7 +150,7 @@ public class AddPluginMenu : PluginScreen
         if (!string.IsNullOrEmpty(newText))
             sortDropdown.SelectItemByKey((int)SortingMethod.Search);
 
-        SortPluginsBySearch();
+        SortPlugins(SortingMethod.Search);
         RefreshPluginList();
     }
 
@@ -198,6 +199,14 @@ public class AddPluginMenu : PluginScreen
             default:
                 plugins.Sort(ComparePluginsByName);
                 break;
+        }
+
+        // Unavailable plugins go last, unless they match the search
+        if (sort != SortingMethod.Search || string.IsNullOrWhiteSpace(Filter))
+        {
+            List<PluginData> unavailable = [.. plugins.Where(x => !x.IsSupportedEnvironment())];
+            plugins.RemoveAll(x => !x.IsSupportedEnvironment());
+            plugins.AddRange(unavailable);
         }
     }
 
@@ -280,8 +289,13 @@ public class AddPluginMenu : PluginScreen
     private void CreatePluginListItem(PluginData plugin, MyGuiControlParent panel)
     {
         float padding = GuiSpacing;
+        string unavailableReason = plugin.UnavailableReason;
+        bool available = unavailableReason is null;
 
-        ParentButton contentArea = new(size: panel.Size - padding) { UserData = plugin };
+        ParentButton contentArea = new(size: panel.Size - padding, toolTip: unavailableReason)
+        {
+            UserData = plugin,
+        };
         contentArea.OnButtonClicked += OnPluginItemClicked;
 
         Vector2 contentTopLeft = GetCoordTopLeftFromAligned(contentArea) + padding;
@@ -291,9 +305,18 @@ public class AddPluginMenu : PluginScreen
         layout.SetColumnWidthsNormalized(0.5f, 0.5f);
         layout.SetRowHeightsNormalized(0.1f, 0.1f, 0.6f, 0.1f, 0.1f);
 
-        MyGuiControlLabel titleLabel = new(text: plugin.FriendlyName, textScale: 0.9f);
+        MyGuiControlLabel titleLabel = new(text: plugin.FriendlyName, textScale: 0.9f)
+        {
+            Enabled = available,
+        };
         layout.Add(titleLabel, MyAlignH.Left, MyAlignV.Bottom, 0, 0);
-        layout.Add(new MyGuiControlLabel(text: plugin.Author), MyAlignH.Left, MyAlignV.Top, 1, 0);
+        layout.Add(
+            new MyGuiControlLabel(text: plugin.Author) { Enabled = available },
+            MyAlignH.Left,
+            MyAlignV.Top,
+            1,
+            0
+        );
 
         MyGuiControlMultilineText description = new(
             textAlign: MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_TOP,
@@ -305,6 +328,19 @@ public class AddPluginMenu : PluginScreen
             CanPlaySoundOnMouseOver = false,
         };
         layout.AddWithSize(description, MyAlignH.Left, MyAlignV.Top, 2, 0, 1, 2);
+        if (!available)
+        {
+            description.AppendText(
+                unavailableReason,
+                description.Font,
+                description.TextScaleWithLanguage,
+                UnavailableColor
+            );
+            description.AppendLine();
+            description.TextColor = new Color(
+                MyGuiConstants.DISABLED_CONTROL_COLOR_MASK_MULTIPLIER
+            );
+        }
         if (string.IsNullOrEmpty(plugin.Tooltip))
         {
             string shortDescription = plugin.Description;
@@ -326,7 +362,7 @@ public class AddPluginMenu : PluginScreen
             description.AppendText(plugin.Tooltip);
         }
 
-        if (StatsClient.Enabled && !plugin.IsLocal)
+        if (StatsClient.Enabled && !plugin.IsLocal && available)
         {
             PluginStat stat = stats.GetStatsForPlugin(plugin);
             layout.Add(
@@ -343,7 +379,7 @@ public class AddPluginMenu : PluginScreen
         }
 
         layout.Add(
-            new MyGuiControlLabel(text: plugin.Source),
+            new MyGuiControlLabel(text: plugin.Source) { Enabled = available },
             MyAlignH.Left,
             MyAlignV.Bottom,
             4,
@@ -358,6 +394,8 @@ public class AddPluginMenu : PluginScreen
         {
             Name = "PluginEnabled",
             UserData = plugin,
+            // An unavailable plugin can still be removed from the profile
+            Enabled = available || draft.Contains(plugin.Id),
         };
         enabledCheckbox.IsCheckedChanged += OnEnabledChanged;
         contentArea.Controls.Add(enabledCheckbox);
@@ -389,7 +427,7 @@ public class AddPluginMenu : PluginScreen
         if (checkbox is not null && checkbox.CheckMouseOver(false))
             return;
 
-        if (btn.UserData is not PluginData plugin)
+        if (btn.UserData is not PluginData plugin || !plugin.IsSupportedEnvironment())
             return;
 
         btn.PlayClickSound();

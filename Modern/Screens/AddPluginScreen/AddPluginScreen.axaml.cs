@@ -80,7 +80,10 @@ public partial class AddPluginScreen : PluginScreenBase
 
     private void PluginItem_PointerPressed(object sender, Avalonia.Input.PointerPressedEventArgs e)
     {
-        if (((Border)sender).DataContext is not PluginViewModel pluginVM)
+        if (
+            ((Border)sender).DataContext is not PluginViewModel pluginVM
+            || !pluginVM.IsSupportedEnvironment
+        )
             return;
 
         ScreenTools.PlayClickSound((Control)sender);

@@ -89,7 +89,8 @@ internal class PluginViewModel : AttachedViewModel
         }
     }
     public bool CanVote => StatsClient.CanSend && (PluginData.Enabled || PluginStat.Tried);
-    public bool ShowStatElements => StatsClient.Enabled && !PluginData.IsLocal;
+    public bool ShowStatElements =>
+        StatsClient.Enabled && !PluginData.IsLocal && IsSupportedEnvironment;
 
     // Setter is used from Avalonia axaml, so those references don't show up.
     public bool DraftEnabled
@@ -100,6 +101,7 @@ internal class PluginViewModel : AttachedViewModel
             PluginData.UpdateProfile(draft, value);
 
             OnPropertyChanged(nameof(DraftEnabled));
+            OnPropertyChanged(nameof(CanToggle));
             OnPropertyChanged(nameof(FriendlyName));
             OnPropertyChanged(nameof(ToolTip));
             OnPropertyChanged(nameof(Author));
@@ -141,6 +143,11 @@ internal class PluginViewModel : AttachedViewModel
 
     public bool IsHidden => PluginData.Hidden;
     public bool IsSupportedEnvironment => PluginData.IsSupportedEnvironment();
+    public string UnavailableReason => PluginData.UnavailableReason;
+    public double ContentOpacity => IsSupportedEnvironment ? 1 : 0.5;
+
+    // An unavailable plugin can still be removed from the profile
+    public bool CanToggle => IsSupportedEnvironment || DraftEnabled;
 
     private readonly Profile draft;
     private readonly PluginInstance pluginInstance;

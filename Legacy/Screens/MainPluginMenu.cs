@@ -23,6 +23,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
     private readonly SourcesConfig sources = configManager.Sources;
 
     private MyGuiControlCheckbox consentBox;
+    private MyGuiControlLabel lblListChecked;
     private MyGuiControlParent pluginsPanel;
     private MyGuiControlParent modsPanel;
 
@@ -186,6 +187,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
     private void RefreshPluginLists()
     {
+        lblListChecked.Text = PulsarInfo.ListCheckedTime(sources);
         pluginsPanel.Controls.Clear();
         CreatePluginsPanel(pluginsPanel, false);
         modsPanel.Controls.Clear();
@@ -320,6 +322,7 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
                     pluginList.UpdateRemoteList(force: true);
                     pluginList.UpdateLocalList();
                     sources.Save();
+                    lblListChecked.Text = PulsarInfo.ListCheckedTime(sources);
                     // Prevent network spam from non-technical users
                     sourceButton.Enabled = false;
                 }
@@ -327,6 +330,8 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
 
         layout.Add(sourceButton, MyAlignH.Center);
         AdvanceLayout(ref layout);
+
+        CreateInfoLabels(parent);
 
         if (!StatsClient.CanSend)
             return;
@@ -341,6 +346,39 @@ public class MainPluginMenu(ConfigManager configManager) : PluginScreen(size: ne
         MyGuiControlLabel lblConsent = new(text: "Track Usage");
         PositionToRight(consentBox, lblConsent, spacing: 0);
         parent.Controls.Add(lblConsent);
+    }
+
+    private void CreateInfoLabels(MyGuiControlParent parent)
+    {
+        // Bottom up, from the bottom left corner of the side panel
+        Vector2 position = parent.Size * new Vector2(-0.5f, 0.5f);
+        string listTip = PulsarInfo.ListCheckedToolTip(sources);
+
+        lblListChecked = AddInfoLabel(PulsarInfo.ListCheckedTime(sources), listTip);
+        AddInfoLabel(PulsarInfo.ListCheckedLabel, listTip);
+        if (PulsarInfo.UpdateText is string update)
+            AddInfoLabel(update, colorMask: new Vector4(1f, 0.6f, 0.4f, 1f));
+        AddInfoLabel(PulsarInfo.VersionText);
+
+        MyGuiControlLabel AddInfoLabel(
+            string text,
+            string toolTip = null,
+            Vector4? colorMask = null
+        )
+        {
+            MyGuiControlLabel label = new(
+                position: position,
+                text: text,
+                colorMask: colorMask ?? new Vector4(0.7f, 0.7f, 0.7f, 1f),
+                textScale: 0.7f,
+                originAlign: VRage.Utils.MyGuiDrawAlignEnum.HORISONTAL_LEFT_AND_VERTICAL_BOTTOM
+            );
+            if (toolTip is not null)
+                label.SetToolTip(toolTip);
+            parent.Controls.Add(label);
+            position.Y -= label.Size.Y;
+            return label;
+        }
     }
 
     private void OnConsentChanged()

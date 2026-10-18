@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
@@ -29,6 +30,11 @@ public static class Tools
     public static ICompilerFactory Compiler { get; private set; }
     public static InterfaceClient Interface { get; private set; }
 
+    /// <summary>
+    /// Pulsar's own entry assembly, captured before Modern makes the game the entry assembly.
+    /// </summary>
+    public static AssemblyName PulsarAssembly { get; private set; }
+
     public static void EarlyInit(InterfaceClient interfaceClient)
     {
         Interface = interfaceClient;
@@ -38,6 +44,7 @@ public static class Tools
     {
         External = external;
         Compiler = compiler;
+        PulsarAssembly = Assembly.GetEntryAssembly().GetName();
     }
 
     public static bool IsManagedDll(string file)
@@ -378,6 +385,8 @@ public static class Tools
             : "CoreCLR";
 #endif
 
+    public static string Flavour => PulsarAssembly?.Name;
+
     public static IEnumerable<string> GetCompilationSymbols(bool trusted)
     {
 #if NETCOREAPP
@@ -400,7 +409,7 @@ public static class Tools
     public static bool IsSupportedEnvironment(string runtimes, string platforms) =>
         IsSupportedValue(runtimes, Runtime) && IsSupportedValue(platforms, Platform);
 
-    private static bool IsSupportedValue(string supportedValues, string value) =>
+    public static bool IsSupportedValue(string supportedValues, string value) =>
         string.IsNullOrWhiteSpace(supportedValues)
         || supportedValues
             .Split([';', ','], StringSplitOptions.RemoveEmptyEntries)

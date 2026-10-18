@@ -40,7 +40,7 @@ internal class AddPluginScreenViewModel : ScreenViewModel
 
         Mods = mods;
 
-        this.plugins = [.. plugins.Where(x => x.IsSupportedEnvironment)];
+        this.plugins = plugins;
         Plugins = new([.. this.plugins.Where(x => !x.IsHidden)]);
         OnScreenClose = onScreenClose;
 
@@ -77,9 +77,21 @@ internal class AddPluginScreenViewModel : ScreenViewModel
                 break;
         }
 
+        // Unavailable plugins go last, unless they match the search
+        if (sort != SortingMethod.Search || string.IsNullOrWhiteSpace(Filter))
+        {
+            List<PluginViewModel> unavailable = [.. plugins.Where(x => !x.IsSupportedEnvironment)];
+            plugins.RemoveAll(x => !x.IsSupportedEnvironment);
+            plugins.AddRange(unavailable);
+        }
+
         Plugins.Clear();
 
-        Plugins.AddRange(plugins.Where(x => x.IsHidden && x.PluginData.MatchName(Filter)));
+        Plugins.AddRange(
+            plugins.Where(x =>
+                x.IsHidden && x.IsSupportedEnvironment && x.PluginData.MatchName(Filter)
+            )
+        );
         Plugins.AddRange(plugins.Where(x => !x.IsHidden));
     }
 
