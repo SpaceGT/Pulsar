@@ -229,6 +229,7 @@ internal sealed class AssetResolver(PluginCache cache)
     {
         Directory.CreateDirectory(Path.GetDirectoryName(destination));
         Uri url = new(asset.Url, UriKind.Absolute);
+        LogFile.WriteLine($"Downloading asset {asset.Name} from {url}");
         NetworkClient.DownloadAsync(url, destination).GetAwaiter().GetResult();
         VerifyHash(asset, destination);
     }

@@ -14,6 +14,8 @@ public class CoreConfig
     public string DataHandlingConsentDate { get; set; }
     public int CompilerTimeout { get; set; } = 30000;
     public int NetworkTimeout { get; set; } = 5000;
+
+    // How long a download may go without receiving any data, not its total time
     public int DownloadTimeout { get; set; } = 30000;
     public string UserAgent { get; set; } = "Pulsar";
 
