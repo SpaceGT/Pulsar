@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Version>1.1.2</Version>
+    <Version>1.1.3</Version>
     <Product>Pulsar</Product>
     <Copyright>© 2026 SpaceGT</Copyright>
   </PropertyGroup>

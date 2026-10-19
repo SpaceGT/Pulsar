@@ -33,7 +33,17 @@ static class Program
         using Stream stream = Network.GetStream(uri);
         using ZipArchive zip = new(stream, ZipArchiveMode.Read, leaveOpen: false);
 
-        Writer.Update(zip, local);
+        try
+        {
+            Writer.Update(zip, local);
+        }
+        catch (Exception e)
+        {
+            // The old files are back in place, so the current version can still start
+            string message = "The update failed, starting the current version.\n\n" + e.Message;
+            MessageBox.Show(message, "Pulsar Updater", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+
         Start(caller);
     }
 
