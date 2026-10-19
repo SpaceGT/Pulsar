@@ -11,13 +11,11 @@ namespace Pulsar.Shared.Network;
 internal static class NetworkClient
 {
     private const int CopyBufferSize = 80 * 1024;
+    private const int MaxAttempts = 3;
     private static readonly HttpClient Client = CreateClient();
 
     private static CancellationTokenSource ResponseTimeout() =>
         new(TimeSpan.FromMilliseconds(ConfigManager.Instance.Core.NetworkTimeout));
-
-    private static CancellationTokenSource DownloadTimeout() =>
-        new(TimeSpan.FromMilliseconds(ConfigManager.Instance.Core.DownloadTimeout));
 
     public static async Task<string> GetStringAsync(Uri uri)
     {
@@ -32,7 +30,43 @@ internal static class NetworkClient
         return await SendStringRequestAsync(request).ConfigureAwait(false);
     }
 
-    public static async Task<Stream> GetStreamAsync(Uri uri, string accept = null)
+    public static Task<Stream> GetStreamAsync(Uri uri, string accept = null)
+    {
+        return RetryAsync<Stream>(
+            uri,
+            async () =>
+            {
+                MemoryStream output = new();
+                await FetchAsync(uri, accept, output).ConfigureAwait(false);
+                output.Position = 0;
+                return output;
+            }
+        );
+    }
+
+    public static async Task DownloadAsync(Uri uri, string destination)
+    {
+        try
+        {
+            await RetryAsync(
+                    uri,
+                    async () =>
+                    {
+                        using FileStream output = File.Create(destination);
+                        await FetchAsync(uri, null, output).ConfigureAwait(false);
+                        return true;
+                    }
+                )
+                .ConfigureAwait(false);
+        }
+        catch
+        {
+            File.Delete(destination);
+            throw;
+        }
+    }
+
+    private static async Task FetchAsync(Uri uri, string accept, Stream output)
     {
         using CancellationTokenSource timeout = ResponseTimeout();
         using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
@@ -45,31 +79,68 @@ internal static class NetworkClient
             .ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
-        MemoryStream output = new();
         await CopyDownloadAsync(response, output).ConfigureAwait(false);
-        output.Position = 0;
-
-        return output;
     }
 
-    public static async Task DownloadAsync(Uri uri, string destination)
+    // Starts over on network errors and stalls, so a flaky link doesn't fail the download
+    private static async Task<T> RetryAsync<T>(Uri uri, Func<Task<T>> fetch)
     {
-        using CancellationTokenSource timeout = ResponseTimeout();
-        using HttpRequestMessage request = CreateRequest(HttpMethod.Get, uri);
-        using HttpResponseMessage response = await Client
-            .SendAsync(request, HttpCompletionOption.ResponseHeadersRead, timeout.Token)
-            .ConfigureAwait(false);
-        response.EnsureSuccessStatusCode();
-
-        using FileStream output = File.Create(destination);
-        await CopyDownloadAsync(response, output).ConfigureAwait(false);
+        for (int attempt = 1; ; attempt++)
+        {
+            try
+            {
+                return await fetch().ConfigureAwait(false);
+            }
+            catch (Exception e) when (attempt < MaxAttempts && IsTransient(e))
+            {
+                TimeSpan delay = TimeSpan.FromSeconds(2 << (attempt - 1));
+                LogFile.Warn(
+                    $"Download of {uri} failed ({e.GetType().Name}: {e.Message}), "
+                        + $"attempt {attempt} of {MaxAttempts}, retrying in {delay.TotalSeconds:0} s"
+                );
+                await Task.Delay(delay).ConfigureAwait(false);
+            }
+        }
     }
 
+    // An HttpRequestException without an inner exception is an error status, not worth retrying
+    private static bool IsTransient(Exception e) =>
+        e is IOException or TimeoutException or OperationCanceledException
+        || e is HttpRequestException { InnerException: not null };
+
+    // The timeout covers the time between two reads, not the whole download, so a large
+    // file on a slow link still arrives as long as data keeps coming
     private static async Task CopyDownloadAsync(HttpResponseMessage response, Stream output)
     {
+        TimeSpan idle = TimeSpan.FromMilliseconds(ConfigManager.Instance.Core.DownloadTimeout);
         using Stream input = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-        using CancellationTokenSource timeout = DownloadTimeout();
-        await input.CopyToAsync(output, CopyBufferSize, timeout.Token).ConfigureAwait(false);
+        using CancellationTokenSource timeout = new();
+        using CancellationTokenRegistration abort = timeout.Token.Register(input.Dispose);
+
+        byte[] buffer = new byte[CopyBufferSize];
+        while (true)
+        {
+            timeout.CancelAfter(idle);
+            int read;
+            try
+            {
+                read = await input
+                    .ReadAsync(buffer, 0, buffer.Length, timeout.Token)
+                    .ConfigureAwait(false);
+            }
+            catch (Exception) when (timeout.IsCancellationRequested)
+            {
+                string host = response.RequestMessage.RequestUri.Host;
+                throw new TimeoutException(
+                    $"No data received from {host} for {idle.TotalSeconds:0} s"
+                );
+            }
+
+            if (read == 0)
+                return;
+
+            await output.WriteAsync(buffer, 0, read).ConfigureAwait(false);
+        }
     }
 
     private static async Task<string> SendStringRequestAsync(HttpRequestMessage request)
