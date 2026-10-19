@@ -163,7 +163,15 @@ public class Updater(string repoName)
 #if NETCOREAPP
         if (!Tools.IsWindows())
         {
-            LinuxUpdater.Update(rPulsarPath, lPulsarPath);
+            try
+            {
+                LinuxUpdater.Update(rPulsarPath, lPulsarPath);
+            }
+            catch (Exception e)
+            {
+                LogFile.Error("Error while updating: " + e);
+                ShowUpdateError();
+            }
             return;
         }
 #endif
@@ -177,8 +185,17 @@ public class Updater(string repoName)
         string lUpdaterPath = Path.Combine(lPulsarPath, UpdaterName + ".exe");
         Version lUpdaterVer = GetLocalUpdaterVersion(lUpdaterPath);
 
-        if (lUpdaterVer is null || lUpdaterVer < rUpdaterVer)
-            DownloadUpdater(rUpdaterPath, lUpdaterPath);
+        try
+        {
+            if (lUpdaterVer is null || lUpdaterVer < rUpdaterVer)
+                DownloadUpdater(rUpdaterPath, lUpdaterPath);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error($"Error while downloading {UpdaterName}: " + e);
+            ShowUpdateError();
+            return;
+        }
 
         Tools.Interface.Dispose();
         StartUpdater(lUpdaterPath, rPulsarPath, lPulsarPath);
@@ -246,16 +263,36 @@ public class Updater(string repoName)
         if (!File.Exists(updaterPath))
             return null;
 
-        AssemblyName name = AssemblyName.GetAssemblyName(updaterPath);
-        return name.Version;
+        try
+        {
+            return AssemblyName.GetAssemblyName(updaterPath).Version;
+        }
+        catch (Exception e)
+        {
+            // Older versions wrote it in place, so an interrupted download left a broken file
+            LogFile.Warn($"Replacing unreadable {UpdaterName}: {e.Message}");
+            return null;
+        }
     }
 
     private static void DownloadUpdater(string remotePath, string localPath)
     {
         Uri uri = new(remotePath, UriKind.Absolute);
-        using Stream input = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
-        using FileStream output = File.Create(localPath);
-        input.CopyTo(output);
+        string tempPath = localPath + ".download";
+
+        try
+        {
+            NetworkClient.DownloadAsync(uri, tempPath).GetAwaiter().GetResult();
+        }
+        catch
+        {
+            File.Delete(tempPath);
+            throw;
+        }
+
+        // A kill between these leaves no updater, which is downloaded again next time
+        File.Delete(localPath);
+        File.Move(tempPath, localPath);
     }
 
     private static void StartUpdater(string updaterPath, string remotePath, string localPath)
@@ -291,37 +328,130 @@ file static class LinuxUpdater
     private const string DebugArg = "-debug";
     private const int MaxEntries = 15;
 
-    private static readonly HashSet<string> Preserve = ["Legacy", "Interim", "Modern", "NuGet"];
+    // Kept inside the install folder, so they are on the same file system and writable
+    private const string NewFolder = ".update-new";
+    private const string OldFolder = ".update-old";
+
+    private static readonly HashSet<string> Preserve =
+    [
+        "Legacy",
+        "Interim",
+        "Modern",
+        "NuGet",
+        NewFolder,
+        OldFolder,
+    ];
     private static readonly HashSet<string> Check = ["Interim.bin", "Modern.bin", "LICENSE"];
 
     public static void Update(string remote, string destination)
     {
         Uri uri = new(remote, UriKind.Absolute);
         using Stream stream = NetworkClient.GetStreamAsync(uri).GetAwaiter().GetResult();
-        using GZipStream gzip = new(stream, CompressionMode.Decompress);
         string caller = Process.GetCurrentProcess().MainModule.FileName;
 
         if (!Validate(destination))
             Environment.Exit(1);
 
+        // Extract next to the old files first: failing here leaves the install untouched
+        string newFolder = Path.Combine(destination, NewFolder);
+        string oldFolder = Path.Combine(destination, OldFolder);
+        DeleteFolder(newFolder);
+        DeleteFolder(oldFolder);
+
+        try
+        {
+            Directory.CreateDirectory(newFolder);
+            using GZipStream gzip = new(stream, CompressionMode.Decompress);
+            TarFile.ExtractToDirectory(gzip, newFolder, overwriteFiles: false);
+        }
+        catch
+        {
+            TryDeleteFolder(newFolder);
+            throw;
+        }
+
         Tools.Interface.Dispose();
-        CleanFolder(destination, Preserve);
-        TarFile.ExtractToDirectory(gzip, destination, overwriteFiles: true);
+
+        try
+        {
+            Swap(destination, newFolder, oldFolder);
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Cannot restore the previous Pulsar files: " + e);
+            Environment.Exit(1);
+        }
+
+        TryDeleteFolder(newFolder);
+        TryDeleteFolder(oldFolder);
 
         Launcher.ReleaseInstanceLock();
         Start(caller);
         Environment.Exit(0);
     }
 
-    private static void CleanFolder(string folder, HashSet<string> exclude)
+    // Renames only, so there is nothing left to fail on a full disk.
+    // On error the old files are put back and the old version restarts.
+    private static void Swap(string destination, string newFolder, string oldFolder)
     {
-        foreach (string file in Directory.EnumerateFiles(folder))
-            if (!exclude.Contains(Path.GetFileName(file)))
-                File.Delete(file);
+        List<string> removed = [];
+        List<string> added = [];
 
-        foreach (string dir in Directory.EnumerateDirectories(folder))
-            if (!exclude.Contains(Path.GetFileName(dir)))
-                Directory.Delete(dir, recursive: true);
+        try
+        {
+            Directory.CreateDirectory(oldFolder);
+
+            foreach (string name in GetNames(destination).Where(n => !Preserve.Contains(n)))
+            {
+                Move(Path.Combine(destination, name), Path.Combine(oldFolder, name));
+                removed.Add(name);
+            }
+
+            foreach (string name in GetNames(newFolder))
+            {
+                Move(Path.Combine(newFolder, name), Path.Combine(destination, name));
+                added.Add(name);
+            }
+        }
+        catch (Exception e)
+        {
+            LogFile.Error("Error while replacing Pulsar files, restoring them: " + e);
+
+            foreach (string name in added)
+                Move(Path.Combine(destination, name), Path.Combine(newFolder, name));
+
+            foreach (string name in removed)
+                Move(Path.Combine(oldFolder, name), Path.Combine(destination, name));
+        }
+    }
+
+    private static List<string> GetNames(string folder) =>
+        [.. Directory.EnumerateFileSystemEntries(folder).Select(Path.GetFileName)];
+
+    private static void Move(string source, string destination)
+    {
+        if (Directory.Exists(source))
+            Directory.Move(source, destination);
+        else
+            File.Move(source, destination);
+    }
+
+    private static void DeleteFolder(string folder)
+    {
+        if (Directory.Exists(folder))
+            Directory.Delete(folder, recursive: true);
+    }
+
+    private static void TryDeleteFolder(string folder)
+    {
+        try
+        {
+            DeleteFolder(folder);
+        }
+        catch (Exception e)
+        {
+            LogFile.Warn($"Cannot delete {folder}: {e.Message}");
+        }
     }
 
     private static bool Validate(string folder)
@@ -338,8 +468,8 @@ file static class LinuxUpdater
             return true;
 
         bool isPulsarInstall = Check.All(name => File.Exists(Path.Combine(folder, name)));
-        bool hasOtherFiles = Directory.GetFileSystemEntries(folder).Length > MaxEntries;
-        if (isPulsarInstall && !hasOtherFiles)
+        int entries = GetNames(folder).Count(n => n != NewFolder && n != OldFolder);
+        if (isPulsarInstall && entries <= MaxEntries)
             return true;
 
         return ContinuePrompt(folder);
