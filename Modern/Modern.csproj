@@ -32,6 +32,13 @@
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>
   <PropertyGroup>
+    <!-- Same GC as Game2/SpaceEngineers2.runtimeconfig.json, since the game runs in our process -->
+    <ServerGarbageCollection>true</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+    <RetainVMGarbageCollection>true</RetainVMGarbageCollection>
+    <GarbageCollectionAdaptationMode>0</GarbageCollectionAdaptationMode>
+  </PropertyGroup>
+  <PropertyGroup>
     <ApplicationIcon>../Interface/Assets/icon.ico</ApplicationIcon>
   </PropertyGroup>
   <PropertyGroup>
