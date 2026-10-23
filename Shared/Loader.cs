@@ -22,6 +22,7 @@ public class Loader
     private readonly CoreConfig config;
     private readonly SplashManager splash;
     private readonly ProfilesConfig profiles;
+    private readonly string[] corePluginIds;
 
     public Loader(string statsServer, string[] forceEnable = null)
     {
@@ -58,6 +59,7 @@ public class Loader
 
         // FIXME: Treat as a plugin dependency in the future.
         forceEnable = Flags.Current.Bare ? [] : forceEnable ?? [];
+        corePluginIds = forceEnable;
         foreach (string id in forceEnable)
         {
             if (
@@ -150,15 +152,19 @@ public class Loader
         splash?.SetText("Reporting plugin usage...");
         LogFile.WriteLine("Reporting plugin usage");
 
-        // Skip local plugins, keep only enabled ones
-        string[] trackablePluginIds = [.. profiles.Current.GetPluginIDs(false)];
-
         // Config has already been validated at this point so all enabled plugins will have list items
         // FIXME: Move into a background thread
-        if (StatsClient.Track(trackablePluginIds))
+        if (StatsClient.Track(GetTrackablePluginIds()))
             LogFile.WriteLine("List of enabled plugins has been sent to the statistics server");
         else
             LogFile.Error("Failed to send the list of enabled plugins to the statistics server");
+    }
+
+    // Enabled non-local profile plugins plus the force-enabled core plugins,
+    // all of which got loaded since a failed core plugin exits Pulsar
+    public string[] GetTrackablePluginIds()
+    {
+        return [.. profiles.Current.GetPluginIDs(false).Union(corePluginIds)];
     }
 
     private IEnumerable<PluginData> GetEnabledPlugins()
