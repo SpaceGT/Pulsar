@@ -6,6 +6,7 @@ using Pulsar.Shared.Config;
 using Pulsar.Shared.Stats;
 using Sandbox.Graphics.GUI;
 using VRageMath;
+using SharedLoader = Pulsar.Shared.Loader;
 
 namespace Pulsar.Legacy.Screens;
 
@@ -131,10 +132,7 @@ public static class PlayerConsent
         config.Save();
 
         if (consent)
-        {
-            ProfilesConfig profiles = ConfigManager.Instance.Profiles;
-            StatsClient.Track([.. profiles.Current.GetPluginIDs(false)]);
-        }
+            StatsClient.Track(SharedLoader.Instance.GetTrackablePluginIds());
 
         OnConsentChanged?.Invoke();
         continuation?.Invoke();
