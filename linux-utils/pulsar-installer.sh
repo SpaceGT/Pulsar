@@ -19,9 +19,9 @@ trap 'echo "Error" >&2' ERR
 
 # Configurable variables
 
-dotnet_url="https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.13/dotnet-runtime-10.0.13-linux-x64.tar.gz"
-dotnet_sha256="958c952691d2c3f8ce21f717f4e911c02b5da0e21ead21bd576368c454b79c77"
-dotnet_tarball=dotnet-runtime-10.0.13-linux-x64.tar.gz
+dotnet_url="https://builds.dotnet.microsoft.com/dotnet/Runtime/10.0.14/dotnet-runtime-10.0.14-linux-x64.tar.gz"
+dotnet_sha256="c57d3fa9a5279eb86f9afb6f7cee3ff4d51de283cf92bfca37e40f0d66152c0b"
+dotnet_tarball=dotnet-runtime-linux-x64.tar.gz
 steam_dir=~/.steam/steam
 
 #
