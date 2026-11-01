@@ -28,9 +28,21 @@ public class Preloader
     {
         foreach (Assembly assembly in assemblies)
         {
-            Type preloader = assembly.GetType(ClassName);
-            if (preloader is not null)
-                AddPreloader(preloader);
+            try
+            {
+                Type preloader = assembly.GetType(ClassName);
+                if (preloader is not null)
+                    AddPreloader(preloader);
+            }
+            catch (Exception e)
+            {
+                // The type has no namespace and the same name in every plugin,
+                // so its exception alone does not say which plugin failed.
+                throw new InvalidOperationException(
+                    $"Preloader plugin '{assembly.GetName().Name}' failed while its Preloader type was read",
+                    e
+                );
+            }
         }
     }
 
