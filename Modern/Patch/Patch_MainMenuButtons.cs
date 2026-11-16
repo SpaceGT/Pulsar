@@ -5,6 +5,7 @@ using Keen.Game2.Client.UI.Menu;
 using Pulsar.Modern.Screens;
 using Pulsar.Modern.Screens.PluginsScreen;
 using Pulsar.Shared.Arguments;
+using Pulsar.Shared.Config;
 using Tools = Pulsar.Shared.Tools;
 
 namespace Pulsar.Modern.Patch;
@@ -15,6 +16,8 @@ internal class Patch_MainMenuButtons
 {
     private static void Postfix(GameMenu __instance)
     {
+        ConfigManager.Instance.List.ConfirmGameVersion();
+
         if (__instance._buttonsPanel == null)
         {
             return;

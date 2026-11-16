@@ -3,6 +3,7 @@ using HarmonyLib;
 using Pulsar.Legacy.Screens;
 using Pulsar.Shared;
 using Pulsar.Shared.Arguments;
+using Pulsar.Shared.Config;
 using Sandbox.Graphics.GUI;
 using SpaceEngineers.Game.GUI;
 using VRage.Game;
@@ -25,6 +26,8 @@ public static class Patch_CreateMainMenu
         MyGuiControlButton ___m_exitGameButton
     )
     {
+        ConfigManager.Instance.List.ConfirmGameVersion();
+
         MyGuiControlButton lastBtn = null;
         foreach (var control in __instance.Controls)
         {

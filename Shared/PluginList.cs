@@ -56,14 +56,21 @@ public class PluginList : IEnumerable<PluginData>
     private string PluginSourceDir => Path.Combine(SourceDir, "Plugins");
     private string HubSourceDir => Path.Combine(SourceDir, "Hubs");
     private readonly string LocalPluginDir;
+    private readonly string GameVersion;
 
     public bool Contains(string id) => Plugins.ContainsKey(id);
 
     public bool TryGetPlugin(string id, out PluginData pluginData) =>
         Plugins.TryGetValue(id, out pluginData);
 
-    public PluginList(string mainDirectory, SourcesConfig sources, ProfilesConfig profiles)
+    public PluginList(
+        string mainDirectory,
+        SourcesConfig sources,
+        ProfilesConfig profiles,
+        Version gameVersion
+    )
     {
+        GameVersion = gameVersion?.ToString();
         LocalPluginDir = Path.Combine(mainDirectory, "Local");
         SourceDir = Path.Combine(mainDirectory, "Sources");
         SourcesConfig = sources;
@@ -181,8 +188,8 @@ public class PluginList : IEnumerable<PluginData>
         PluginData[] list;
         string hubFile = Path.Combine(HubSourceDir, source.Repo.Replace('/', '-') + ".bin");
 
-        // Invalidate the source if its file is deleted
-        if (!File.Exists(hubFile))
+        // Invalidate the source if its file is deleted or the game has been updated
+        if (!File.Exists(hubFile) || source.GameVersion != GameVersion)
         {
             source.Hash = null;
             source.LastCheck = null;
@@ -252,8 +259,8 @@ public class PluginList : IEnumerable<PluginData>
         PluginData pluginData;
         string pluginFile = Path.Combine(PluginSourceDir, source.Repo.Replace('/', '-') + ".bin");
 
-        // Invalidate the source if its file is deleted
-        if (!File.Exists(pluginFile))
+        // Invalidate the source if its file is deleted or the game has been updated
+        if (!File.Exists(pluginFile) || source.GameVersion != GameVersion)
             source.LastCheck = null;
 
         if (
@@ -284,6 +291,30 @@ public class PluginList : IEnumerable<PluginData>
         LoadPluginData(pluginData);
         pluginData.Source = "GitHub";
         purePlugins[source.Repo] = pluginData;
+    }
+
+    /// <summary>
+    /// Marks the remote sources as working with the current game version.
+    /// Until then they are downloaded again on every start, ignoring the cooldown,
+    /// so a game update cannot leave them stuck on stale data.
+    /// Call it once the game has reached the main menu.
+    /// </summary>
+    public void ConfirmGameVersion()
+    {
+        bool changed = false;
+        foreach (RemoteHubConfig source in SourcesConfig.RemoteHubSources)
+        {
+            changed |= source.GameVersion != GameVersion;
+            source.GameVersion = GameVersion;
+        }
+        foreach (RemotePluginConfig source in SourcesConfig.RemotePluginSources)
+        {
+            changed |= source.GameVersion != GameVersion;
+            source.GameVersion = GameVersion;
+        }
+
+        if (changed)
+            SourcesConfig.Save();
     }
 
     private void AddLocalPlugin(LocalPluginConfig source)
