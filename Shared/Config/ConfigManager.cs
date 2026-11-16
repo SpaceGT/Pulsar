@@ -48,7 +48,7 @@ public class ConfigManager
         i.GameVersion = gameVersion;
         i.Profiles = ProfilesConfig.Load(i.PulsarDir);
         i.Sources = SourcesConfig.Load(i.PulsarDir, defaultHubs);
-        i.List = new PluginList(i.PulsarDir, i.Sources, i.Profiles);
+        i.List = new PluginList(i.PulsarDir, i.Sources, i.Profiles, gameVersion);
     }
 
     public void UpdatePlayerStats()
