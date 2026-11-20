@@ -40,6 +40,13 @@ Run the appropriate executable for your game and runtime.<br>
 You can pass `-h` for a list of command line arguments.<br>
 Linux builds run Space Engineers natively **(without Wine)** using [linux-compat][linux-compat] and [linux-compat2][linux-compat2].<br>
 
+Preloaded game assemblies are written and loaded from a directory private to each launch under
+`Preloader/.runs`. Pulsar removes directories from finished launches on a later startup.
+The files directly under `Preloader` are reusable snapshots. When `-lazyPreload` is set,
+Pulsar copies a readable snapshot into the private directory, or rebuilds it from the original
+game assembly if it cannot be loaded. A failed snapshot update leaves the launcher using its
+own patched assembly.
+
 ## Steam
 The Space Engineers [launch options][steam-launch] may be modified so Steam starts Pulsar automatically.<br>
 Replace `[PulsarPath]` with a path to the desired Pulsar executable.<br>
@@ -55,6 +62,10 @@ Further sources may be added in-game but make sure you fully understand the risk
 ## Development
 Fill in the required paths in `Directory.Build.props`.<br>
 You **must** use `dotnet build` due to a [Microsoft bug][msbuild-issue].<br>
+
+Run the [preloader concurrency checks](Tests/Preloader) on Windows with
+`dotnet run --project Tests/Preloader -f net10.0` or `-f net48`. The checks
+use synthetic assemblies and need no game installation.
 
 ## Contact
 We have an active [Discord][discord] for updates and developer information.<br>

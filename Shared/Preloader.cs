@@ -47,25 +47,21 @@ public class Preloader
 
         var readerParams = new ReaderParameters() { AssemblyResolver = resolver };
 
-        if (!Directory.Exists(cacheDir))
-            Directory.CreateDirectory(cacheDir);
+        var cache = new PreloaderCache(cacheDir);
 
         foreach (var kvp in patches)
         {
             string dll = kvp.Key;
             string seDll = Path.Combine(gameDir, dll);
-            string newDll = Path.Combine(cacheDir, dll);
+            string newDll = Path.Combine(cache.RunDirectory, dll);
             HashSet<MethodInfo> patchMethods = kvp.Value;
 
             if (EnsureNotLoaded(Path.GetFileNameWithoutExtension(dll)))
                 continue;
 
             // Can skip non-deterministic Preloaders: use with caution!
-            if (Flags.Current.LazyPreload && File.Exists(newDll))
-            {
-                Assembly.LoadFrom(newDll);
+            if (Flags.Current.LazyPreload && cache.TryLoad(dll))
                 continue;
-            }
 
             if (TryReadAssembly(seDll, readerParams, patchMethods, out var asmDef))
                 continue;
@@ -80,11 +76,10 @@ public class Preloader
             // CLR does not respect pure in-memory references when resolving
             asmDef.Write(newDll);
             Assembly.LoadFrom(newDll);
+            cache.Publish(dll);
         }
 
-        foreach (string file in Directory.GetFiles(cacheDir))
-            if (!patches.ContainsKey(Path.GetFileName(file)))
-                File.Delete(file);
+        cache.Prune(patches.Keys);
     }
 
     public void PostHooks()
