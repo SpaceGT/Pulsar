@@ -43,9 +43,8 @@ internal sealed class PreloaderCache
         }
     }
 
-    public bool TryLoad(string assemblyName)
+    public bool TryLoad(string assemblyName, ref string runPath)
     {
-        string runPath = Path.Combine(RunDirectory, assemblyName);
         try
         {
             // Allow publishers to replace the snapshot while this handle still reads it.
@@ -53,24 +52,34 @@ internal sealed class PreloaderCache
                 FileAccess.Read, FileShare.Read | FileShare.Delete))
             using (var destination = File.Create(runPath))
                 source.CopyTo(destination);
+        }
+        catch (Exception error) when (error is IOException or UnauthorizedAccessException)
+        {
+            return false;
+        }
 
+        try
+        {
             Assembly.LoadFrom(runPath);
             return true;
         }
         catch (Exception error) when (error is IOException or UnauthorizedAccessException or BadImageFormatException)
         {
-            // A missing, locked or invalid snapshot can be rebuilt from the game assembly.
+            // .NET Framework caches failed binds by path. Load the rebuilt assembly from a fresh path.
+            TryDeleteFile(runPath);
+            string rebuilt = Directory.CreateDirectory(Path.Combine(RunDirectory, ".rebuilt")).FullName;
+            runPath = Path.Combine(rebuilt, assemblyName);
             return false;
         }
     }
 
-    public void Publish(string assemblyName)
+    public void Publish(string assemblyName, string runPath)
     {
         string stage = Path.Combine(RunDirectory, Path.GetRandomFileName());
         string snapshot = Path.Combine(cacheDirectory, assemblyName);
         try
         {
-            File.Copy(Path.Combine(RunDirectory, assemblyName), stage, overwrite: true);
+            File.Copy(runPath, stage, overwrite: true);
             for (int attempt = 0; ; attempt++)
             {
                 try
@@ -120,7 +129,14 @@ internal sealed class PreloaderCache
                 using (var lease = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
                     LockLease(lease);
 
-                Directory.Delete(directory, recursive: true);
+                // Keep the lease until cleanup succeeds so a temporarily locked DLL is retried.
+                foreach (string file in Directory.EnumerateFiles(directory))
+                    if (file != path)
+                        File.Delete(file);
+                foreach (string subdirectory in Directory.EnumerateDirectories(directory))
+                    Directory.Delete(subdirectory, recursive: true);
+                File.Delete(path);
+                Directory.Delete(directory);
             }
             catch (Exception error) when (error is IOException or UnauthorizedAccessException)
             {

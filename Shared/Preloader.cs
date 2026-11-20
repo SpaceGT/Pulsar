@@ -60,7 +60,7 @@ public class Preloader
                 continue;
 
             // Can skip non-deterministic Preloaders: use with caution!
-            if (Flags.Current.LazyPreload && cache.TryLoad(dll))
+            if (Flags.Current.LazyPreload && cache.TryLoad(dll, ref newDll))
                 continue;
 
             if (TryReadAssembly(seDll, readerParams, patchMethods, out var asmDef))
@@ -76,7 +76,7 @@ public class Preloader
             // CLR does not respect pure in-memory references when resolving
             asmDef.Write(newDll);
             Assembly.LoadFrom(newDll);
-            cache.Publish(dll);
+            cache.Publish(dll, newDll);
         }
 
         cache.Prune(patches.Keys);

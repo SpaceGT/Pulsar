@@ -87,16 +87,25 @@ try
     int cachedVersion = ReadVersion(snapshot);
     Check(cachedVersion is 4 or 5, "writers published an invalid snapshot");
 
-    WaitForExit(Start("lazy", 6, cachedVersion, lazy: true));
+    if (Path.DirectorySeparatorChar == '\\')
+    {
+        using (File.Open(pathB, FileMode.Open, FileAccess.Read, FileShare.Read))
+        {
+            WaitForExit(Start("lazy", 6, cachedVersion, lazy: true));
+            Check(File.Exists(pathB), "cleanup removed a locked DLL");
+        }
+    }
+    else
+        WaitForExit(Start("lazy", 6, cachedVersion, lazy: true));
     Check(!File.Exists(Path.Combine(fixture, "lazy.patching")), "lazy launch ran the patch");
     Check(File.Exists(pathA) && ReadVersion(pathA) == 4, "a later launch touched the live reader's DLL");
-    Check(!Directory.Exists(Path.GetDirectoryName(pathB)), "a later launch left a finished run behind");
     Check(ReadLoadedPath("lazy") != snapshot, "lazy launch bound the shared snapshot");
     File.WriteAllText(Path.Combine(fixture, "release-reader"), "");
     WaitForExit(writerA);
 
     File.WriteAllText(snapshot, "incomplete old snapshot");
     WaitForExit(Start("recover", 7, 7, lazy: true));
+    Check(!Directory.Exists(Path.GetDirectoryName(pathB)), "a later launch left a finished run behind");
     Check(ReadVersion(snapshot) == 7, "recovery did not leave a usable snapshot");
     Check(ReadVersion(Path.Combine(game, target)) == 1, "preloading modified the game DLL");
     Console.WriteLine("Preloader checks passed");
