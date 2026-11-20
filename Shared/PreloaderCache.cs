@@ -26,8 +26,21 @@ internal sealed class PreloaderCache
         Directory.CreateDirectory(RunDirectory);
 
         // Assembly.LoadFrom may hold these files until the process exits.
-        RunLeases.Add(File.Open(Path.Combine(RunDirectory, LeaseName), FileMode.CreateNew,
-            FileAccess.ReadWrite, FileShare.None));
+        var lease = File.Open(Path.Combine(RunDirectory, LeaseName), FileMode.CreateNew,
+            FileAccess.ReadWrite, FileShare.None);
+        try
+        {
+            LockLease(lease);
+            // Publish the lease only after acquiring it. Until then the file is empty.
+            lease.WriteByte(0);
+            lease.Flush();
+            RunLeases.Add(lease);
+        }
+        catch
+        {
+            lease.Dispose();
+            throw;
+        }
     }
 
     public bool TryLoad(string assemblyName)
@@ -100,11 +113,12 @@ internal sealed class PreloaderCache
         {
             try
             {
-                // A missing lease means the launcher may still be creating the directory.
-                // A released lease can only belong to a process that has exited.
-                using (File.Open(Path.Combine(directory, LeaseName), FileMode.Open, FileAccess.ReadWrite, FileShare.None))
-                {
-                }
+                string path = Path.Combine(directory, LeaseName);
+                if (new FileInfo(path).Length == 0)
+                    continue;
+
+                using (var lease = File.Open(path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+                    LockLease(lease);
 
                 Directory.Delete(directory, recursive: true);
             }
@@ -113,6 +127,17 @@ internal sealed class PreloaderCache
                 // A live launcher or another cleanup can still own the directory.
             }
         }
+    }
+
+    private static void LockLease(FileStream lease)
+    {
+        // Mono on Unix uses byte-range locks for cross-process exclusion. Both
+        // runtimes must honor those locks when they share a Linux cache.
+#if !NETFRAMEWORK
+        if (!OperatingSystem.IsLinux())
+            return;
+#endif
+        lease.Lock(0, 1);
     }
 
     private static void TryDeleteFile(string path)
